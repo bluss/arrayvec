@@ -1,3 +1,4 @@
+use std::iter;
 use std::mem;
 use std::ptr;
 use std::ops::{
@@ -338,6 +339,31 @@ impl<A: Array> Drop for IntoIter<A> {
     }
 }
 
+/// Extend the **ArrayVec** with an iterator.
+/// 
+/// Does not extract more items than there is space for. No error
+/// occurs if there are more iterator elements.
+impl<A: Array> Extend<A::Item> for ArrayVec<A> {
+    fn extend<T: IntoIterator<Item=A::Item>>(&mut self, iter: T) {
+        let take = self.capacity() - self.len();
+        for elt in iter.into_iter().take(take) {
+            self.push(elt);
+        }
+    }
+}
+
+/// Create an **ArrayVec** from an iterator.
+/// 
+/// Does not extract more items than there is space for. No error
+/// occurs if there are more iterator elements.
+impl<A: Array> iter::FromIterator<A::Item> for ArrayVec<A> {
+    fn from_iter<T: IntoIterator<Item=A::Item>>(iter: T) -> Self {
+        let mut array = ArrayVec::new();
+        array.extend(iter);
+        array
+    }
+}
+
 #[test]
 fn test_simple() {
     use std::ops::Add;
@@ -398,4 +424,21 @@ fn test_drop() {
     }
 
     assert_eq!(flag.get(), 4);
+}
+
+#[test]
+fn test_extend() {
+    let mut range = 0..10;
+
+    let mut array: ArrayVec<[_; 5]> = range.by_ref().collect();
+    assert_eq!(&array[..], &[0, 1, 2, 3, 4]);
+    assert_eq!(range.next(), Some(5));
+
+    array.extend(range.by_ref());
+    assert_eq!(range.next(), Some(6));
+
+    let mut array: ArrayVec<[_; 10]> = (0..3).collect();
+    assert_eq!(&array[..], &[0, 1, 2]);
+    array.extend(3..5);
+    assert_eq!(&array[..], &[0, 1, 2, 3, 4]);
 }
