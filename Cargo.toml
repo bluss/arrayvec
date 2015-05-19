@@ -2,6 +2,7 @@
 name = "arrayvec"
 version = "0.1.0"
 authors = ["bluss"]
+license = "MIT/Apache-2.0"
 
 description = "A vector with a fixed capacity."
 documentation = "http://bluss.github.io/arrayvec"
