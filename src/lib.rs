@@ -442,3 +442,10 @@ fn test_extend() {
     array.extend(3..5);
     assert_eq!(&array[..], &[0, 1, 2, 3, 4]);
 }
+
+#[test]
+fn test_is_send_sync() {
+    let data = ArrayVec::<[Vec<i32>; 5]>::new();
+    &data as &Send;
+    &data as &Sync;
+}
