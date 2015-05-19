@@ -1,3 +1,4 @@
+use std::iter;
 use std::mem;
 use std::ptr;
 use std::ops::{
@@ -5,7 +6,13 @@ use std::ops::{
     DerefMut,
 };
 use std::slice;
+
+// extra traits
 use std::convert::From;
+use std::borrow::{Borrow, BorrowMut};
+use std::convert::{AsRef, AsMut};
+use std::hash::{Hash, Hasher};
+use std::fmt;
 
 /// Make sure the non-nullable pointer optimization does not occur!
 enum Flag<T> {
@@ -338,6 +345,77 @@ impl<A: Array> Drop for IntoIter<A> {
     }
 }
 
+/// Extend the **ArrayVec** with an iterator.
+/// 
+/// Does not extract more items than there is space for. No error
+/// occurs if there are more iterator elements.
+impl<A: Array> Extend<A::Item> for ArrayVec<A> {
+    fn extend<T: IntoIterator<Item=A::Item>>(&mut self, iter: T) {
+        let take = self.capacity() - self.len();
+        for elt in iter.into_iter().take(take) {
+            self.push(elt);
+        }
+    }
+}
+
+/// Create an **ArrayVec** from an iterator.
+/// 
+/// Does not extract more items than there is space for. No error
+/// occurs if there are more iterator elements.
+impl<A: Array> iter::FromIterator<A::Item> for ArrayVec<A> {
+    fn from_iter<T: IntoIterator<Item=A::Item>>(iter: T) -> Self {
+        let mut array = ArrayVec::new();
+        array.extend(iter);
+        array
+    }
+}
+
+impl<A: Array> Clone for ArrayVec<A>
+    where A::Item: Clone
+{
+    fn clone(&self) -> Self {
+        self.iter().cloned().collect()
+    }
+}
+
+impl<A: Array> Hash for ArrayVec<A>
+    where A::Item: Hash
+{
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        Hash::hash(&**self, state)
+    }
+}
+
+impl<A: Array> PartialEq for ArrayVec<A>
+    where A::Item: PartialEq
+{
+    fn eq(&self, other: &Self) -> bool {
+        **self == **other
+    }
+}
+
+impl<A: Array> Eq for ArrayVec<A> where A::Item: Eq { }
+
+impl<A: Array> Borrow<[A::Item]> for ArrayVec<A> {
+    fn borrow(&self) -> &[A::Item] { self }
+}
+
+impl<A: Array> BorrowMut<[A::Item]> for ArrayVec<A> {
+    fn borrow_mut(&mut self) -> &mut [A::Item] { self }
+}
+
+impl<A: Array> AsRef<[A::Item]> for ArrayVec<A> {
+    fn as_ref(&self) -> &[A::Item] { self }
+}
+
+impl<A: Array> AsMut<[A::Item]> for ArrayVec<A> {
+    fn as_mut(&mut self) -> &mut [A::Item] { self }
+}
+
+impl<A: Array> fmt::Debug for ArrayVec<A> where A::Item: fmt::Debug {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { (**self).fmt(f) }
+}
+
 #[test]
 fn test_simple() {
     use std::ops::Add;
@@ -351,6 +429,8 @@ fn test_simple() {
     for elt in &vec {
         println!("{:?}", elt);
     }
+
+    println!("{:?}", vec);
 
     let sum = vec.iter().map(|x| x.iter().fold(0, Add::add)).fold(0, Add::add);
     assert_eq!(sum, 13 + 87);
@@ -398,4 +478,28 @@ fn test_drop() {
     }
 
     assert_eq!(flag.get(), 4);
+}
+
+#[test]
+fn test_extend() {
+    let mut range = 0..10;
+
+    let mut array: ArrayVec<[_; 5]> = range.by_ref().collect();
+    assert_eq!(&array[..], &[0, 1, 2, 3, 4]);
+    assert_eq!(range.next(), Some(5));
+
+    array.extend(range.by_ref());
+    assert_eq!(range.next(), Some(6));
+
+    let mut array: ArrayVec<[_; 10]> = (0..3).collect();
+    assert_eq!(&array[..], &[0, 1, 2]);
+    array.extend(3..5);
+    assert_eq!(&array[..], &[0, 1, 2, 3, 4]);
+}
+
+#[test]
+fn test_is_send_sync() {
+    let data = ArrayVec::<[Vec<i32>; 5]>::new();
+    &data as &Send;
+    &data as &Sync;
 }
