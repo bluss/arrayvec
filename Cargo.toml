@@ -1,0 +1,8 @@
+[package]
+name = "arrayvec"
+version = "0.1.0"
+authors = ["bluss"]
+
+[features]
+
+unstable = []
