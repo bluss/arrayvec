@@ -6,7 +6,13 @@ use std::ops::{
     DerefMut,
 };
 use std::slice;
+
+// extra traits
 use std::convert::From;
+use std::borrow::{Borrow, BorrowMut};
+use std::convert::{AsRef, AsMut};
+use std::hash::{Hash, Hasher};
+use std::fmt;
 
 /// Make sure the non-nullable pointer optimization does not occur!
 enum Flag<T> {
@@ -364,6 +370,52 @@ impl<A: Array> iter::FromIterator<A::Item> for ArrayVec<A> {
     }
 }
 
+impl<A: Array> Clone for ArrayVec<A>
+    where A::Item: Clone
+{
+    fn clone(&self) -> Self {
+        self.iter().cloned().collect()
+    }
+}
+
+impl<A: Array> Hash for ArrayVec<A>
+    where A::Item: Hash
+{
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        Hash::hash(&**self, state)
+    }
+}
+
+impl<A: Array> PartialEq for ArrayVec<A>
+    where A::Item: PartialEq
+{
+    fn eq(&self, other: &Self) -> bool {
+        **self == **other
+    }
+}
+
+impl<A: Array> Eq for ArrayVec<A> where A::Item: Eq { }
+
+impl<A: Array> Borrow<[A::Item]> for ArrayVec<A> {
+    fn borrow(&self) -> &[A::Item] { self }
+}
+
+impl<A: Array> BorrowMut<[A::Item]> for ArrayVec<A> {
+    fn borrow_mut(&mut self) -> &mut [A::Item] { self }
+}
+
+impl<A: Array> AsRef<[A::Item]> for ArrayVec<A> {
+    fn as_ref(&self) -> &[A::Item] { self }
+}
+
+impl<A: Array> AsMut<[A::Item]> for ArrayVec<A> {
+    fn as_mut(&mut self) -> &mut [A::Item] { self }
+}
+
+impl<A: Array> fmt::Debug for ArrayVec<A> where A::Item: fmt::Debug {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { (**self).fmt(f) }
+}
+
 #[test]
 fn test_simple() {
     use std::ops::Add;
@@ -377,6 +429,8 @@ fn test_simple() {
     for elt in &vec {
         println!("{:?}", elt);
     }
+
+    println!("{:?}", vec);
 
     let sum = vec.iter().map(|x| x.iter().fold(0, Add::add)).fold(0, Add::add);
     assert_eq!(sum, 13 + 87);
