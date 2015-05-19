@@ -7,7 +7,6 @@ use std::ops::{
 use std::slice;
 use std::convert::From;
 
-
 /// Make sure the non-nullable pointer optimization does not occur!
 enum Flag<T> {
     Alive(T),
@@ -17,7 +16,7 @@ enum Flag<T> {
 
 /// Trait for fixed size arrays.
 pub unsafe trait Array {
-    #[doc(hidden)]
+    /// The array's element type
     type Item;
     #[doc(hidden)]
     unsafe fn new() -> Self;
@@ -94,7 +93,7 @@ impl<A: Array> ArrayVec<A> {
     /// ## Examples
     ///
     /// ```
-    /// use arrayvec::ArrayVec; 
+    /// use arrayvec::ArrayVec;
     ///
     /// let mut array = ArrayVec::<[_; 16]>::new();
     /// array.push(1);
@@ -109,7 +108,7 @@ impl<A: Array> ArrayVec<A> {
     }
 
     #[inline]
-    fn array(&self) -> &A {
+    fn inner_ref(&self) -> &A {
         match self.xs {
             Flag::Alive(ref xs) => xs,
             _ => unreachable!(),
@@ -118,7 +117,7 @@ impl<A: Array> ArrayVec<A> {
     }
 
     #[inline]
-    fn array_mut(&mut self) -> &mut A {
+    fn inner_mut(&mut self) -> &mut A {
         // FIXME: Optimize this, we know it's always Some.
         match self.xs {
             Flag::Alive(ref mut xs) => xs,
@@ -216,7 +215,7 @@ impl<A: Array> Deref for ArrayVec<A> {
     #[inline]
     fn deref(&self) -> &[A::Item] {
         unsafe {
-            slice::from_raw_parts(self.array().as_ptr(), self.len())
+            slice::from_raw_parts(self.inner_ref().as_ptr(), self.len())
         }
     }
 }
@@ -226,7 +225,7 @@ impl<A: Array> DerefMut for ArrayVec<A> {
     fn deref_mut(&mut self) -> &mut [A::Item] {
         let len = self.len();
         unsafe {
-            slice::from_raw_parts_mut(self.array_mut().as_mut_ptr(), len)
+            slice::from_raw_parts_mut(self.inner_mut().as_mut_ptr(), len)
         }
     }
 }
