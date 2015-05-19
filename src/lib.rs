@@ -15,16 +15,6 @@ enum Flag<T> {
     _Unused,
 }
 
-#[derive(Debug)]
-struct Dud(i32);
-
-impl Drop for Dud {
-    fn drop(&mut self) {
-        let Dud(ref i) = *self;
-        println!("Drop Dud({})", *i);
-    }
-}
-
 /// Trait for fixed size arrays.
 pub unsafe trait Array {
     #[doc(hidden)]
@@ -328,15 +318,22 @@ impl<A: Array> Drop for IntoIter<A> {
 
 #[test]
 fn test1() {
+    use std::ops::Add;
+
     let mut vec: ArrayVec<[Vec<i32>; 3]> = ArrayVec::new();
 
-    vec.push(vec![1,2,4,5]);
+    vec.push(vec![1,2,3,4]);
     vec.push(vec![3]);
-    vec.push(vec![97,98,92]);
+    vec.push(vec![-1, 90, -2]);
 
-    for elt in vec {
+    for elt in &vec {
         println!("{:?}", elt);
     }
+
+    let sum = vec.iter().map(|x| x.iter().fold(0, Add::add)).fold(0, Add::add);
+    assert_eq!(sum, 13 + 87);
+    let sum_len = vec.into_iter().map(|x| x.len()).fold(0, Add::add);
+    assert_eq!(sum_len, 8);
 }
 
 fn main() {
@@ -366,19 +363,6 @@ fn main() {
     println!("{:?}", u.len());
     println!("{:?}", u[0]);
 
-
-    let mut v: ArrayVec<[Dud; 2]> = ArrayVec::new();
-    v.push(Dud(1));
-    v.push(Dud(2));
-    v.pop();
-    v.pop();
-    v.pop();
-    v.push(Dud(3));
-    v.pop();
-    v.push(Dud(4));
-    v.push(Dud(5));
-    v.push(Dud(6));
-    //v.pop();
 
     println!("v: {:?}", &*v);
 
