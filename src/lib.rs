@@ -317,7 +317,7 @@ impl<A: Array> Drop for IntoIter<A> {
 }
 
 #[test]
-fn test1() {
+fn test_simple() {
     use std::ops::Add;
 
     let mut vec: ArrayVec<[Vec<i32>; 3]> = ArrayVec::new();
@@ -336,46 +336,44 @@ fn test1() {
     assert_eq!(sum_len, 8);
 }
 
-fn main() {
-    let mut v = ArrayVec::from([1, 2, 3]);
-    v.push(4);
-    v.push(5);
-    println!("{:?}", v.pop());
-    println!("{:?}", v.pop());
-    println!("{:?}", &*v);
-    v.pop();
-    v.pop();
-    v.push(8);
-    println!("{:?}", &*v);
+#[test]
+fn test_drop() {
+    use std::rc::Rc;
+    use std::cell::Cell;
 
-    let mut u: ArrayVec<[_; 3]> = ArrayVec::new();
+    let flag = Rc::new(Cell::new(0));
 
-    u.push(vec![1,2,4,5]);
-    u.push(vec![3]);
-    u.push(vec![97,98,92]);
+    struct Foo(Rc<Cell<i32>>);
+
+    impl Drop for Foo {
+        fn drop(&mut self) {
+            let n = self.0.get();
+            self.0.set(n + 1);
+        }
+    }
 
     {
-        let slc: &[_] = &u;
-        println!("{:?}", slc);
+        let mut array = ArrayVec::<[Foo; 128]>::new();
+        array.push(Foo(flag.clone()));
+        array.push(Foo(flag.clone()));
     }
-    println!("{:?}", u.pop());
-    println!("{:?}", u.pop());
-    println!("{:?}", u.len());
-    println!("{:?}", u[0]);
+    assert_eq!(flag.get(), 2);
 
+    // test something with the nullable pointer optimization
+    flag.set(0);
 
-    println!("v: {:?}", &*v);
-
-    for elt in &v { // slice iter
-        println!("Slice Iter: {:?}", elt);
+    {
+        let mut array = ArrayVec::<[_; 3]>::new();
+        array.push(vec![Foo(flag.clone())]);
+        array.push(vec![Foo(flag.clone()), Foo(flag.clone())]);
+        array.push(vec![]);
+        array.push(vec![Foo(flag.clone())]);
+        assert_eq!(flag.get(), 1);
+        drop(array.pop());
+        assert_eq!(flag.get(), 1);
+        drop(array.pop());
+        assert_eq!(flag.get(), 3);
     }
 
-    for elt in v {
-        println!("Iter: {:?}", elt);
-        //break;
-    }
-
-    for elt in ArrayVec::from(["a".to_string(), "b".to_string()]).into_iter() {
-        println!("Iter: {:?}", elt);
-    }
+    assert_eq!(flag.get(), 4);
 }
