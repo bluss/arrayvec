@@ -3,6 +3,8 @@ name = "arrayvec"
 version = "0.1.0"
 authors = ["bluss"]
 
-[features]
+description = "A vector with a fixed capacity."
+documentation = "http://bluss.github.io/arrayvec"
+repository = "https://github.com/bluss/arrayvec"
 
-unstable = []
+keywords = ["stack", "vector", "array", "container", "data-structure"]
