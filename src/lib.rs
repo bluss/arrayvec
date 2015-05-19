@@ -126,7 +126,7 @@ impl<A: Array> ArrayVec<A> {
         }
     }
 
-    /// Return the length of the **ArrayVec**.
+    /// Return the number of elements in the **ArrayVec**.
     ///
     /// ## Examples
     /// ```
@@ -152,9 +152,9 @@ impl<A: Array> ArrayVec<A> {
     pub fn capacity(&self) -> usize { A::capacity() }
 
 
-    /// Push **elt** to the end of the vector.
+    /// Push **element** to the end of the vector.
     ///
-    /// Return **None** if the push succeeds, or and return **Some(** *elt* **)**
+    /// Return **None** if the push succeeds, or and return **Some(** *element* **)**
     /// if the vector is full.
     ///
     /// ## Examples
@@ -170,16 +170,16 @@ impl<A: Array> ArrayVec<A> {
     /// assert_eq!(&array[..], &[1, 2]);
     /// assert_eq!(overflow, Some(3));
     /// ```
-    pub fn push(&mut self, elt: A::Item) -> Option<A::Item> {
+    pub fn push(&mut self, element: A::Item) -> Option<A::Item> {
         if self.len() < A::capacity() {
             unsafe {
                 let len = self.len();
-                ptr::write(self.get_unchecked_mut(len), elt);
+                ptr::write(self.get_unchecked_mut(len), element);
             }
             self.len += 1;
             None
         } else {
-            Some(elt)
+            Some(element)
         }
     }
 
