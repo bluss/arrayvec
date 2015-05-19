@@ -27,10 +27,15 @@ impl Drop for Dud {
 
 /// Trait for fixed size arrays.
 pub unsafe trait Array {
+    #[doc(hidden)]
     type Item;
+    #[doc(hidden)]
     unsafe fn new() -> Self;
+    #[doc(hidden)]
     fn as_ptr(&self) -> *const Self::Item;
+    #[doc(hidden)]
     fn as_mut_ptr(&mut self) -> *mut Self::Item;
+    #[doc(hidden)]
     fn capacity() -> usize;
 }
 
@@ -62,11 +67,16 @@ fix_array_impl_recursive!(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
 
 /// A vector with a fixed capacity.
 ///
-/// The **ArrayVec** is backed by a fixed size array and keeps track of
+/// The **ArrayVec** is a vector backed by a fixed size array and keeps track of
 /// the number of initialized elements.
 ///
-/// The ArrayVec is a congiguous value that you can store directly on the stack
+/// The vector is a contiguous value that you can store directly on the stack
 /// if needed.
+///
+/// It offers a simple API of *.push()* and *.pop()* but also dereferences to a slice, so
+/// that the full slice API is available.
+///
+/// The vector also implements a by value iterator.
 pub struct ArrayVec<A: Array> {
     len: u8,
     xs: Flag<A>,
@@ -83,18 +93,26 @@ impl<A: Array> Drop for ArrayVec<A> {
 }
 
 impl<A: Array> ArrayVec<A> {
+    /// Create a new empty **ArrayVec**.
+    ///
+    /// Capacity is inferred from the type parameter.
+    ///
+    /// ## Examples
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec; 
+    ///
+    /// let mut array = ArrayVec::<[_; 16]>::new();
+    /// array.push(1);
+    /// array.push(2);
+    /// assert_eq!(&array[..], &[1, 2]);
+    /// assert_eq!(array.capacity(), 16);
+    /// ```
     pub fn new() -> ArrayVec<A> {
         unsafe {
             ArrayVec { xs: Flag::Alive(Array::new()), len: 0 }
         }
     }
-
-    pub fn from(array: A) -> ArrayVec<A> {
-        ArrayVec { xs: Flag::Alive(array), len: A::capacity() as u8 }
-    }
-
-    #[inline]
-    pub fn capacity(&self) -> usize { A::capacity() }
 
     #[inline]
     fn array(&self) -> &A {
@@ -115,9 +133,50 @@ impl<A: Array> ArrayVec<A> {
         }
     }
 
+    /// Return the length of the **ArrayVec**.
+    ///
+    /// ## Examples
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::from([1, 2, 3]);
+    /// array.pop();
+    /// assert_eq!(array.len(), 2);
+    /// ```
     #[inline]
     pub fn len(&self) -> usize { self.len as usize }
 
+    /// Return the capacity of the **ArrayVec**.
+    ///
+    /// ## Examples
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let array = ArrayVec::from([1, 2, 3]);
+    /// assert_eq!(array.capacity(), 3);
+    /// ```
+    #[inline]
+    pub fn capacity(&self) -> usize { A::capacity() }
+
+
+    /// Push **elt** to the end of the vector.
+    ///
+    /// Return **None** if the push succeeds, or and return **Some(** *elt* **)**
+    /// if the vector is full.
+    ///
+    /// ## Examples
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::<[_; 2]>::new();
+    ///
+    /// array.push(1);
+    /// array.push(2);
+    /// let overflow = array.push(3);
+    ///
+    /// assert_eq!(&array[..], &[1, 2]);
+    /// assert_eq!(overflow, Some(3));
+    /// ```
     pub fn push(&mut self, elt: A::Item) -> Option<A::Item> {
         if self.len() < A::capacity() {
             unsafe {
@@ -131,6 +190,21 @@ impl<A: Array> ArrayVec<A> {
         }
     }
 
+    /// Remove the last element in the vector.
+    ///
+    /// Return **Some(** *element* **)** if the vector is non-empty, else **None**.
+    ///
+    /// ## Examples
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::<[_; 2]>::new();
+    ///
+    /// array.push(1);
+    ///
+    /// assert_eq!(array.pop(), Some(1));
+    /// assert_eq!(array.pop(), None);
+    /// ```
     pub fn pop(&mut self) -> Option<A::Item> {
         if self.len == 0 {
             return None
@@ -163,12 +237,55 @@ impl<A: Array> DerefMut for ArrayVec<A> {
     }
 }
 
+/// Create an **ArrayVec** from an array.
+///
+/// ## Examples
+/// ```
+/// use arrayvec::ArrayVec;
+///
+/// let mut array = ArrayVec::from([1, 2, 3]);
+/// assert_eq!(array.len(), 3);
+/// assert_eq!(array.capacity(), 3);
+/// ```
+impl<A: Array> From<A> for ArrayVec<A> {
+    fn from(array: A) -> Self {
+        ArrayVec { xs: Flag::Alive(array), len: A::capacity() as u8 }
+    }
+}
+
+
+/// Iterate the **ArrayVec** with references to each element.
+///
+/// ## Examples
+///
+/// ```
+/// use arrayvec::ArrayVec;
+///
+/// let array = ArrayVec::from([1, 2, 3]);
+///
+/// for elt in &array {
+///     // ...
+/// }
+/// ```
 impl<'a, A: Array> IntoIterator for &'a ArrayVec<A> {
     type Item = &'a A::Item;
     type IntoIter = slice::Iter<'a, A::Item>;
     fn into_iter(self) -> Self::IntoIter { self.iter() }
 }
 
+/// Iterate the **ArrayVec** with each element by value.
+///
+/// The vector is consumed by this operation.
+///
+/// ## Examples
+///
+/// ```
+/// use arrayvec::ArrayVec;
+///
+/// for elt in ArrayVec::from([1, 2, 3]) {
+///     // ...
+/// }
+/// ```
 impl<A: Array> IntoIterator for ArrayVec<A> {
     type Item = A::Item;
     type IntoIter = IntoIter<A>;
