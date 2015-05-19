@@ -33,6 +33,10 @@ macro_rules! fix_array_impl {
     ($len:expr ) => (
         unsafe impl<T> Array for [T; $len] {
             type Item = T;
+            /// Note: Returnin an uninitialized value here only works
+            /// if we can be sure the data is never used. The nullable pointer
+            /// inside enum optimization conflicts with this this for example,
+            /// so we need to be extra careful. See `Flag` enum.
             unsafe fn new() -> [T; $len] { mem::uninitialized() }
             #[inline]
             fn as_ptr(&self) -> *const T { self as *const _ as *const _ }
