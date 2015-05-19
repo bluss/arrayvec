@@ -266,6 +266,25 @@ impl<'a, A: Array> IntoIterator for &'a ArrayVec<A> {
     fn into_iter(self) -> Self::IntoIter { self.iter() }
 }
 
+/// Iterate the **ArrayVec** with mutable references to each element.
+///
+/// ## Examples
+///
+/// ```
+/// use arrayvec::ArrayVec;
+///
+/// let mut array = ArrayVec::from([1, 2, 3]);
+///
+/// for elt in &mut array {
+///     // ...
+/// }
+/// ```
+impl<'a, A: Array> IntoIterator for &'a mut ArrayVec<A> {
+    type Item = &'a mut A::Item;
+    type IntoIter = slice::IterMut<'a, A::Item>;
+    fn into_iter(self) -> Self::IntoIter { self.iter_mut() }
+}
+
 /// Iterate the **ArrayVec** with each element by value.
 ///
 /// The vector is consumed by this operation.
