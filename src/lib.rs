@@ -322,6 +322,7 @@ pub struct IntoIter<A: Array> {
 impl<A: Array> Iterator for IntoIter<A> {
     type Item = A::Item;
 
+    #[inline]
     fn next(&mut self) -> Option<A::Item> {
         if self.index == self.v.len {
             None
@@ -334,7 +335,30 @@ impl<A: Array> Iterator for IntoIter<A> {
             }
         }
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let len = self.v.len() - self.index as usize;
+        (len, Some(len))
+    }
 }
+
+impl<A: Array> DoubleEndedIterator for IntoIter<A> {
+    #[inline]
+    fn next_back(&mut self) -> Option<A::Item> {
+        if self.index == self.v.len {
+            None
+        } else {
+            unsafe {
+                self.v.len -= 1;
+                let len = self.v.len();
+                let elt = ptr::read(self.v.get_unchecked_mut(len));
+                Some(elt)
+            }
+        }
+    }
+}
+
+impl<A: Array> ExactSizeIterator for IntoIter<A> { }
 
 impl<A: Array> Drop for IntoIter<A> {
     fn drop(&mut self) {
@@ -435,6 +459,17 @@ fn test_simple() {
     assert_eq!(sum, 13 + 87);
     let sum_len = vec.into_iter().map(|x| x.len()).fold(0, Add::add);
     assert_eq!(sum_len, 8);
+}
+
+#[test]
+fn test_iter() {
+    let mut iter = ArrayVec::from([1, 2, 3]).into_iter();
+    assert_eq!(iter.size_hint(), (3, Some(3)));
+    assert_eq!(iter.next_back(), Some(3));
+    assert_eq!(iter.next(), Some(1));
+    assert_eq!(iter.next_back(), Some(2));
+    assert_eq!(iter.size_hint(), (0, Some(0)));
+    assert_eq!(iter.next_back(), None);
 }
 
 #[test]
