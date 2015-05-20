@@ -44,10 +44,11 @@ macro_rules! fix_array_impl {
             /// inside enum optimization conflicts with this this for example,
             /// so we need to be extra careful. See `Flag` enum.
             unsafe fn new() -> [T; $len] { mem::uninitialized() }
-            #[inline]
+            #[inline(always)]
             fn as_ptr(&self) -> *const T { self as *const _ as *const _ }
+            #[inline(always)]
             fn as_mut_ptr(&mut self) -> *mut T { self as *mut _ as *mut _}
-            #[inline]
+            #[inline(always)]
             fn capacity() -> usize { $len }
         }
     )
