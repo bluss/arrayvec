@@ -8,17 +8,15 @@ use std::ops::{
 use std::slice;
 
 // extra traits
-use std::convert::From;
 use std::borrow::{Borrow, BorrowMut};
-use std::convert::{AsRef, AsMut};
 use std::hash::{Hash, Hasher};
 use std::fmt;
 
 /// Make sure the non-nullable pointer optimization does not occur!
+#[repr(u8)]
 enum Flag<T> {
-    Alive(T),
     Dropped,
-    _Unused,
+    Alive(T),
 }
 
 /// Trait for fixed size arrays.
@@ -44,10 +42,11 @@ macro_rules! fix_array_impl {
             /// inside enum optimization conflicts with this this for example,
             /// so we need to be extra careful. See `Flag` enum.
             unsafe fn new() -> [T; $len] { mem::uninitialized() }
-            #[inline]
+            #[inline(always)]
             fn as_ptr(&self) -> *const T { self as *const _ as *const _ }
+            #[inline(always)]
             fn as_mut_ptr(&mut self) -> *mut T { self as *mut _ as *mut _}
-            #[inline]
+            #[inline(always)]
             fn capacity() -> usize { $len }
         }
     )
@@ -78,8 +77,8 @@ fix_array_impl_recursive!(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
 ///
 /// The vector also implements a by value iterator.
 pub struct ArrayVec<A: Array> {
-    len: u8,
     xs: Flag<A>,
+    len: u8,
 }
 
 impl<A: Array> Drop for ArrayVec<A> {
@@ -323,6 +322,7 @@ pub struct IntoIter<A: Array> {
 impl<A: Array> Iterator for IntoIter<A> {
     type Item = A::Item;
 
+    #[inline]
     fn next(&mut self) -> Option<A::Item> {
         if self.index == self.v.len {
             None
@@ -335,7 +335,30 @@ impl<A: Array> Iterator for IntoIter<A> {
             }
         }
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let len = self.v.len() - self.index as usize;
+        (len, Some(len))
+    }
 }
+
+impl<A: Array> DoubleEndedIterator for IntoIter<A> {
+    #[inline]
+    fn next_back(&mut self) -> Option<A::Item> {
+        if self.index == self.v.len {
+            None
+        } else {
+            unsafe {
+                self.v.len -= 1;
+                let len = self.v.len();
+                let elt = ptr::read(self.v.get_unchecked_mut(len));
+                Some(elt)
+            }
+        }
+    }
+}
+
+impl<A: Array> ExactSizeIterator for IntoIter<A> { }
 
 impl<A: Array> Drop for IntoIter<A> {
     fn drop(&mut self) {
@@ -439,6 +462,17 @@ fn test_simple() {
 }
 
 #[test]
+fn test_iter() {
+    let mut iter = ArrayVec::from([1, 2, 3]).into_iter();
+    assert_eq!(iter.size_hint(), (3, Some(3)));
+    assert_eq!(iter.next_back(), Some(3));
+    assert_eq!(iter.next(), Some(1));
+    assert_eq!(iter.next_back(), Some(2));
+    assert_eq!(iter.size_hint(), (0, Some(0)));
+    assert_eq!(iter.next_back(), None);
+}
+
+#[test]
 fn test_drop() {
     use std::rc::Rc;
     use std::cell::Cell;
@@ -502,4 +536,23 @@ fn test_is_send_sync() {
     let data = ArrayVec::<[Vec<i32>; 5]>::new();
     &data as &Send;
     &data as &Sync;
+}
+
+#[test]
+fn test_no_nonnullable_opt() {
+    // Make sure `Flag` does not apply the non-nullable pointer optimization
+    // as Option would do.
+    assert!(mem::size_of::<Flag<&i32>>() > mem::size_of::<&i32>());
+    assert!(mem::size_of::<Flag<Vec<i32>>>() > mem::size_of::<Vec<i32>>());
+}
+
+#[test]
+fn test_compact_size() {
+    // 4 elements size + 1 len + 1 enum tag + [1 drop flag]
+    type ByteArray = ArrayVec<[u8; 4]>;
+    assert!(mem::size_of::<ByteArray>() <= 7);
+
+    // 12 element size + 1 len + 1 drop flag + 2 padding + 1 enum tag + 3 padding
+    type QuadArray = ArrayVec<[u32; 3]>;
+    assert!(mem::size_of::<QuadArray>() <= 20);
 }
