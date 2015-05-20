@@ -77,8 +77,8 @@ fix_array_impl_recursive!(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
 ///
 /// The vector also implements a by value iterator.
 pub struct ArrayVec<A: Array> {
-    len: u8,
     xs: Flag<A>,
+    len: u8,
 }
 
 impl<A: Array> Drop for ArrayVec<A> {
@@ -536,4 +536,22 @@ fn test_is_send_sync() {
     let data = ArrayVec::<[Vec<i32>; 5]>::new();
     &data as &Send;
     &data as &Sync;
+}
+
+#[test]
+fn test_no_nonnullable_opt() {
+    // Make sure `Flag` does not apply the non-nullable pointer optimization
+    // as Option would do.
+    assert!(mem::size_of::<Flag<&()>>() > mem::size_of::<&()>());
+}
+
+#[test]
+fn test_compact_size() {
+    // 4 elements size + 1 len + 1 enum tag + [1 drop flag]
+    type ByteArray = ArrayVec<[u8; 4]>;
+    assert!(mem::size_of::<ByteArray>() <= 7);
+
+    // 12 element size + 1 len + 1 drop flag + 2 padding + 1 enum tag + 3 padding
+    type QuadArray = ArrayVec<[u32; 3]>;
+    assert!(mem::size_of::<QuadArray>() <= 20);
 }
