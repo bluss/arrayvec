@@ -13,10 +13,10 @@ use std::hash::{Hash, Hasher};
 use std::fmt;
 
 /// Make sure the non-nullable pointer optimization does not occur!
+#[repr(u8)]
 enum Flag<T> {
-    Alive(T),
     Dropped,
-    _Unused,
+    Alive(T),
 }
 
 /// Trait for fixed size arrays.
@@ -542,7 +542,8 @@ fn test_is_send_sync() {
 fn test_no_nonnullable_opt() {
     // Make sure `Flag` does not apply the non-nullable pointer optimization
     // as Option would do.
-    assert!(mem::size_of::<Flag<&()>>() > mem::size_of::<&()>());
+    assert!(mem::size_of::<Flag<&i32>>() > mem::size_of::<&i32>());
+    assert!(mem::size_of::<Flag<Vec<i32>>>() > mem::size_of::<Vec<i32>>());
 }
 
 #[test]
