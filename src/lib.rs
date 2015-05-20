@@ -8,9 +8,7 @@ use std::ops::{
 use std::slice;
 
 // extra traits
-use std::convert::From;
 use std::borrow::{Borrow, BorrowMut};
-use std::convert::{AsRef, AsMut};
 use std::hash::{Hash, Hasher};
 use std::fmt;
 
