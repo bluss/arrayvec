@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="API documentation for the Rust `arrayvec` crate.">
-    <meta name="keywords" content="rust, rustlang, rust-lang, arrayvec">
+    <meta name="description" content="API documentation for the Rust `nodrop` crate.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, nodrop">
 
-    <title>arrayvec - 0.2.0 - arrayvec - Rust</title>
+    <title>arrayvec - 0.2.0 - nodrop - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../main.css">
 
@@ -26,7 +26,7 @@
 
     <section class="sidebar">
         
-        <p class='location'></p><script>window.sidebarCurrent = {name: 'arrayvec', ty: 'mod', relpath: '../'};</script>
+        <p class='location'></p><script>window.sidebarCurrent = {name: 'nodrop', ty: 'mod', relpath: '../'};</script>
     </section>
 
     <nav class="sub">
@@ -41,37 +41,18 @@
     </nav>
 
     <section id='main' class="content mod">
-<h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>arrayvec</a></span><span class='out-of-band'><span id='render-detail'>
+<h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>nodrop</a></span><span class='out-of-band'><span id='render-detail'>
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/arrayvec/lib.rs.html#1-528' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-0' class='srclink' href='../src/nodrop/lib.rs.html#1-140' title='goto source code'>[src]</a></span></h1>
 <h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
                     <tr class=' module-item'>
-                        <td><a class='struct' href='struct.ArrayVec.html'
-                               title='arrayvec::ArrayVec'>ArrayVec</a></td>
+                        <td><a class='struct' href='struct.NoDrop.html'
+                               title='nodrop::NoDrop'>NoDrop</a></td>
                         <td class='docblock short'>
-                             <p>A vector with a fixed capacity.</p>
-
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.IntoIter.html'
-                               title='arrayvec::IntoIter'>IntoIter</a></td>
-                        <td class='docblock short'>
-                             <p>By-value iterator for ArrayVec.</p>
-
-                        </td>
-                    </tr>
-                </table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
-<table>
-                    <tr class=' module-item'>
-                        <td><a class='trait' href='trait.Array.html'
-                               title='arrayvec::Array'>Array</a></td>
-                        <td class='docblock short'>
-                             <p>Trait for fixed size arrays.</p>
+                             <p>A type holding <strong>T</strong> that will not call its destructor on drop</p>
 
                         </td>
                     </tr>
@@ -119,7 +100,7 @@
 
     <script>
         window.rootPath = "../";
-        window.currentCrate = "arrayvec";
+        window.currentCrate = "nodrop";
         window.playgroundUrl = "";
     </script>
     <script src="../jquery.js"></script>
