@@ -1,0 +1,12 @@
+[package]
+name = "nodrop"
+version = "0.1.0"
+authors = ["bluss"]
+
+license = "MIT/Apache-2.0"
+
+description = "A wrapper type to inhibit drop (destructor)."
+documentation = "http://bluss.github.io/arrayvec/doc/nodrop"
+repository = "https://github.com/bluss/arrayvec"
+
+keywords = ["container", "drop"]

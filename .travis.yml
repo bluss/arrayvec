@@ -8,5 +8,7 @@ script:
   - |
       cargo build --verbose --features "$FEATURES"
       cargo test --verbose --features "$FEATURES"
+      cargo test --verbose --manifest-path=nodrop/Cargo.toml
       cargo bench --verbose --features "$FEATURES" -- --test
+      cargo bench --verbose --manifest-path=nodrop/Cargo.toml -- --test
       cargo doc --verbose --features "$FEATURES"

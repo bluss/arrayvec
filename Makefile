@@ -1,6 +1,6 @@
 
 docs: VERSION
-	cargo doc --no-deps
+	cargo doc
 	rm -rf ./doc
 	cp -r ./target/doc ./doc
 	# Put in the crate version into the docs

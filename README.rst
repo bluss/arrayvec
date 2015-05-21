@@ -8,13 +8,16 @@ Please read the `API documentation here`__
 
 __ http://bluss.github.io/arrayvec
 
-|build_status|_ |crates|_
+|build_status|_ |crates|_ |crates2|_
 
 .. |build_status| image:: https://travis-ci.org/bluss/arrayvec.svg
 .. _build_status: https://travis-ci.org/bluss/arrayvec
 
 .. |crates| image:: http://meritbadge.herokuapp.com/arrayvec
 .. _crates: https://crates.io/crates/arrayvec
+
+.. |crates2| image:: http://meritbadge.herokuapp.com/nodrop
+.. _crates2: https://crates.io/crates/nodrop
 
 License
 =======

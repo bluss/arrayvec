@@ -1,3 +1,7 @@
+extern crate nodrop;
+
+use nodrop::NoDrop;
+
 use std::iter;
 use std::mem;
 use std::ptr;
@@ -11,13 +15,6 @@ use std::slice;
 use std::borrow::{Borrow, BorrowMut};
 use std::hash::{Hash, Hasher};
 use std::fmt;
-
-/// Make sure the non-nullable pointer optimization does not occur!
-#[repr(u8)]
-enum Flag<T> {
-    Dropped,
-    Alive(T),
-}
 
 /// Trait for fixed size arrays.
 pub unsafe trait Array {
@@ -77,17 +74,14 @@ fix_array_impl_recursive!(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
 ///
 /// The vector also implements a by value iterator.
 pub struct ArrayVec<A: Array> {
-    xs: Flag<A>,
+    xs: NoDrop<A>,
     len: u8,
 }
 
 impl<A: Array> Drop for ArrayVec<A> {
     fn drop(&mut self) {
-        // clear all elements, then inhibit drop of inner array
+        // clear all elements, then NoDrop inhibits drop of inner array
         while let Some(_) = self.pop() { }
-        unsafe {
-            ptr::write(&mut self.xs, Flag::Dropped);
-        }
     }
 }
 
@@ -109,26 +103,7 @@ impl<A: Array> ArrayVec<A> {
     /// ```
     pub fn new() -> ArrayVec<A> {
         unsafe {
-            ArrayVec { xs: Flag::Alive(Array::new()), len: 0 }
-        }
-    }
-
-    #[inline]
-    fn inner_ref(&self) -> &A {
-        match self.xs {
-            Flag::Alive(ref xs) => xs,
-            _ => unreachable!(),
-            //_ => std::intrinsics::unreachable(),
-        }
-    }
-
-    #[inline]
-    fn inner_mut(&mut self) -> &mut A {
-        // FIXME: Optimize this, we know it's always Some.
-        match self.xs {
-            Flag::Alive(ref mut xs) => xs,
-            _ => unreachable!(),
-            //_ => std::intrinsics::unreachable(),
+            ArrayVec { xs: NoDrop::new(Array::new()), len: 0 }
         }
     }
 
@@ -221,7 +196,7 @@ impl<A: Array> Deref for ArrayVec<A> {
     #[inline]
     fn deref(&self) -> &[A::Item] {
         unsafe {
-            slice::from_raw_parts(self.inner_ref().as_ptr(), self.len())
+            slice::from_raw_parts(self.xs.as_ptr(), self.len())
         }
     }
 }
@@ -231,7 +206,7 @@ impl<A: Array> DerefMut for ArrayVec<A> {
     fn deref_mut(&mut self) -> &mut [A::Item] {
         let len = self.len();
         unsafe {
-            slice::from_raw_parts_mut(self.inner_mut().as_mut_ptr(), len)
+            slice::from_raw_parts_mut(self.xs.as_mut_ptr(), len)
         }
     }
 }
@@ -248,7 +223,7 @@ impl<A: Array> DerefMut for ArrayVec<A> {
 /// ```
 impl<A: Array> From<A> for ArrayVec<A> {
     fn from(array: A) -> Self {
-        ArrayVec { xs: Flag::Alive(array), len: A::capacity() as u8 }
+        ArrayVec { xs: NoDrop::new(array), len: A::capacity() as u8 }
     }
 }
 
@@ -539,20 +514,15 @@ fn test_is_send_sync() {
 }
 
 #[test]
-fn test_no_nonnullable_opt() {
-    // Make sure `Flag` does not apply the non-nullable pointer optimization
-    // as Option would do.
-    assert!(mem::size_of::<Flag<&i32>>() > mem::size_of::<&i32>());
-    assert!(mem::size_of::<Flag<Vec<i32>>>() > mem::size_of::<Vec<i32>>());
-}
-
-#[test]
 fn test_compact_size() {
-    // 4 elements size + 1 len + 1 enum tag + [1 drop flag]
+    // Future rust will kill these drop flags!
+    // 4 elements size + 1 len + 1 enum tag + [1 drop flag] + [1 drop flag nodrop]
     type ByteArray = ArrayVec<[u8; 4]>;
-    assert!(mem::size_of::<ByteArray>() <= 7);
+    println!("{}", mem::size_of::<ByteArray>());
+    assert!(mem::size_of::<ByteArray>() <= 8);
 
     // 12 element size + 1 len + 1 drop flag + 2 padding + 1 enum tag + 3 padding
     type QuadArray = ArrayVec<[u32; 3]>;
-    assert!(mem::size_of::<QuadArray>() <= 20);
+    println!("{}", mem::size_of::<QuadArray>());
+    assert!(mem::size_of::<QuadArray>() <= 24);
 }
