@@ -24,10 +24,12 @@ impl<T> NoDrop<T> {
     /// Once extracted, the value can of course drop again.
     #[inline]
     pub fn into_inner(mut self) -> T {
-        let inner_ptr = &mut *self;
-        unsafe {
-            ptr::read(inner_ptr)
-        }
+        let inner = unsafe {
+            ptr::read(&mut *self)
+        };
+        // skip Drop, so we don't even have to overwrite
+        mem::forget(self);
+        inner
     }
 }
 
