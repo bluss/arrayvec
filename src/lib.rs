@@ -449,14 +449,13 @@ fn test_iter() {
 
 #[test]
 fn test_drop() {
-    use std::rc::Rc;
     use std::cell::Cell;
 
-    let flag = Rc::new(Cell::new(0));
+    let flag = &Cell::new(0);
 
-    struct Foo(Rc<Cell<i32>>);
+    struct Bump<'a>(&'a Cell<i32>);
 
-    impl Drop for Foo {
+    impl<'a> Drop for Bump<'a> {
         fn drop(&mut self) {
             let n = self.0.get();
             self.0.set(n + 1);
@@ -464,9 +463,9 @@ fn test_drop() {
     }
 
     {
-        let mut array = ArrayVec::<[Foo; 128]>::new();
-        array.push(Foo(flag.clone()));
-        array.push(Foo(flag.clone()));
+        let mut array = ArrayVec::<[Bump; 128]>::new();
+        array.push(Bump(flag));
+        array.push(Bump(flag));
     }
     assert_eq!(flag.get(), 2);
 
@@ -475,10 +474,10 @@ fn test_drop() {
 
     {
         let mut array = ArrayVec::<[_; 3]>::new();
-        array.push(vec![Foo(flag.clone())]);
-        array.push(vec![Foo(flag.clone()), Foo(flag.clone())]);
+        array.push(vec![Bump(flag)]);
+        array.push(vec![Bump(flag), Bump(flag)]);
         array.push(vec![]);
-        array.push(vec![Foo(flag.clone())]);
+        array.push(vec![Bump(flag)]);
         assert_eq!(flag.get(), 1);
         drop(array.pop());
         assert_eq!(flag.get(), 1);
