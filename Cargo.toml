@@ -1,10 +1,10 @@
 [package]
 name = "arrayvec"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["bluss"]
 license = "MIT/Apache-2.0"
 
-description = "A vector with a fixed capacity."
+description = "A vector with a fixed capacity, it can be stored on the stack too."
 documentation = "http://bluss.github.io/arrayvec"
 repository = "https://github.com/bluss/arrayvec"
 
