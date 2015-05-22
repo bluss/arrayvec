@@ -776,4 +776,8 @@ fn test_insert() {
     assert_eq!(&v[..], &[0, 1, 2]);
     v.insert(1, 9);
     assert_eq!(&v[..], &[0, 9, 1]);
+
+    let mut v = ArrayVec::from([2]);
+    assert_eq!(v.insert(1, 1), Some(1));
+    assert_eq!(v.insert(2, 1), Some(1));
 }
