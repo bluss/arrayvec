@@ -7,7 +7,7 @@
     <meta name="description" content="API documentation for the Rust `ArrayVec` struct in crate `arrayvec`.">
     <meta name="keywords" content="rust, rustlang, rust-lang, ArrayVec">
 
-    <title>arrayvec - 0.3.0 - arrayvec::ArrayVec - Rust</title>
+    <title>arrayvec - 0.3.1 - arrayvec::ArrayVec - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../main.css">
 
@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-2038' class='srclink' href='../src/arrayvec/lib.rs.html#45-48' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-2664' class='srclink' href='../src/arrayvec/lib.rs.html#46-49' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct ArrayVec&lt;A: <a class='trait' href='../arrayvec/trait.Array.html' title='arrayvec::Array'>Array</a>&gt; {
     // some fields omitted
 }</pre><div class='docblock'><p>A vector with a fixed capacity.</p>
@@ -150,7 +150,7 @@ if the vector is full.</p>
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>array</span>.<span class='ident'>swap_remove</span>(<span class='number'>10</span>), <span class='prelude-val'>None</span>);
 </pre>
 </div><h4 id='method.remove' class='method'><code>fn <a href='#method.remove' class='fnname'>remove</a>(&amp;mut self, index: <a href='http://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;A&gt;</code></h4>
-<div class='docblock'><p>Remove the element at <strong>index</strong> and shift the following elements down.</p>
+<div class='docblock'><p>Remove the element at <strong>index</strong> and shift down the following elements.</p>
 
 <p>Return <strong>Some(</strong> <em>element</em> <strong>)</strong> if the index is in bounds, else <strong>None</strong>.</p>
 
@@ -164,6 +164,25 @@ if the vector is full.</p>
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='kw-2'>&amp;</span><span class='ident'>array</span>[..], <span class='kw-2'>&amp;</span>[<span class='number'>2</span>, <span class='number'>3</span>]);
 
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>array</span>.<span class='ident'>remove</span>(<span class='number'>10</span>), <span class='prelude-val'>None</span>);
+</pre>
+</div><h4 id='method.insert' class='method'><code>fn <a href='#method.insert' class='fnname'>insert</a>(&amp;mut self, index: <a href='http://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>, element: A) -&gt; <a class='enum' href='http://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;A&gt;</code></h4>
+<div class='docblock'><p>Insert <strong>element</strong> in position <strong>index</strong>.</p>
+
+<p>Shift up all elements after <strong>index</strong>. If any is pushed out, it is returned.</p>
+
+<p>Return None if no element is shifted out.</p>
+
+<h2 id="examples" class='section-header'><a
+                           href="#examples">Examples</a></h2><pre id='rust-example-rendered' class='rust '>
+<span class='kw'>use</span> <span class='ident'>arrayvec</span>::<span class='ident'>ArrayVec</span>;
+
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>array</span> <span class='op'>=</span> <span class='ident'>ArrayVec</span>::<span class='op'>&lt;</span>[_; <span class='number'>2</span>]<span class='op'>&gt;</span>::<span class='ident'>new</span>();
+
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>array</span>.<span class='ident'>insert</span>(<span class='number'>0</span>, <span class='string'>&quot;x&quot;</span>), <span class='prelude-val'>None</span>);
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>array</span>.<span class='ident'>insert</span>(<span class='number'>0</span>, <span class='string'>&quot;y&quot;</span>), <span class='prelude-val'>None</span>);
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>array</span>.<span class='ident'>insert</span>(<span class='number'>0</span>, <span class='string'>&quot;z&quot;</span>), <span class='prelude-val'>Some</span>(<span class='string'>&quot;x&quot;</span>));
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>array</span>.<span class='ident'>insert</span>(<span class='number'>1</span>, <span class='string'>&quot;w&quot;</span>), <span class='prelude-val'>Some</span>(<span class='string'>&quot;y&quot;</span>));
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='kw-2'>&amp;</span><span class='ident'>array</span>[..], <span class='kw-2'>&amp;</span>[<span class='string'>&quot;z&quot;</span>, <span class='string'>&quot;w&quot;</span>]);
 </pre>
 </div><h4 id='method.drain' class='method'><code>fn <a href='#method.drain' class='fnname'>drain</a>&lt;R: <a class='trait' href='../arrayvec/trait.RangeArgument.html' title='arrayvec::RangeArgument'>RangeArgument</a>&gt;(&amp;mut self, range: R) -&gt; <a class='struct' href='../arrayvec/struct.Drain.html' title='arrayvec::Drain'>Drain</a>&lt;A&gt;</code></h4>
 <div class='docblock'><p>Create a draining iterator that removes the specified range in the vector
