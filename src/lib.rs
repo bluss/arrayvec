@@ -90,6 +90,11 @@ impl<A: Array> ArrayVec<A> {
     #[inline]
     pub fn len(&self) -> usize { self.len.to_usize() }
 
+    fn set_len(&mut self, length: usize) {
+        debug_assert!(length <= self.capacity());
+        self.len = Index::from(length);
+    }
+
     /// Return the capacity of the **ArrayVec**.
     ///
     /// ## Examples
@@ -186,7 +191,7 @@ impl<A: Array> ArrayVec<A> {
         self.pop()
     }
 
-    /// Remove the element at **index** and shift the following elements down.
+    /// Remove the element at **index** and shift down the following elements.
     ///
     /// Return **Some(** *element* **)** if the index is in bounds, else **None**.
     ///
@@ -207,6 +212,53 @@ impl<A: Array> ArrayVec<A> {
         } else {
             self.drain(index..index + 1).next()
         }
+    }
+
+    /// Insert **element** in position **index**.
+    ///
+    /// Shift up all elements after **index**. If any is pushed out, it is returned.
+    ///
+    /// Return None if no element is shifted out.
+    ///
+    /// ## Examples
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::<[_; 2]>::new();
+    ///
+    /// assert_eq!(array.insert(0, "x"), None);
+    /// assert_eq!(array.insert(0, "y"), None);
+    /// assert_eq!(array.insert(0, "z"), Some("x"));
+    /// assert_eq!(array.insert(1, "w"), Some("y"));
+    /// assert_eq!(&array[..], &["z", "w"]);
+    ///
+    /// ```
+    pub fn insert(&mut self, index: usize, element: A::Item) -> Option<A::Item> {
+        if index >= self.capacity() {
+            return Some(element);
+        }
+        let mut ret = None;
+        let old_len = self.len();
+        if old_len == self.capacity() {
+            ret = self.remove(old_len - 1);
+        }
+        let len = self.len();
+
+        // follows is just like Vec<T>
+        unsafe { // infallible
+            // The spot to put the new value
+            {
+                let p = self.as_mut_ptr().offset(index as isize);
+                // Shift everything over to make space. (Duplicating the
+                // `index`th element into two consecutive places.)
+                ptr::copy(&*p, p.offset(1), len - index);
+                // Write it in, overwriting the first copy of the `index`th
+                // element.
+                ptr::write(&mut *p, element);
+            }
+            self.set_len(len + 1);
+        }
+        ret
     }
 
     /// Create a draining iterator that removes the specified range in the vector
@@ -708,4 +760,20 @@ fn test_drain_oob() {
     let mut v = ArrayVec::from([0; 8]);
     v.pop();
     v.drain(0..8);
+}
+
+#[test]
+fn test_insert() {
+    let mut v = ArrayVec::from([]);
+    assert_eq!(v.push(1), Some(1));
+    assert_eq!(v.insert(0, 1), Some(1));
+
+    let mut v = ArrayVec::<[_; 3]>::new();
+    v.insert(0, 0);
+    v.insert(1, 1);
+    v.insert(2, 2);
+    v.insert(3, 3);
+    assert_eq!(&v[..], &[0, 1, 2]);
+    v.insert(1, 9);
+    assert_eq!(&v[..], &[0, 9, 1]);
 }
