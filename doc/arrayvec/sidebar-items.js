@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ArrayVec","A vector with a fixed capacity."],["IntoIter","By-value iterator for ArrayVec."]],"trait":[["Array","Trait for fixed size arrays."]]});
+initSidebarItems({"struct":[["ArrayVec","A vector with a fixed capacity."],["Drain","A draining iterator for **ArrayVec**."],["IntoIter","By-value iterator for **ArrayVec**."]],"trait":[["Array","Trait for fixed size arrays."],["RangeArgument","**RangeArgument** is implemented by Rust's built-in range types, produced by range syntax like `..`, `a..`, `..b` or `c..d`."]]});
