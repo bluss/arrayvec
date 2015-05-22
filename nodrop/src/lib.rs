@@ -24,10 +24,12 @@ impl<T> NoDrop<T> {
     /// Once extracted, the value can of course drop again.
     #[inline]
     pub fn into_inner(mut self) -> T {
-        let inner_ptr = &mut *self;
-        unsafe {
-            ptr::read(inner_ptr)
-        }
+        let inner = unsafe {
+            ptr::read(&mut *self)
+        };
+        // skip Drop, so we don't even have to overwrite
+        mem::forget(self);
+        inner
     }
 }
 
@@ -91,14 +93,13 @@ fn test_no_nonnullable_opt() {
 
 #[test]
 fn test_drop() {
-    use std::rc::Rc;
     use std::cell::Cell;
 
-    let flag = Rc::new(Cell::new(0));
+    let flag = &Cell::new(0);
 
-    struct Foo(Rc<Cell<i32>>);
+    struct Bump<'a>(&'a Cell<i32>);
 
-    impl Drop for Foo {
+    impl<'a> Drop for Bump<'a> {
         fn drop(&mut self) {
             let n = self.0.get();
             self.0.set(n + 1);
@@ -106,7 +107,7 @@ fn test_drop() {
     }
 
     {
-        let _ = NoDrop::new([Foo(flag.clone()), Foo(flag.clone())]);
+        let _ = NoDrop::new([Bump(flag), Bump(flag)]);
     }
     assert_eq!(flag.get(), 0);
 
@@ -115,10 +116,10 @@ fn test_drop() {
 
     {
         let mut array = NoDrop::new(Vec::new());
-        array.push(vec![Foo(flag.clone())]);
-        array.push(vec![Foo(flag.clone()), Foo(flag.clone())]);
+        array.push(vec![Bump(flag)]);
+        array.push(vec![Bump(flag), Bump(flag)]);
         array.push(vec![]);
-        array.push(vec![Foo(flag.clone())]);
+        array.push(vec![Bump(flag)]);
         drop(array.pop());
         assert_eq!(flag.get(), 1);
         drop(array.pop());
@@ -132,7 +133,7 @@ fn test_drop() {
 
     flag.set(0);
     {
-        let mut array = NoDrop::new(Foo(flag.clone()));
+        let array = NoDrop::new(Bump(flag));
         array.into_inner();
         assert_eq!(flag.get(), 1);
     }

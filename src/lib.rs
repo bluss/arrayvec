@@ -16,63 +16,32 @@ use std::borrow::{Borrow, BorrowMut};
 use std::hash::{Hash, Hasher};
 use std::fmt;
 
-/// Trait for fixed size arrays.
-pub unsafe trait Array {
-    /// The array's element type
-    type Item;
-    #[doc(hidden)]
-    unsafe fn new() -> Self;
-    #[doc(hidden)]
-    fn as_ptr(&self) -> *const Self::Item;
-    #[doc(hidden)]
-    fn as_mut_ptr(&mut self) -> *mut Self::Item;
-    #[doc(hidden)]
-    fn capacity() -> usize;
-}
+mod array;
+mod misc;
+pub use array::Array;
+pub use misc::RangeArgument;
 
-macro_rules! fix_array_impl {
-    ($len:expr ) => (
-        unsafe impl<T> Array for [T; $len] {
-            type Item = T;
-            /// Note: Returnin an uninitialized value here only works
-            /// if we can be sure the data is never used. The nullable pointer
-            /// inside enum optimization conflicts with this this for example,
-            /// so we need to be extra careful. See `Flag` enum.
-            unsafe fn new() -> [T; $len] { mem::uninitialized() }
-            #[inline(always)]
-            fn as_ptr(&self) -> *const T { self as *const _ as *const _ }
-            #[inline(always)]
-            fn as_mut_ptr(&mut self) -> *mut T { self as *mut _ as *mut _}
-            #[inline(always)]
-            fn capacity() -> usize { $len }
-        }
-    )
-}
 
-macro_rules! fix_array_impl_recursive {
-    () => ();
-    ($len:expr, $($more:expr,)*) => (
-        fix_array_impl!($len);
-        fix_array_impl_recursive!($($more,)*);
-    );
+unsafe fn new_array<A: Array>() -> A {
+    // Note: Returning an uninitialized value here only works
+    // if we can be sure the data is never used. The nullable pointer
+    // inside enum optimization conflicts with this this for example,
+    // so we need to be extra careful. See `Flag` enum.
+    mem::uninitialized()
 }
-
-fix_array_impl_recursive!(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                          16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-                          32, 40, 48, 56, 64, 72, 96, 128, 160, 192, 224,);
 
 /// A vector with a fixed capacity.
 ///
-/// The **ArrayVec** is a vector backed by a fixed size array and keeps track of
+/// The **ArrayVec** is a vector backed by a fixed size array. It keeps track of
 /// the number of initialized elements.
 ///
 /// The vector is a contiguous value that you can store directly on the stack
 /// if needed.
 ///
-/// It offers a simple API of *.push()* and *.pop()* but also dereferences to a slice, so
+/// It offers a simple API but also dereferences to a slice, so
 /// that the full slice API is available.
 ///
-/// The vector also implements a by value iterator.
+/// ArrayVec can be converted into a by value iterator.
 pub struct ArrayVec<A: Array> {
     xs: NoDrop<A>,
     len: u8,
@@ -103,7 +72,7 @@ impl<A: Array> ArrayVec<A> {
     /// ```
     pub fn new() -> ArrayVec<A> {
         unsafe {
-            ArrayVec { xs: NoDrop::new(Array::new()), len: 0 }
+            ArrayVec { xs: NoDrop::new(new_array()), len: 0 }
         }
     }
 
@@ -187,6 +156,106 @@ impl<A: Array> ArrayVec<A> {
             self.len -= 1;
             let len = self.len();
             Some(ptr::read(self.get_unchecked_mut(len)))
+        }
+    }
+
+    /// Remove the element at **index** and swap the last element into its place.
+    ///
+    /// This operation is O(1).
+    ///
+    /// Return **Some(** *element* **)** if the index is in bounds, else **None**.
+    ///
+    /// ## Examples
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::from([1, 2, 3]);
+    ///
+    /// assert_eq!(array.swap_remove(0), Some(1));
+    /// assert_eq!(&array[..], &[3, 2]);
+    ///
+    /// assert_eq!(array.swap_remove(10), None);
+    /// ```
+    pub fn swap_remove(&mut self, index: usize) -> Option<A::Item> {
+        let len = self.len();
+        if index >= len {
+            return None
+        }
+        self.swap(index, len - 1);
+        self.pop()
+    }
+
+    /// Remove the element at **index** and shift the following elements down.
+    ///
+    /// Return **Some(** *element* **)** if the index is in bounds, else **None**.
+    ///
+    /// ## Examples
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::from([1, 2, 3]);
+    ///
+    /// assert_eq!(array.remove(0), Some(1));
+    /// assert_eq!(&array[..], &[2, 3]);
+    ///
+    /// assert_eq!(array.remove(10), None);
+    /// ```
+    pub fn remove(&mut self, index: usize) -> Option<A::Item> {
+        if index >= self.len() {
+            None
+        } else {
+            self.drain(index..index + 1).next()
+        }
+    }
+
+    /// Create a draining iterator that removes the specified range in the vector
+    /// and yields the removed items from start to end. The element range is
+    /// removed even if the iterator is not consumed until the end.
+    ///
+    /// Note: It is unspecified how many elements are removed from the vector,
+    /// if the `Drain` value is leaked.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the starting point is greater than the end point or if
+    /// the end point is greater than the length of the vector.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut v = ArrayVec::from([1, 2, 3]);
+    /// let u: Vec<_> = v.drain(0..2).collect();
+    /// assert_eq!(&v[..], &[3]);
+    /// assert_eq!(&u[..], &[1, 2]);
+    /// ```
+    pub fn drain<R: RangeArgument>(&mut self, range: R) -> Drain<A> {
+        // Memory safety
+        //
+        // When the Drain is first created, it shortens the length of
+        // the source vector to make sure no uninitalized or moved-from elements
+        // are accessible at all if the Drain's destructor never gets to run.
+        //
+        // Drain will ptr::read out the values to remove.
+        // When finished, remaining tail of the vec is copied back to cover
+        // the hole, and the vector length is restored to the new length.
+        //
+        let len = self.len();
+        let start = range.start().unwrap_or(0);
+        let end = range.end().unwrap_or(len);
+        // bounds check happens here
+        let range_slice: *const _ = &self[start..end];
+
+        unsafe {
+            // set self.vec length's to start, to be safe in case Drain is leaked
+            self.len = start as u8;
+            Drain {
+                tail_start: end,
+                tail_len: len - end,
+                iter: (*range_slice).iter(),
+                vec: self as *mut _,
+            }
         }
     }
 }
@@ -288,7 +357,7 @@ impl<A: Array> IntoIterator for ArrayVec<A> {
 }
 
 
-/// By-value iterator for ArrayVec.
+/// By-value iterator for **ArrayVec**.
 pub struct IntoIter<A: Array> {
     index: u8,
     v: ArrayVec<A>,
@@ -342,6 +411,83 @@ impl<A: Array> Drop for IntoIter<A> {
         self.v.len = 0;
     }
 }
+
+/// A draining iterator for **ArrayVec**.
+pub struct Drain<'a, A> 
+    where A: Array,
+          A::Item: 'a,
+{
+    /// Index of tail to preserve
+    tail_start: usize,
+    /// Length of tail
+    tail_len: usize,
+    /// Current remaining range to remove
+    iter: slice::Iter<'a, A::Item>,
+    vec: *mut ArrayVec<A>,
+}
+
+unsafe impl<'a, A: Array + Sync> Sync for Drain<'a, A> {}
+unsafe impl<'a, A: Array + Send> Send for Drain<'a, A> {}
+
+impl<'a, A: Array> Iterator for Drain<'a, A>
+    where A::Item: 'a,
+{
+    type Item = A::Item;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next().map(|elt|
+            unsafe {
+                ptr::read(elt as *const _)
+            }
+        )
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
+}
+
+impl<'a, A: Array> DoubleEndedIterator for Drain<'a, A>
+    where A::Item: 'a,
+{
+    #[inline]
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.iter.next_back().map(|elt|
+            unsafe {
+                ptr::read(elt as *const _)
+            }
+        )
+    }
+}
+
+impl<'a, A: Array> ExactSizeIterator for Drain<'a, A> where A::Item: 'a {}
+
+impl<'a, A: Array> Drop for Drain<'a, A> 
+    where A::Item: 'a
+{
+    fn drop(&mut self) {
+        // exhaust self first
+        while let Some(_) = self.next() { }
+
+        if self.tail_len > 0 {
+            unsafe {
+                let source_vec = &mut *self.vec;
+                // memmove back untouched tail, update to new length
+                let start = source_vec.len();
+                let tail = self.tail_start;
+                let src = source_vec.as_ptr().offset(tail as isize);
+                let dst = source_vec.as_mut_ptr().offset(start as isize);
+                ptr::copy(src, dst, self.tail_len);
+                source_vec.len = (start + self.tail_len) as u8;
+            }
+        }
+    }
+}
+
+
+
 
 /// Extend the **ArrayVec** with an iterator.
 /// 
@@ -449,14 +595,13 @@ fn test_iter() {
 
 #[test]
 fn test_drop() {
-    use std::rc::Rc;
     use std::cell::Cell;
 
-    let flag = Rc::new(Cell::new(0));
+    let flag = &Cell::new(0);
 
-    struct Foo(Rc<Cell<i32>>);
+    struct Bump<'a>(&'a Cell<i32>);
 
-    impl Drop for Foo {
+    impl<'a> Drop for Bump<'a> {
         fn drop(&mut self) {
             let n = self.0.get();
             self.0.set(n + 1);
@@ -464,9 +609,9 @@ fn test_drop() {
     }
 
     {
-        let mut array = ArrayVec::<[Foo; 128]>::new();
-        array.push(Foo(flag.clone()));
-        array.push(Foo(flag.clone()));
+        let mut array = ArrayVec::<[Bump; 128]>::new();
+        array.push(Bump(flag));
+        array.push(Bump(flag));
     }
     assert_eq!(flag.get(), 2);
 
@@ -475,10 +620,10 @@ fn test_drop() {
 
     {
         let mut array = ArrayVec::<[_; 3]>::new();
-        array.push(vec![Foo(flag.clone())]);
-        array.push(vec![Foo(flag.clone()), Foo(flag.clone())]);
+        array.push(vec![Bump(flag)]);
+        array.push(vec![Bump(flag), Bump(flag)]);
         array.push(vec![]);
-        array.push(vec![Foo(flag.clone())]);
+        array.push(vec![Bump(flag)]);
         assert_eq!(flag.get(), 1);
         drop(array.pop());
         assert_eq!(flag.get(), 1);
@@ -525,4 +670,29 @@ fn test_compact_size() {
     type QuadArray = ArrayVec<[u32; 3]>;
     println!("{}", mem::size_of::<QuadArray>());
     assert!(mem::size_of::<QuadArray>() <= 24);
+}
+
+#[test]
+fn test_drain() {
+    let mut v = ArrayVec::from([0; 8]);
+    v.pop();
+    v.drain(0..7);
+    assert_eq!(&v[..], &[]);
+
+    v.extend(0..);
+    v.drain(1..4);
+    assert_eq!(&v[..], &[0, 4, 5, 6, 7]);
+    let u: ArrayVec<[_; 3]> = v.drain(1..4).rev().collect();
+    assert_eq!(&u[..], &[6, 5, 4]);
+    assert_eq!(&v[..], &[0, 7]);
+    v.drain(..);
+    assert_eq!(&v[..], &[]);
+}
+
+#[test]
+#[should_panic]
+fn test_drain_oob() {
+    let mut v = ArrayVec::from([0; 8]);
+    v.pop();
+    v.drain(0..8);
 }
