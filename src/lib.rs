@@ -30,16 +30,16 @@ unsafe fn new_array<A: Array>() -> A {
 
 /// A vector with a fixed capacity.
 ///
-/// The **ArrayVec** is a vector backed by a fixed size array and keeps track of
+/// The **ArrayVec** is a vector backed by a fixed size array. It keeps track of
 /// the number of initialized elements.
 ///
 /// The vector is a contiguous value that you can store directly on the stack
 /// if needed.
 ///
-/// It offers a simple API of *.push()* and *.pop()* but also dereferences to a slice, so
+/// It offers a simple API but also dereferences to a slice, so
 /// that the full slice API is available.
 ///
-/// The vector also implements a by value iterator.
+/// ArrayVec can be converted into a by value iterator.
 pub struct ArrayVec<A: Array> {
     xs: NoDrop<A>,
     len: u8,
@@ -155,6 +155,34 @@ impl<A: Array> ArrayVec<A> {
             let len = self.len();
             Some(ptr::read(self.get_unchecked_mut(len)))
         }
+    }
+
+    /// Remove the element at **index** and swap the last element into its place.
+    ///
+    /// This operation is O(1).
+    ///
+    /// Return **Some(** *element* **)** if the index is in bounds, else **None**.
+    ///
+    /// ## Examples
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::from([1, 2, 3]);
+    ///
+    /// let elt = array.swap_remove(0);
+    ///
+    /// assert_eq!(elt, Some(1));
+    /// assert_eq!(&array[..], &[3, 2]);
+    ///
+    /// assert_eq!(array.swap_remove(10), None);
+    /// ```
+    pub fn swap_remove(&mut self, index: usize) -> Option<A::Item> {
+        let len = self.len();
+        if index >= len {
+            return None
+        }
+        self.swap(index, len - 1);
+        self.pop()
     }
 }
 
