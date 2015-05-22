@@ -20,6 +20,7 @@ mod array;
 mod misc;
 pub use array::Array;
 pub use misc::RangeArgument;
+use array::Index;
 
 
 unsafe fn new_array<A: Array>() -> A {
@@ -44,7 +45,7 @@ unsafe fn new_array<A: Array>() -> A {
 /// ArrayVec can be converted into a by value iterator.
 pub struct ArrayVec<A: Array> {
     xs: NoDrop<A>,
-    len: u8,
+    len: A::Index,
 }
 
 impl<A: Array> Drop for ArrayVec<A> {
@@ -72,7 +73,7 @@ impl<A: Array> ArrayVec<A> {
     /// ```
     pub fn new() -> ArrayVec<A> {
         unsafe {
-            ArrayVec { xs: NoDrop::new(new_array()), len: 0 }
+            ArrayVec { xs: NoDrop::new(new_array()), len: Index::zero() }
         }
     }
 
@@ -87,7 +88,7 @@ impl<A: Array> ArrayVec<A> {
     /// assert_eq!(array.len(), 2);
     /// ```
     #[inline]
-    pub fn len(&self) -> usize { self.len as usize }
+    pub fn len(&self) -> usize { self.len.to_usize() }
 
     /// Return the capacity of the **ArrayVec**.
     ///
@@ -122,11 +123,11 @@ impl<A: Array> ArrayVec<A> {
     /// ```
     pub fn push(&mut self, element: A::Item) -> Option<A::Item> {
         if self.len() < A::capacity() {
+            let len = self.len();
             unsafe {
-                let len = self.len();
                 ptr::write(self.get_unchecked_mut(len), element);
             }
-            self.len += 1;
+            self.len = Index::from(len + 1);
             None
         } else {
             Some(element)
@@ -149,11 +150,11 @@ impl<A: Array> ArrayVec<A> {
     /// assert_eq!(array.pop(), None);
     /// ```
     pub fn pop(&mut self) -> Option<A::Item> {
-        if self.len == 0 {
+        if self.len() == 0 {
             return None
         }
         unsafe {
-            self.len -= 1;
+            self.len = Index::from(self.len() - 1);
             let len = self.len();
             Some(ptr::read(self.get_unchecked_mut(len)))
         }
@@ -249,7 +250,7 @@ impl<A: Array> ArrayVec<A> {
 
         unsafe {
             // set self.vec length's to start, to be safe in case Drain is leaked
-            self.len = start as u8;
+            self.len = Index::from(start);
             Drain {
                 tail_start: end,
                 tail_len: len - end,
@@ -292,7 +293,7 @@ impl<A: Array> DerefMut for ArrayVec<A> {
 /// ```
 impl<A: Array> From<A> for ArrayVec<A> {
     fn from(array: A) -> Self {
-        ArrayVec { xs: NoDrop::new(array), len: A::capacity() as u8 }
+        ArrayVec { xs: NoDrop::new(array), len: Index::from(A::capacity()) }
     }
 }
 
@@ -352,14 +353,14 @@ impl<A: Array> IntoIterator for ArrayVec<A> {
     type Item = A::Item;
     type IntoIter = IntoIter<A>;
     fn into_iter(self) -> IntoIter<A> {
-        IntoIter { index: 0, v: self, }
+        IntoIter { index: Index::zero(), v: self, }
     }
 }
 
 
 /// By-value iterator for **ArrayVec**.
 pub struct IntoIter<A: Array> {
-    index: u8,
+    index: A::Index,
     v: ArrayVec<A>,
 }
 
@@ -372,16 +373,17 @@ impl<A: Array> Iterator for IntoIter<A> {
             None
         } else {
             unsafe {
-                let ptr = self.v.get_unchecked_mut(self.index as usize);
+                let index = self.index.to_usize();
+                let ptr = self.v.get_unchecked_mut(index);
                 let elt = ptr::read(ptr);
-                self.index += 1;
+                self.index = Index::from(index + 1);
                 Some(elt)
             }
         }
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let len = self.v.len() - self.index as usize;
+        let len = self.v.len() - self.index.to_usize();
         (len, Some(len))
     }
 }
@@ -393,7 +395,7 @@ impl<A: Array> DoubleEndedIterator for IntoIter<A> {
             None
         } else {
             unsafe {
-                self.v.len -= 1;
+                self.v.len = Index::from(self.v.len() - 1);
                 let len = self.v.len();
                 let elt = ptr::read(self.v.get_unchecked_mut(len));
                 Some(elt)
@@ -408,7 +410,7 @@ impl<A: Array> Drop for IntoIter<A> {
     fn drop(&mut self) {
         // exhaust iterator and clear the vector
         while let Some(_) = self.next() { }
-        self.v.len = 0;
+        self.v.len = Index::zero();
     }
 }
 
@@ -480,7 +482,7 @@ impl<'a, A: Array> Drop for Drain<'a, A>
                 let src = source_vec.as_ptr().offset(tail as isize);
                 let dst = source_vec.as_mut_ptr().offset(start as isize);
                 ptr::copy(src, dst, self.tail_len);
-                source_vec.len = (start + self.tail_len) as u8;
+                source_vec.len = Index::from(start + self.tail_len);
             }
         }
     }
@@ -580,6 +582,17 @@ fn test_simple() {
     assert_eq!(sum, 13 + 87);
     let sum_len = vec.into_iter().map(|x| x.len()).fold(0, Add::add);
     assert_eq!(sum_len, 8);
+}
+
+#[test]
+fn test_u16_index() {
+    const N: usize = 4096;
+    let mut vec: ArrayVec<[_; N]> = ArrayVec::new();
+    for _ in 0..N {
+        assert!(vec.push(1u8).is_none());
+    }
+    assert!(vec.push(0).is_some());
+    assert_eq!(vec.len(), N);
 }
 
 #[test]
