@@ -107,6 +107,10 @@ impl<A: Array> ArrayVec<A> {
     #[inline]
     pub fn capacity(&self) -> usize { A::capacity() }
 
+    /// Remove all elements in the vector.
+    pub fn clear(&mut self) {
+        while let Some(_) = self.pop() { }
+    }
 
     /// Push **element** to the end of the vector.
     ///
