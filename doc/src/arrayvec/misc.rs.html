@@ -74,6 +74,12 @@
 <span id="32">32</span>
 <span id="33">33</span>
 <span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>ops</span>::{
     <span class='ident'>RangeFull</span>,
@@ -85,9 +91,11 @@
 <span class='doccomment'>/// **RangeArgument** is implemented by Rust&#39;s built-in range types, produced</span>
 <span class='doccomment'>/// by range syntax like `..`, `a..`, `..b` or `c..d`.</span>
 <span class='kw'>pub</span> <span class='kw'>trait</span> <span class='ident'>RangeArgument</span> {
+    <span class='attribute'>#[<span class='ident'>inline</span>]</span>
     <span class='attribute'>#[<span class='ident'>doc</span>(<span class='ident'>hidden</span>)]</span>
     <span class='doccomment'>/// Start index (inclusive)</span>
     <span class='kw'>fn</span> <span class='ident'>start</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> { <span class='prelude-val'>None</span> }
+    <span class='attribute'>#[<span class='ident'>inline</span>]</span>
     <span class='attribute'>#[<span class='ident'>doc</span>(<span class='ident'>hidden</span>)]</span>
     <span class='doccomment'>/// End index (exclusive)</span>
     <span class='kw'>fn</span> <span class='ident'>end</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> { <span class='prelude-val'>None</span> }
@@ -97,15 +105,19 @@
 <span class='kw'>impl</span> <span class='ident'>RangeArgument</span> <span class='kw'>for</span> <span class='ident'>RangeFull</span> {}
 
 <span class='kw'>impl</span> <span class='ident'>RangeArgument</span> <span class='kw'>for</span> <span class='ident'>RangeFrom</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> {
+    <span class='attribute'>#[<span class='ident'>inline</span>]</span>
     <span class='kw'>fn</span> <span class='ident'>start</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> { <span class='prelude-val'>Some</span>(<span class='self'>self</span>.<span class='ident'>start</span>) }
 }
 
 <span class='kw'>impl</span> <span class='ident'>RangeArgument</span> <span class='kw'>for</span> <span class='ident'>RangeTo</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> {
+    <span class='attribute'>#[<span class='ident'>inline</span>]</span>
     <span class='kw'>fn</span> <span class='ident'>end</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> { <span class='prelude-val'>Some</span>(<span class='self'>self</span>.<span class='ident'>end</span>) }
 }
 
 <span class='kw'>impl</span> <span class='ident'>RangeArgument</span> <span class='kw'>for</span> <span class='ident'>Range</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> {
+    <span class='attribute'>#[<span class='ident'>inline</span>]</span>
     <span class='kw'>fn</span> <span class='ident'>start</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> { <span class='prelude-val'>Some</span>(<span class='self'>self</span>.<span class='ident'>start</span>) }
+    <span class='attribute'>#[<span class='ident'>inline</span>]</span>
     <span class='kw'>fn</span> <span class='ident'>end</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span> { <span class='prelude-val'>Some</span>(<span class='self'>self</span>.<span class='ident'>end</span>) }
 }
 
