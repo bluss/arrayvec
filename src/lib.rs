@@ -244,7 +244,7 @@ impl<A: Array> ArrayVec<A> {
         let mut ret = None;
         let old_len = self.len();
         if old_len == self.capacity() {
-            ret = self.remove(old_len - 1);
+            ret = self.pop();
         }
         let len = self.len();
 
