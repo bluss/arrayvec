@@ -107,6 +107,10 @@ impl<A: Array> ArrayVec<A> {
     #[inline]
     pub fn capacity(&self) -> usize { A::capacity() }
 
+    /// Remove all elements in the vector.
+    pub fn clear(&mut self) {
+        while let Some(_) = self.pop() { }
+    }
 
     /// Push **element** to the end of the vector.
     ///
@@ -240,7 +244,7 @@ impl<A: Array> ArrayVec<A> {
         let mut ret = None;
         let old_len = self.len();
         if old_len == self.capacity() {
-            ret = self.remove(old_len - 1);
+            ret = self.pop();
         }
         let len = self.len();
 
