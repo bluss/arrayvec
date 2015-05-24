@@ -89,6 +89,7 @@ fn test_no_nonnullable_opt() {
     // as Option would do.
     assert!(mem::size_of::<Flag<&i32>>() > mem::size_of::<&i32>());
     assert!(mem::size_of::<Flag<Vec<i32>>>() > mem::size_of::<Vec<i32>>());
+    assert!(mem::size_of::<Option<Flag<&i32>>>() > mem::size_of::<Flag<&i32>>());
 }
 
 #[test]
