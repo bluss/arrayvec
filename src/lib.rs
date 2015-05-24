@@ -90,7 +90,7 @@ impl<A: Array> ArrayVec<A> {
     #[inline]
     pub fn len(&self) -> usize { self.len.to_usize() }
 
-    fn set_len(&mut self, length: usize) {
+    unsafe fn set_len(&mut self, length: usize) {
         debug_assert!(length <= self.capacity());
         self.len = Index::from(length);
     }
@@ -135,8 +135,8 @@ impl<A: Array> ArrayVec<A> {
             let len = self.len();
             unsafe {
                 ptr::write(self.get_unchecked_mut(len), element);
+                self.set_len(len + 1);
             }
-            self.len = Index::from(len + 1);
             None
         } else {
             Some(element)
@@ -163,9 +163,9 @@ impl<A: Array> ArrayVec<A> {
             return None
         }
         unsafe {
-            self.len = Index::from(self.len() - 1);
-            let len = self.len();
-            Some(ptr::read(self.get_unchecked_mut(len)))
+            let new_len = self.len() - 1;
+            self.set_len(new_len);
+            Some(ptr::read(self.get_unchecked_mut(new_len)))
         }
     }
 
@@ -306,7 +306,7 @@ impl<A: Array> ArrayVec<A> {
 
         unsafe {
             // set self.vec length's to start, to be safe in case Drain is leaked
-            self.len = Index::from(start);
+            self.set_len(start);
             Drain {
                 tail_start: end,
                 tail_len: len - end,
@@ -430,10 +430,8 @@ impl<A: Array> Iterator for IntoIter<A> {
         } else {
             unsafe {
                 let index = self.index.to_usize();
-                let ptr = self.v.get_unchecked_mut(index);
-                let elt = ptr::read(ptr);
                 self.index = Index::from(index + 1);
-                Some(elt)
+                Some(ptr::read(self.v.get_unchecked_mut(index)))
             }
         }
     }
@@ -451,10 +449,9 @@ impl<A: Array> DoubleEndedIterator for IntoIter<A> {
             None
         } else {
             unsafe {
-                self.v.len = Index::from(self.v.len() - 1);
-                let len = self.v.len();
-                let elt = ptr::read(self.v.get_unchecked_mut(len));
-                Some(elt)
+                let new_len = self.v.len() - 1;
+                self.v.set_len(new_len);
+                Some(ptr::read(self.v.get_unchecked_mut(new_len)))
             }
         }
     }
@@ -466,7 +463,9 @@ impl<A: Array> Drop for IntoIter<A> {
     fn drop(&mut self) {
         // exhaust iterator and clear the vector
         while let Some(_) = self.next() { }
-        self.v.len = Index::zero();
+        unsafe {
+            self.v.set_len(0);
+        }
     }
 }
 
@@ -538,7 +537,7 @@ impl<'a, A: Array> Drop for Drain<'a, A>
                 let src = source_vec.as_ptr().offset(tail as isize);
                 let dst = source_vec.as_mut_ptr().offset(start as isize);
                 ptr::copy(src, dst, self.tail_len);
-                source_vec.len = Index::from(start + self.tail_len);
+                source_vec.set_len(start + self.tail_len);
             }
         }
     }
