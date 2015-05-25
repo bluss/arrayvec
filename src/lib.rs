@@ -784,3 +784,14 @@ fn test_insert() {
     assert_eq!(v.insert(1, 1), Some(1));
     assert_eq!(v.insert(2, 1), Some(1));
 }
+
+#[test]
+fn test_in_option() {
+    // Sanity check that we are sound w.r.t Option & non-nullable layout optimization.
+    let mut v = Some(ArrayVec::<[&i32; 1]>::new());
+    assert!(v.is_some());
+    unsafe {
+        *v.as_mut().unwrap().get_unchecked_mut(0) = mem::zeroed();
+    }
+    assert!(v.is_some());
+}
