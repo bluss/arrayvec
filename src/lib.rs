@@ -90,7 +90,7 @@ impl<A: Array> ArrayVec<A> {
     #[inline]
     pub fn len(&self) -> usize { self.len.to_usize() }
 
-    fn set_len(&mut self, length: usize) {
+    unsafe fn set_len(&mut self, length: usize) {
         debug_assert!(length <= self.capacity());
         self.len = Index::from(length);
     }
@@ -106,11 +106,6 @@ impl<A: Array> ArrayVec<A> {
     /// ```
     #[inline]
     pub fn capacity(&self) -> usize { A::capacity() }
-
-    /// Remove all elements in the vector.
-    pub fn clear(&mut self) {
-        while let Some(_) = self.pop() { }
-    }
 
     /// Push **element** to the end of the vector.
     ///
@@ -135,8 +130,8 @@ impl<A: Array> ArrayVec<A> {
             let len = self.len();
             unsafe {
                 ptr::write(self.get_unchecked_mut(len), element);
+                self.set_len(len + 1);
             }
-            self.len = Index::from(len + 1);
             None
         } else {
             Some(element)
@@ -163,10 +158,57 @@ impl<A: Array> ArrayVec<A> {
             return None
         }
         unsafe {
-            self.len = Index::from(self.len() - 1);
-            let len = self.len();
-            Some(ptr::read(self.get_unchecked_mut(len)))
+            let new_len = self.len() - 1;
+            self.set_len(new_len);
+            Some(ptr::read(self.get_unchecked_mut(new_len)))
         }
+    }
+
+    /// Insert **element** in position **index**.
+    ///
+    /// Shift up all elements after **index**. If any is pushed out, it is returned.
+    ///
+    /// Return None if no element is shifted out.
+    ///
+    /// ## Examples
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::<[_; 2]>::new();
+    ///
+    /// assert_eq!(array.insert(0, "x"), None);
+    /// assert_eq!(array.insert(0, "y"), None);
+    /// assert_eq!(array.insert(0, "z"), Some("x"));
+    /// assert_eq!(array.insert(1, "w"), Some("y"));
+    /// assert_eq!(&array[..], &["z", "w"]);
+    ///
+    /// ```
+    pub fn insert(&mut self, index: usize, element: A::Item) -> Option<A::Item> {
+        if index >= self.capacity() {
+            return Some(element);
+        }
+        let mut ret = None;
+        let old_len = self.len();
+        if old_len == self.capacity() {
+            ret = self.pop();
+        }
+        let len = self.len();
+
+        // follows is just like Vec<T>
+        unsafe { // infallible
+            // The spot to put the new value
+            {
+                let p = self.as_mut_ptr().offset(index as isize);
+                // Shift everything over to make space. (Duplicating the
+                // `index`th element into two consecutive places.)
+                ptr::copy(&*p, p.offset(1), len - index);
+                // Write it in, overwriting the first copy of the `index`th
+                // element.
+                ptr::write(&mut *p, element);
+            }
+            self.set_len(len + 1);
+        }
+        ret
     }
 
     /// Remove the element at **index** and swap the last element into its place.
@@ -218,51 +260,9 @@ impl<A: Array> ArrayVec<A> {
         }
     }
 
-    /// Insert **element** in position **index**.
-    ///
-    /// Shift up all elements after **index**. If any is pushed out, it is returned.
-    ///
-    /// Return None if no element is shifted out.
-    ///
-    /// ## Examples
-    /// ```
-    /// use arrayvec::ArrayVec;
-    ///
-    /// let mut array = ArrayVec::<[_; 2]>::new();
-    ///
-    /// assert_eq!(array.insert(0, "x"), None);
-    /// assert_eq!(array.insert(0, "y"), None);
-    /// assert_eq!(array.insert(0, "z"), Some("x"));
-    /// assert_eq!(array.insert(1, "w"), Some("y"));
-    /// assert_eq!(&array[..], &["z", "w"]);
-    ///
-    /// ```
-    pub fn insert(&mut self, index: usize, element: A::Item) -> Option<A::Item> {
-        if index >= self.capacity() {
-            return Some(element);
-        }
-        let mut ret = None;
-        let old_len = self.len();
-        if old_len == self.capacity() {
-            ret = self.pop();
-        }
-        let len = self.len();
-
-        // follows is just like Vec<T>
-        unsafe { // infallible
-            // The spot to put the new value
-            {
-                let p = self.as_mut_ptr().offset(index as isize);
-                // Shift everything over to make space. (Duplicating the
-                // `index`th element into two consecutive places.)
-                ptr::copy(&*p, p.offset(1), len - index);
-                // Write it in, overwriting the first copy of the `index`th
-                // element.
-                ptr::write(&mut *p, element);
-            }
-            self.set_len(len + 1);
-        }
-        ret
+    /// Remove all elements in the vector.
+    pub fn clear(&mut self) {
+        while let Some(_) = self.pop() { }
     }
 
     /// Create a draining iterator that removes the specified range in the vector
@@ -306,7 +306,7 @@ impl<A: Array> ArrayVec<A> {
 
         unsafe {
             // set self.vec length's to start, to be safe in case Drain is leaked
-            self.len = Index::from(start);
+            self.set_len(start);
             Drain {
                 tail_start: end,
                 tail_len: len - end,
@@ -430,10 +430,8 @@ impl<A: Array> Iterator for IntoIter<A> {
         } else {
             unsafe {
                 let index = self.index.to_usize();
-                let ptr = self.v.get_unchecked_mut(index);
-                let elt = ptr::read(ptr);
                 self.index = Index::from(index + 1);
-                Some(elt)
+                Some(ptr::read(self.v.get_unchecked_mut(index)))
             }
         }
     }
@@ -451,10 +449,9 @@ impl<A: Array> DoubleEndedIterator for IntoIter<A> {
             None
         } else {
             unsafe {
-                self.v.len = Index::from(self.v.len() - 1);
-                let len = self.v.len();
-                let elt = ptr::read(self.v.get_unchecked_mut(len));
-                Some(elt)
+                let new_len = self.v.len() - 1;
+                self.v.set_len(new_len);
+                Some(ptr::read(self.v.get_unchecked_mut(new_len)))
             }
         }
     }
@@ -466,7 +463,9 @@ impl<A: Array> Drop for IntoIter<A> {
     fn drop(&mut self) {
         // exhaust iterator and clear the vector
         while let Some(_) = self.next() { }
-        self.v.len = Index::zero();
+        unsafe {
+            self.v.set_len(0);
+        }
     }
 }
 
@@ -538,7 +537,7 @@ impl<'a, A: Array> Drop for Drain<'a, A>
                 let src = source_vec.as_ptr().offset(tail as isize);
                 let dst = source_vec.as_mut_ptr().offset(start as isize);
                 ptr::copy(src, dst, self.tail_len);
-                source_vec.len = Index::from(start + self.tail_len);
+                source_vec.set_len(start + self.tail_len);
             }
         }
     }
@@ -616,172 +615,4 @@ impl<A: Array> AsMut<[A::Item]> for ArrayVec<A> {
 
 impl<A: Array> fmt::Debug for ArrayVec<A> where A::Item: fmt::Debug {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { (**self).fmt(f) }
-}
-
-#[test]
-fn test_simple() {
-    use std::ops::Add;
-
-    let mut vec: ArrayVec<[Vec<i32>; 3]> = ArrayVec::new();
-
-    vec.push(vec![1,2,3,4]);
-    vec.push(vec![3]);
-    vec.push(vec![-1, 90, -2]);
-
-    for elt in &vec {
-        println!("{:?}", elt);
-    }
-
-    println!("{:?}", vec);
-
-    let sum = vec.iter().map(|x| x.iter().fold(0, Add::add)).fold(0, Add::add);
-    assert_eq!(sum, 13 + 87);
-    let sum_len = vec.into_iter().map(|x| x.len()).fold(0, Add::add);
-    assert_eq!(sum_len, 8);
-}
-
-#[test]
-fn test_u16_index() {
-    const N: usize = 4096;
-    let mut vec: ArrayVec<[_; N]> = ArrayVec::new();
-    for _ in 0..N {
-        assert!(vec.push(1u8).is_none());
-    }
-    assert!(vec.push(0).is_some());
-    assert_eq!(vec.len(), N);
-}
-
-#[test]
-fn test_iter() {
-    let mut iter = ArrayVec::from([1, 2, 3]).into_iter();
-    assert_eq!(iter.size_hint(), (3, Some(3)));
-    assert_eq!(iter.next_back(), Some(3));
-    assert_eq!(iter.next(), Some(1));
-    assert_eq!(iter.next_back(), Some(2));
-    assert_eq!(iter.size_hint(), (0, Some(0)));
-    assert_eq!(iter.next_back(), None);
-}
-
-#[test]
-fn test_drop() {
-    use std::cell::Cell;
-
-    let flag = &Cell::new(0);
-
-    struct Bump<'a>(&'a Cell<i32>);
-
-    impl<'a> Drop for Bump<'a> {
-        fn drop(&mut self) {
-            let n = self.0.get();
-            self.0.set(n + 1);
-        }
-    }
-
-    {
-        let mut array = ArrayVec::<[Bump; 128]>::new();
-        array.push(Bump(flag));
-        array.push(Bump(flag));
-    }
-    assert_eq!(flag.get(), 2);
-
-    // test something with the nullable pointer optimization
-    flag.set(0);
-
-    {
-        let mut array = ArrayVec::<[_; 3]>::new();
-        array.push(vec![Bump(flag)]);
-        array.push(vec![Bump(flag), Bump(flag)]);
-        array.push(vec![]);
-        array.push(vec![Bump(flag)]);
-        assert_eq!(flag.get(), 1);
-        drop(array.pop());
-        assert_eq!(flag.get(), 1);
-        drop(array.pop());
-        assert_eq!(flag.get(), 3);
-    }
-
-    assert_eq!(flag.get(), 4);
-}
-
-#[test]
-fn test_extend() {
-    let mut range = 0..10;
-
-    let mut array: ArrayVec<[_; 5]> = range.by_ref().collect();
-    assert_eq!(&array[..], &[0, 1, 2, 3, 4]);
-    assert_eq!(range.next(), Some(5));
-
-    array.extend(range.by_ref());
-    assert_eq!(range.next(), Some(6));
-
-    let mut array: ArrayVec<[_; 10]> = (0..3).collect();
-    assert_eq!(&array[..], &[0, 1, 2]);
-    array.extend(3..5);
-    assert_eq!(&array[..], &[0, 1, 2, 3, 4]);
-}
-
-#[test]
-fn test_is_send_sync() {
-    let data = ArrayVec::<[Vec<i32>; 5]>::new();
-    &data as &Send;
-    &data as &Sync;
-}
-
-#[test]
-fn test_compact_size() {
-    // Future rust will kill these drop flags!
-    // 4 elements size + 1 len + 1 enum tag + [1 drop flag] + [1 drop flag nodrop]
-    type ByteArray = ArrayVec<[u8; 4]>;
-    println!("{}", mem::size_of::<ByteArray>());
-    assert!(mem::size_of::<ByteArray>() <= 8);
-
-    // 12 element size + 1 len + 1 drop flag + 2 padding + 1 enum tag + 3 padding
-    type QuadArray = ArrayVec<[u32; 3]>;
-    println!("{}", mem::size_of::<QuadArray>());
-    assert!(mem::size_of::<QuadArray>() <= 24);
-}
-
-#[test]
-fn test_drain() {
-    let mut v = ArrayVec::from([0; 8]);
-    v.pop();
-    v.drain(0..7);
-    assert_eq!(&v[..], &[]);
-
-    v.extend(0..);
-    v.drain(1..4);
-    assert_eq!(&v[..], &[0, 4, 5, 6, 7]);
-    let u: ArrayVec<[_; 3]> = v.drain(1..4).rev().collect();
-    assert_eq!(&u[..], &[6, 5, 4]);
-    assert_eq!(&v[..], &[0, 7]);
-    v.drain(..);
-    assert_eq!(&v[..], &[]);
-}
-
-#[test]
-#[should_panic]
-fn test_drain_oob() {
-    let mut v = ArrayVec::from([0; 8]);
-    v.pop();
-    v.drain(0..8);
-}
-
-#[test]
-fn test_insert() {
-    let mut v = ArrayVec::from([]);
-    assert_eq!(v.push(1), Some(1));
-    assert_eq!(v.insert(0, 1), Some(1));
-
-    let mut v = ArrayVec::<[_; 3]>::new();
-    v.insert(0, 0);
-    v.insert(1, 1);
-    v.insert(2, 2);
-    v.insert(3, 3);
-    assert_eq!(&v[..], &[0, 1, 2]);
-    v.insert(1, 9);
-    assert_eq!(&v[..], &[0, 9, 1]);
-
-    let mut v = ArrayVec::from([2]);
-    assert_eq!(v.insert(1, 1), Some(1));
-    assert_eq!(v.insert(2, 1), Some(1));
 }
