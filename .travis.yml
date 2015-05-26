@@ -4,11 +4,14 @@ matrix:
   include:
     - rust: stable
     - rust: nightly
+    - rust: nightly
+      env:
+      - NODROP_FEATURES='no_drop_flag'
 script:
   - |
-      cargo build --verbose --features "$FEATURES"
-      cargo test --verbose --features "$FEATURES"
-      cargo test --verbose --manifest-path=nodrop/Cargo.toml
-      cargo bench --verbose --features "$FEATURES" -- --test
-      cargo bench --verbose --manifest-path=nodrop/Cargo.toml -- --test
-      cargo doc --verbose --features "$FEATURES"
+      [ -z "$NODROP_FEATURES" ] && cargo build --verbose --features "$FEATURES"
+      [ -z "$NODROP_FEATURES" ] && cargo test --verbose --features "$FEATURES"
+      [ -z "$NODROP_FEATURES" ] && cargo bench --verbose --features "$FEATURES" -- --test
+      [ -z "$NODROP_FEATURES" ] && cargo doc --verbose --features "$FEATURES"
+      cargo test --verbose --manifest-path=nodrop/Cargo.toml --features "$NODROP_FEATURES"
+      cargo bench --verbose --manifest-path=nodrop/Cargo.toml --features "$NODROP_FEATURES" -- --test
