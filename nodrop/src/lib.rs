@@ -1,3 +1,17 @@
+//!
+//! The **nodrop** crate has the following cargo feature flags:
+//!
+//! - `no_drop_flag`.
+//!   - Optional.
+//!   - Requires nightly channel.
+//!   - Use no drop flag on the **NoDrop** type,
+//!     which means less space overhead. Use with care and report a bug if anything
+//!     changes behavior with this feature.
+//!
+//!
+
+#![cfg_attr(feature="no_drop_flag", feature(unsafe_no_drop_flag))]
+
 use std::ops::{Deref, DerefMut};
 use std::ptr;
 use std::mem;
@@ -10,6 +24,7 @@ enum Flag<T> {
 }
 
 /// A type holding **T** that will not call its destructor on drop
+#[cfg_attr(feature="no_drop_flag", unsafe_no_drop_flag)]
 pub struct NoDrop<T>(Flag<T>);
 
 impl<T> NoDrop<T> {
@@ -33,6 +48,16 @@ impl<T> NoDrop<T> {
     }
 }
 
+impl<T> Drop for NoDrop<T> {
+    fn drop(&mut self) {
+        // no drop flag info: writing repeatedly is idempotent
+        // inhibit drop
+        unsafe {
+            ptr::write(&mut self.0, Flag::Dropped);
+        }
+    }
+}
+
 enum Void { }
 
 /// FIXME: Replace with intrinsic when it's stable
@@ -50,14 +75,6 @@ unsafe fn debug_assert_unreachable() -> ! {
     unreachable()
 }
 
-impl<T> Drop for NoDrop<T> {
-    fn drop(&mut self) {
-        // inhibit drop
-        unsafe {
-            ptr::write(&mut self.0, Flag::Dropped);
-        }
-    }
-}
 
 impl<T> Deref for NoDrop<T> {
     type Target = T;
