@@ -1,3 +1,4 @@
+extern crate odds;
 extern crate nodrop;
 
 use nodrop::NoDrop;
@@ -17,9 +18,8 @@ use std::hash::{Hash, Hasher};
 use std::fmt;
 
 mod array;
-mod misc;
 pub use array::Array;
-pub use misc::RangeArgument;
+pub use odds::IndexRange as RangeArgument;
 use array::Index;
 
 
