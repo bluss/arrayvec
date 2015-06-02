@@ -659,6 +659,7 @@
 <span id="617">617</span>
 <span id="618">618</span>
 </pre><pre class='rust '>
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>odds</span>;
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>nodrop</span>;
 
 <span class='kw'>use</span> <span class='ident'>nodrop</span>::<span class='ident'>NoDrop</span>;
@@ -678,9 +679,8 @@
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>fmt</span>;
 
 <span class='kw'>mod</span> <span class='ident'>array</span>;
-<span class='kw'>mod</span> <span class='ident'>misc</span>;
 <span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>array</span>::<span class='ident'>Array</span>;
-<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>misc</span>::<span class='ident'>RangeArgument</span>;
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>odds</span>::<span class='ident'>IndexRange</span> <span class='kw'>as</span> <span class='ident'>RangeArgument</span>;
 <span class='kw'>use</span> <span class='ident'>array</span>::<span class='ident'>Index</span>;
 
 
