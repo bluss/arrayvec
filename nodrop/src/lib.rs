@@ -12,6 +12,10 @@
 
 #![cfg_attr(feature="no_drop_flag", feature(unsafe_no_drop_flag))]
 
+extern crate odds;
+
+use odds::debug_assert_unreachable;
+
 use std::ops::{Deref, DerefMut};
 use std::ptr;
 use std::mem;
@@ -57,24 +61,6 @@ impl<T> Drop for NoDrop<T> {
         }
     }
 }
-
-enum Void { }
-
-/// FIXME: Replace with intrinsic when it's stable
-#[inline]
-unsafe fn unreachable() -> ! {
-    let void: &Void = mem::transmute(&());
-    match *void {
-        // no cases
-    }
-}
-
-#[inline]
-unsafe fn debug_assert_unreachable() -> ! {
-    debug_assert!(false, "Entered unreachable section, this is a bug!");
-    unreachable()
-}
-
 
 impl<T> Deref for NoDrop<T> {
     type Target = T;
