@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/ulrik/.cargo/registry/src/github.com-1ecc6299db9ec823/odds-0.1.0/src/lib.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/ulrik/.cargo/registry/src/github.com-0a35038f75765ae4/odds-0.1.2/src/lib.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>lib.rs.html -- source</title>
@@ -105,33 +105,27 @@
 <span id="63">63</span>
 <span id="64">64</span>
 <span id="65">65</span>
-<span id="66">66</span>
-<span id="67">67</span>
-<span id="68">68</span>
-<span id="69">69</span>
-<span id="70">70</span>
-<span id="71">71</span>
-<span id="72">72</span>
-<span id="73">73</span>
-<span id="74">74</span>
-<span id="75">75</span>
-<span id="76">76</span>
-<span id="77">77</span>
-<span id="78">78</span>
-<span id="79">79</span>
-<span id="80">80</span>
-<span id="81">81</span>
-<span id="82">82</span>
-<span id="83">83</span>
-<span id="84">84</span>
-<span id="85">85</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Odds and ends — collection miscellania.</span>
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! The goal of this crate is to abolish itself. Things that are here</span>
 <span class='doccomment'>//! will move to other places when possible.</span>
-<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>range</span>::<span class='ident'>IndexRange</span>;
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! The **odds** crate has the following cargo feature flags:</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! - `unstable`.</span>
+<span class='doccomment'>//!   - Optional.</span>
+<span class='doccomment'>//!   - Requires nightly channel.</span>
+<span class='doccomment'>//!   - Implement the closure traits for **Fix**.</span>
+<span class='doccomment'>//!</span>
+
+<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>cfg_attr</span>(<span class='ident'>feature</span><span class='op'>=</span><span class='string'>&quot;unstable&quot;</span>, <span class='ident'>feature</span>(<span class='ident'>unboxed_closures</span>, <span class='ident'>core</span>))]</span>
+
 <span class='kw'>mod</span> <span class='ident'>range</span>;
+<span class='kw'>mod</span> <span class='ident'>fix</span>;
+
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>fix</span>::<span class='ident'>Fix</span>;
+<span class='kw'>pub</span> <span class='kw'>use</span> <span class='ident'>range</span>::<span class='ident'>IndexRange</span>;
 
 <span class='kw'>use</span> <span class='ident'>std</span>::{<span class='ident'>slice</span>, <span class='ident'>mem</span>};
 
@@ -156,40 +150,6 @@
     <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='ident'>index</span> <span class='op'>&lt;</span> <span class='ident'>data</span>.<span class='ident'>len</span>());
     <span class='ident'>data</span>.<span class='ident'>get_unchecked_mut</span>(<span class='ident'>index</span>)
 }
-
-<span class='doccomment'>/// Fixpoint combinator for rust closures, generalized over the return type.</span>
-<span class='doccomment'>///</span>
-<span class='doccomment'>/// The **Fix** only supports direct function call notation with the nightly channel.</span>
-<span class='doccomment'>///</span>
-<span class='doccomment'>/// ```</span>
-<span class='doccomment'>/// use odds::Fix;</span>
-<span class='doccomment'>///</span>
-<span class='doccomment'>/// let c = |f: Fix&lt;i32, _&gt;, x| if x == 0 { 1 } else { x * f.call(x - 1) };</span>
-<span class='doccomment'>/// let fact = Fix(&amp;c);</span>
-<span class='doccomment'>/// println!(&quot;{:?}&quot;, fact.call(5));</span>
-<span class='doccomment'>///</span>
-<span class='doccomment'>/// let data = &amp;[true, false];</span>
-<span class='doccomment'>/// let all_true = |f: Fix&lt;_, _&gt;, x| {</span>
-<span class='doccomment'>///     let x: &amp;[_] = x;</span>
-<span class='doccomment'>///     x.len() == 0 || x[0] &amp;&amp; f.call(&amp;x[1..])</span>
-<span class='doccomment'>/// };</span>
-<span class='doccomment'>/// let all = Fix(&amp;all_true);</span>
-<span class='doccomment'>/// assert_eq!(all.call(data), false);</span>
-<span class='doccomment'>/// ```</span>
-<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Fix</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>, <span class='ident'>R</span><span class='op'>&gt;</span>(<span class='kw'>pub</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>Fn</span>(<span class='ident'>Fix</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>R</span><span class='op'>&gt;</span>, <span class='ident'>T</span>) <span class='op'>-&gt;</span> <span class='ident'>R</span>);
-
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>, <span class='ident'>R</span><span class='op'>&gt;</span> <span class='ident'>Fix</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>, <span class='ident'>R</span><span class='op'>&gt;</span> {
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>call</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>arg</span>: <span class='ident'>T</span>) <span class='op'>-&gt;</span> <span class='ident'>R</span> {
-        <span class='kw'>let</span> <span class='ident'>f</span> <span class='op'>=</span> <span class='op'>*</span><span class='self'>self</span>;
-        <span class='ident'>f</span>.<span class='number'>0</span>(<span class='ident'>f</span>, <span class='ident'>arg</span>)
-    }
-}
-
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>, <span class='ident'>R</span><span class='op'>&gt;</span> <span class='ident'>Clone</span> <span class='kw'>for</span> <span class='ident'>Fix</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>, <span class='ident'>R</span><span class='op'>&gt;</span> {
-    <span class='kw'>fn</span> <span class='ident'>clone</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw'>Self</span> { <span class='op'>*</span><span class='self'>self</span> }
-}
-
-<span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>, <span class='ident'>R</span><span class='op'>&gt;</span> <span class='ident'>Copy</span> <span class='kw'>for</span> <span class='ident'>Fix</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>, <span class='ident'>R</span><span class='op'>&gt;</span> { }
 
 <span class='doccomment'>/// An empty type</span>
 <span class='kw'>pub</span> <span class='kw'>enum</span> <span class='ident'>Void</span> { }

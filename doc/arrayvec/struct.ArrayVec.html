@@ -66,7 +66,7 @@ that the full slice API is available.</p>
 <p>Capacity is inferred from the type parameter.</p>
 
 <h2 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h2><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h2><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>arrayvec</span>::<span class='ident'>ArrayVec</span>;
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>array</span> <span class='op'>=</span> <span class='ident'>ArrayVec</span>::<span class='op'>&lt;</span>[_; <span class='number'>16</span>]<span class='op'>&gt;</span>::<span class='ident'>new</span>();
@@ -79,7 +79,7 @@ that the full slice API is available.</p>
 <div class='docblock'><p>Return the number of elements in the <strong>ArrayVec</strong>.</p>
 
 <h2 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h2><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h2><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>arrayvec</span>::<span class='ident'>ArrayVec</span>;
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>array</span> <span class='op'>=</span> <span class='ident'>ArrayVec</span>::<span class='ident'>from</span>([<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>]);
@@ -90,7 +90,7 @@ that the full slice API is available.</p>
 <div class='docblock'><p>Return the capacity of the <strong>ArrayVec</strong>.</p>
 
 <h2 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h2><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h2><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>arrayvec</span>::<span class='ident'>ArrayVec</span>;
 
 <span class='kw'>let</span> <span class='ident'>array</span> <span class='op'>=</span> <span class='ident'>ArrayVec</span>::<span class='ident'>from</span>([<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>]);
@@ -103,7 +103,7 @@ that the full slice API is available.</p>
 if the vector is full.</p>
 
 <h2 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h2><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h2><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>arrayvec</span>::<span class='ident'>ArrayVec</span>;
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>array</span> <span class='op'>=</span> <span class='ident'>ArrayVec</span>::<span class='op'>&lt;</span>[_; <span class='number'>2</span>]<span class='op'>&gt;</span>::<span class='ident'>new</span>();
@@ -121,7 +121,7 @@ if the vector is full.</p>
 <p>Return <strong>Some(</strong> <em>element</em> <strong>)</strong> if the vector is non-empty, else <strong>None</strong>.</p>
 
 <h2 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h2><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h2><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>arrayvec</span>::<span class='ident'>ArrayVec</span>;
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>array</span> <span class='op'>=</span> <span class='ident'>ArrayVec</span>::<span class='op'>&lt;</span>[_; <span class='number'>2</span>]<span class='op'>&gt;</span>::<span class='ident'>new</span>();
@@ -139,7 +139,7 @@ if the vector is full.</p>
 <p>Return None if no element is shifted out.</p>
 
 <h2 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h2><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h2><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>arrayvec</span>::<span class='ident'>ArrayVec</span>;
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>array</span> <span class='op'>=</span> <span class='ident'>ArrayVec</span>::<span class='op'>&lt;</span>[_; <span class='number'>2</span>]<span class='op'>&gt;</span>::<span class='ident'>new</span>();
@@ -158,7 +158,7 @@ if the vector is full.</p>
 <p>Return <strong>Some(</strong> <em>element</em> <strong>)</strong> if the index is in bounds, else <strong>None</strong>.</p>
 
 <h2 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h2><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h2><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>arrayvec</span>::<span class='ident'>ArrayVec</span>;
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>array</span> <span class='op'>=</span> <span class='ident'>ArrayVec</span>::<span class='ident'>from</span>([<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>]);
@@ -174,7 +174,7 @@ if the vector is full.</p>
 <p>Return <strong>Some(</strong> <em>element</em> <strong>)</strong> if the index is in bounds, else <strong>None</strong>.</p>
 
 <h2 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h2><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h2><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>arrayvec</span>::<span class='ident'>ArrayVec</span>;
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>array</span> <span class='op'>=</span> <span class='ident'>ArrayVec</span>::<span class='ident'>from</span>([<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>]);
@@ -200,7 +200,7 @@ if the <code>Drain</code> value is leaked.</p>
 the end point is greater than the length of the vector.</p>
 
 <h1 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>arrayvec</span>::<span class='ident'>ArrayVec</span>;
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>v</span> <span class='op'>=</span> <span class='ident'>ArrayVec</span>::<span class='ident'>from</span>([<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>]);
@@ -212,7 +212,7 @@ the end point is greater than the length of the vector.</p>
 <div class='docblock'><p>Returns the number of elements in the slice.</p>
 
 <h1 id="example" class='section-header'><a
-                           href="#example">Example</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#example">Example</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='ident'>a</span> <span class='op'>=</span> [<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>];
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>a</span>.<span class='ident'>len</span>(), <span class='number'>3</span>);
 </pre>
@@ -220,7 +220,7 @@ the end point is greater than the length of the vector.</p>
 <div class='docblock'><p>Returns true if the slice has a length of 0</p>
 
 <h1 id="example" class='section-header'><a
-                           href="#example">Example</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#example">Example</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='ident'>a</span> <span class='op'>=</span> [<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>];
 <span class='macro'>assert</span><span class='macro'>!</span>(<span class='op'>!</span><span class='ident'>a</span>.<span class='ident'>is_empty</span>());
 </pre>
@@ -228,7 +228,7 @@ the end point is greater than the length of the vector.</p>
 <div class='docblock'><p>Returns the first element of a slice, or <code>None</code> if it is empty.</p>
 
 <h1 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='ident'>v</span> <span class='op'>=</span> [<span class='number'>10</span>, <span class='number'>40</span>, <span class='number'>30</span>];
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='prelude-val'>Some</span>(<span class='kw-2'>&amp;</span><span class='number'>10</span>), <span class='ident'>v</span>.<span class='ident'>first</span>());
 
@@ -253,7 +253,7 @@ the end point is greater than the length of the vector.</p>
 <div class='docblock'><p>Returns the last element of a slice, or <code>None</code> if it is empty.</p>
 
 <h1 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='ident'>v</span> <span class='op'>=</span> [<span class='number'>10</span>, <span class='number'>40</span>, <span class='number'>30</span>];
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='prelude-val'>Some</span>(<span class='kw-2'>&amp;</span><span class='number'>30</span>), <span class='ident'>v</span>.<span class='ident'>last</span>());
 
@@ -267,7 +267,7 @@ the end point is greater than the length of the vector.</p>
 index is out of bounds.</p>
 
 <h1 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='ident'>v</span> <span class='op'>=</span> [<span class='number'>10</span>, <span class='number'>40</span>, <span class='number'>30</span>];
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='prelude-val'>Some</span>(<span class='kw-2'>&amp;</span><span class='number'>40</span>), <span class='ident'>v</span>.<span class='ident'>get</span>(<span class='number'>1</span>));
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='prelude-val'>None</span>, <span class='ident'>v</span>.<span class='ident'>get</span>(<span class='number'>3</span>));
@@ -311,7 +311,7 @@ would also make any pointers to it invalid.</p>
 <p>Panics if <code>a</code> or <code>b</code> are out of bounds.</p>
 
 <h1 id="example" class='section-header'><a
-                           href="#example">Example</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#example">Example</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>v</span> <span class='op'>=</span> [<span class='string'>&quot;a&quot;</span>, <span class='string'>&quot;b&quot;</span>, <span class='string'>&quot;c&quot;</span>, <span class='string'>&quot;d&quot;</span>];
 <span class='ident'>v</span>.<span class='ident'>swap</span>(<span class='number'>1</span>, <span class='number'>3</span>);
 <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>v</span> <span class='op'>==</span> [<span class='string'>&quot;a&quot;</span>, <span class='string'>&quot;d&quot;</span>, <span class='string'>&quot;c&quot;</span>, <span class='string'>&quot;b&quot;</span>]);
@@ -320,7 +320,7 @@ would also make any pointers to it invalid.</p>
 <div class='docblock'><p>Reverse the order of elements in a slice, in place.</p>
 
 <h1 id="example" class='section-header'><a
-                           href="#example">Example</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#example">Example</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>v</span> <span class='op'>=</span> [<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>];
 <span class='ident'>v</span>.<span class='ident'>reverse</span>();
 <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>v</span> <span class='op'>==</span> [<span class='number'>3</span>, <span class='number'>2</span>, <span class='number'>1</span>]);
@@ -342,7 +342,7 @@ would also make any pointers to it invalid.</p>
                            href="#example">Example</a></h1>
 <p>Print the adjacent pairs of a slice (i.e. <code>[1,2]</code>, <code>[2,3]</code>,
 <code>[3,4]</code>):</p>
-<pre id='rust-example-rendered' class='rust '>
+<pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='ident'>v</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span>[<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>, <span class='number'>4</span>];
 <span class='kw'>for</span> <span class='ident'>win</span> <span class='kw'>in</span> <span class='ident'>v</span>.<span class='ident'>windows</span>(<span class='number'>2</span>) {
     <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{:?}&quot;</span>, <span class='ident'>win</span>);
@@ -362,7 +362,7 @@ length of the slice, then the last chunk will not have length
                            href="#example">Example</a></h1>
 <p>Print the slice two elements at a time (i.e. <code>[1,2]</code>,
 <code>[3,4]</code>, <code>[5]</code>):</p>
-<pre id='rust-example-rendered' class='rust '>
+<pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='ident'>v</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span>[<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>, <span class='number'>4</span>, <span class='number'>5</span>];
 <span class='kw'>for</span> <span class='ident'>win</span> <span class='kw'>in</span> <span class='ident'>v</span>.<span class='ident'>chunks</span>(<span class='number'>2</span>) {
     <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{:?}&quot;</span>, <span class='ident'>win</span>);
@@ -387,7 +387,7 @@ indices from <code>[mid, len)</code> (excluding the index <code>len</code> itsel
 <p>Panics if <code>mid &gt; len</code>.</p>
 
 <h1 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='ident'>v</span> <span class='op'>=</span> [<span class='number'>10</span>, <span class='number'>40</span>, <span class='number'>30</span>, <span class='number'>20</span>, <span class='number'>50</span>];
 <span class='kw'>let</span> (<span class='ident'>v1</span>, <span class='ident'>v2</span>) <span class='op'>=</span> <span class='ident'>v</span>.<span class='ident'>split_at</span>(<span class='number'>2</span>);
 <span class='macro'>assert_eq</span><span class='macro'>!</span>([<span class='number'>10</span>, <span class='number'>40</span>], <span class='ident'>v1</span>);
@@ -405,7 +405,7 @@ indices from <code>[mid, len)</code> (excluding the index <code>len</code> itsel
 <p>Panics if <code>mid &gt; len</code>.</p>
 
 <h1 id="example" class='section-header'><a
-                           href="#example">Example</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#example">Example</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>v</span> <span class='op'>=</span> [<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>, <span class='number'>4</span>, <span class='number'>5</span>, <span class='number'>6</span>];
 
 <span class='comment'>// scoped to restrict the lifetime of the borrows</span>
@@ -435,7 +435,7 @@ indices from <code>[mid, len)</code> (excluding the index <code>len</code> itsel
                            href="#examples">Examples</a></h1>
 <p>Print the slice split by numbers divisible by 3 (i.e. <code>[10, 40]</code>,
 <code>[20]</code>, <code>[50]</code>):</p>
-<pre id='rust-example-rendered' class='rust '>
+<pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='ident'>v</span> <span class='op'>=</span> [<span class='number'>10</span>, <span class='number'>40</span>, <span class='number'>30</span>, <span class='number'>20</span>, <span class='number'>60</span>, <span class='number'>50</span>];
 <span class='kw'>for</span> <span class='ident'>group</span> <span class='kw'>in</span> <span class='ident'>v</span>.<span class='ident'>split</span>(<span class='op'>|</span><span class='ident'>num</span><span class='op'>|</span> <span class='op'>*</span><span class='ident'>num</span> <span class='op'>%</span> <span class='number'>3</span> <span class='op'>==</span> <span class='number'>0</span>) {
     <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{:?}&quot;</span>, <span class='ident'>group</span>);
@@ -456,7 +456,7 @@ slice.</p>
                            href="#examples">Examples</a></h1>
 <p>Print the slice split once by numbers divisible by 3 (i.e. <code>[10, 40]</code>,
 <code>[20, 60, 50]</code>):</p>
-<pre id='rust-example-rendered' class='rust '>
+<pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='ident'>v</span> <span class='op'>=</span> [<span class='number'>10</span>, <span class='number'>40</span>, <span class='number'>30</span>, <span class='number'>20</span>, <span class='number'>60</span>, <span class='number'>50</span>];
 <span class='kw'>for</span> <span class='ident'>group</span> <span class='kw'>in</span> <span class='ident'>v</span>.<span class='ident'>splitn</span>(<span class='number'>2</span>, <span class='op'>|</span><span class='ident'>num</span><span class='op'>|</span> <span class='op'>*</span><span class='ident'>num</span> <span class='op'>%</span> <span class='number'>3</span> <span class='op'>==</span> <span class='number'>0</span>) {
     <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{:?}&quot;</span>, <span class='ident'>group</span>);
@@ -482,7 +482,7 @@ slice.</p>
                            href="#examples">Examples</a></h1>
 <p>Print the slice split once, starting from the end, by numbers divisible
 by 3 (i.e. <code>[50]</code>, <code>[10, 40, 30, 20]</code>):</p>
-<pre id='rust-example-rendered' class='rust '>
+<pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='ident'>v</span> <span class='op'>=</span> [<span class='number'>10</span>, <span class='number'>40</span>, <span class='number'>30</span>, <span class='number'>20</span>, <span class='number'>60</span>, <span class='number'>50</span>];
 <span class='kw'>for</span> <span class='ident'>group</span> <span class='kw'>in</span> <span class='ident'>v</span>.<span class='ident'>rsplitn</span>(<span class='number'>2</span>, <span class='op'>|</span><span class='ident'>num</span><span class='op'>|</span> <span class='op'>*</span><span class='ident'>num</span> <span class='op'>%</span> <span class='number'>3</span> <span class='op'>==</span> <span class='number'>0</span>) {
     <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{:?}&quot;</span>, <span class='ident'>group</span>);
@@ -500,7 +500,7 @@ slice.</p>
 <div class='docblock'><p>Returns true if the slice contains an element with the given value.</p>
 
 <h1 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='ident'>v</span> <span class='op'>=</span> [<span class='number'>10</span>, <span class='number'>40</span>, <span class='number'>30</span>];
 <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>v</span>.<span class='ident'>contains</span>(<span class='kw-2'>&amp;</span><span class='number'>30</span>));
 <span class='macro'>assert</span><span class='macro'>!</span>(<span class='op'>!</span><span class='ident'>v</span>.<span class='ident'>contains</span>(<span class='kw-2'>&amp;</span><span class='number'>50</span>));
@@ -509,7 +509,7 @@ slice.</p>
 <div class='docblock'><p>Returns true if <code>needle</code> is a prefix of the slice.</p>
 
 <h1 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='ident'>v</span> <span class='op'>=</span> [<span class='number'>10</span>, <span class='number'>40</span>, <span class='number'>30</span>];
 <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>v</span>.<span class='ident'>starts_with</span>(<span class='kw-2'>&amp;</span>[<span class='number'>10</span>]));
 <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>v</span>.<span class='ident'>starts_with</span>(<span class='kw-2'>&amp;</span>[<span class='number'>10</span>, <span class='number'>40</span>]));
@@ -520,7 +520,7 @@ slice.</p>
 <div class='docblock'><p>Returns true if <code>needle</code> is a suffix of the slice.</p>
 
 <h1 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='ident'>v</span> <span class='op'>=</span> [<span class='number'>10</span>, <span class='number'>40</span>, <span class='number'>30</span>];
 <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>v</span>.<span class='ident'>ends_with</span>(<span class='kw-2'>&amp;</span>[<span class='number'>30</span>]));
 <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>v</span>.<span class='ident'>ends_with</span>(<span class='kw-2'>&amp;</span>[<span class='number'>40</span>, <span class='number'>30</span>]));
@@ -544,7 +544,7 @@ element could be inserted while maintaining sorted order.</p>
 <p>Looks up a series of four elements. The first is found, with a
 uniquely determined position; the second and third are not
 found; the fourth could match any position in <code>[1,4]</code>.</p>
-<pre id='rust-example-rendered' class='rust '>
+<pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='ident'>s</span> <span class='op'>=</span> [<span class='number'>0</span>, <span class='number'>1</span>, <span class='number'>1</span>, <span class='number'>1</span>, <span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>, <span class='number'>5</span>, <span class='number'>8</span>, <span class='number'>13</span>, <span class='number'>21</span>, <span class='number'>34</span>, <span class='number'>55</span>];
 
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>s</span>.<span class='ident'>binary_search</span>(<span class='kw-2'>&amp;</span><span class='number'>13</span>),  <span class='prelude-val'>Ok</span>(<span class='number'>9</span>));
@@ -571,7 +571,7 @@ element could be inserted while maintaining sorted order.</p>
 <p>Looks up a series of four elements. The first is found, with a
 uniquely determined position; the second and third are not
 found; the fourth could match any position in <code>[1,4]</code>.</p>
-<pre id='rust-example-rendered' class='rust '>
+<pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='ident'>s</span> <span class='op'>=</span> [<span class='number'>0</span>, <span class='number'>1</span>, <span class='number'>1</span>, <span class='number'>1</span>, <span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>, <span class='number'>5</span>, <span class='number'>8</span>, <span class='number'>13</span>, <span class='number'>21</span>, <span class='number'>34</span>, <span class='number'>55</span>];
 
 <span class='kw'>let</span> <span class='ident'>seek</span> <span class='op'>=</span> <span class='number'>13</span>;
@@ -590,7 +590,7 @@ found; the fourth could match any position in <code>[1,4]</code>.</p>
 <p>This is equivalent to <code>self.sort_by(|a, b| a.cmp(b))</code>.</p>
 
 <h1 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>v</span> <span class='op'>=</span> [<span class='op'>-</span><span class='number'>5</span>, <span class='number'>4</span>, <span class='number'>1</span>, <span class='op'>-</span><span class='number'>3</span>, <span class='number'>2</span>];
 
 <span class='ident'>v</span>.<span class='ident'>sort</span>();
@@ -604,7 +604,7 @@ elements.</p>
 approximately <code>2 * n</code>, where <code>n</code> is the length of <code>self</code>.</p>
 
 <h1 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>v</span> <span class='op'>=</span> [<span class='number'>5</span>, <span class='number'>4</span>, <span class='number'>1</span>, <span class='number'>3</span>, <span class='number'>2</span>];
 <span class='ident'>v</span>.<span class='ident'>sort_by</span>(<span class='op'>|</span><span class='ident'>a</span>, <span class='ident'>b</span><span class='op'>|</span> <span class='ident'>a</span>.<span class='ident'>cmp</span>(<span class='ident'>b</span>));
 <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>v</span> <span class='op'>==</span> [<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>, <span class='number'>4</span>, <span class='number'>5</span>]);
@@ -618,7 +618,7 @@ approximately <code>2 * n</code>, where <code>n</code> is the length of <code>se
 vector in succession.</p>
 
 <h1 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='ident'>v</span> <span class='op'>=</span> [<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>];
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>perms</span> <span class='op'>=</span> <span class='ident'>v</span>.<span class='ident'>permutations</span>();
 
@@ -628,7 +628,7 @@ vector in succession.</p>
 </pre>
 
 <p>Iterating through permutations one by one.</p>
-<pre id='rust-example-rendered' class='rust '>
+<pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='ident'>v</span> <span class='op'>=</span> [<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>];
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>perms</span> <span class='op'>=</span> <span class='ident'>v</span>.<span class='ident'>permutations</span>();
 
@@ -644,7 +644,7 @@ vector in succession.</p>
 last-ordered permutation.</p>
 
 <h1 id="example" class='section-header'><a
-                           href="#example">Example</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#example">Example</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='ident'>v</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [_] <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='number'>0</span>, <span class='number'>1</span>, <span class='number'>2</span>];
 <span class='ident'>v</span>.<span class='ident'>next_permutation</span>();
 <span class='kw'>let</span> <span class='ident'>b</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [_] <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='number'>0</span>, <span class='number'>2</span>, <span class='number'>1</span>];
@@ -661,7 +661,7 @@ last-ordered permutation.</p>
 first-ordered permutation.</p>
 
 <h1 id="example" class='section-header'><a
-                           href="#example">Example</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#example">Example</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='ident'>v</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [_] <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='number'>1</span>, <span class='number'>0</span>, <span class='number'>2</span>];
 <span class='ident'>v</span>.<span class='ident'>prev_permutation</span>();
 <span class='kw'>let</span> <span class='ident'>b</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [_] <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='number'>0</span>, <span class='number'>2</span>, <span class='number'>1</span>];
@@ -676,7 +676,7 @@ shorter of <code>self.len()</code> and <code>src.len()</code>). Returns the numb
 of elements copied.</p>
 
 <h1 id="example" class='section-header'><a
-                           href="#example">Example</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#example">Example</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>dst</span> <span class='op'>=</span> [<span class='number'>0</span>, <span class='number'>0</span>, <span class='number'>0</span>];
 <span class='kw'>let</span> <span class='ident'>src</span> <span class='op'>=</span> [<span class='number'>1</span>, <span class='number'>2</span>];
 
@@ -704,7 +704,7 @@ and <code>end - start</code>).</p>
 </ul>
 
 <h1 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h1><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h1><pre class='rust rust-example-rendered'>
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>a</span> <span class='op'>=</span> [<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>, <span class='number'>4</span>, <span class='number'>5</span>];
 <span class='kw'>let</span> <span class='ident'>b</span> <span class='op'>=</span> <span class='macro'>vec</span><span class='macro'>!</span>[<span class='number'>6</span>, <span class='number'>7</span>, <span class='number'>8</span>];
 <span class='kw'>let</span> <span class='ident'>num_moved</span> <span class='op'>=</span> <span class='ident'>a</span>.<span class='ident'>move_from</span>(<span class='ident'>b</span>, <span class='number'>0</span>, <span class='number'>3</span>);
@@ -722,7 +722,7 @@ and <code>end - start</code>).</p>
 </div><h3 class='impl'><code>impl&lt;A: <a class='trait' href='../arrayvec/trait.Array.html' title='arrayvec::Array'>Array</a>&gt; <a class='trait' href='http://doc.rust-lang.org/nightly/core/convert/trait.From.html' title='core::convert::From'>From</a>&lt;A&gt; for <a class='struct' href='../arrayvec/struct.ArrayVec.html' title='arrayvec::ArrayVec'>ArrayVec</a>&lt;A&gt;</code></h3><div class='docblock'><p>Create an <strong>ArrayVec</strong> from an array.</p>
 
 <h2 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h2><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h2><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>arrayvec</span>::<span class='ident'>ArrayVec</span>;
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>array</span> <span class='op'>=</span> <span class='ident'>ArrayVec</span>::<span class='ident'>from</span>([<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>]);
@@ -733,7 +733,7 @@ and <code>end - start</code>).</p>
 </div><h3 class='impl'><code>impl&lt;'a, A: <a class='trait' href='../arrayvec/trait.Array.html' title='arrayvec::Array'>Array</a>&gt; <a class='trait' href='http://doc.rust-lang.org/nightly/core/iter/trait.IntoIterator.html' title='core::iter::IntoIterator'>IntoIterator</a> for &amp;'a <a class='struct' href='../arrayvec/struct.ArrayVec.html' title='arrayvec::ArrayVec'>ArrayVec</a>&lt;A&gt;</code></h3><div class='docblock'><p>Iterate the <strong>ArrayVec</strong> with references to each element.</p>
 
 <h2 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h2><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h2><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>arrayvec</span>::<span class='ident'>ArrayVec</span>;
 
 <span class='kw'>let</span> <span class='ident'>array</span> <span class='op'>=</span> <span class='ident'>ArrayVec</span>::<span class='ident'>from</span>([<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>]);
@@ -748,7 +748,7 @@ and <code>end - start</code>).</p>
 </div><h3 class='impl'><code>impl&lt;'a, A: <a class='trait' href='../arrayvec/trait.Array.html' title='arrayvec::Array'>Array</a>&gt; <a class='trait' href='http://doc.rust-lang.org/nightly/core/iter/trait.IntoIterator.html' title='core::iter::IntoIterator'>IntoIterator</a> for &amp;'a mut <a class='struct' href='../arrayvec/struct.ArrayVec.html' title='arrayvec::ArrayVec'>ArrayVec</a>&lt;A&gt;</code></h3><div class='docblock'><p>Iterate the <strong>ArrayVec</strong> with mutable references to each element.</p>
 
 <h2 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h2><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h2><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>arrayvec</span>::<span class='ident'>ArrayVec</span>;
 
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>array</span> <span class='op'>=</span> <span class='ident'>ArrayVec</span>::<span class='ident'>from</span>([<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>]);
@@ -765,7 +765,7 @@ and <code>end - start</code>).</p>
 <p>The vector is consumed by this operation.</p>
 
 <h2 id="examples" class='section-header'><a
-                           href="#examples">Examples</a></h2><pre id='rust-example-rendered' class='rust '>
+                           href="#examples">Examples</a></h2><pre class='rust rust-example-rendered'>
 <span class='kw'>use</span> <span class='ident'>arrayvec</span>::<span class='ident'>ArrayVec</span>;
 
 <span class='kw'>for</span> <span class='ident'>elt</span> <span class='kw'>in</span> <span class='ident'>ArrayVec</span>::<span class='ident'>from</span>([<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>]) {

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Fix","Fixpoint combinator for rust closures, generalized over the return type."]]});

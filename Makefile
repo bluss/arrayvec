@@ -1,6 +1,6 @@
 
 docs: VERSION
-	cargo doc
+	cargo doc --features=odds/unstable
 	rm -rf ./doc
 	cp -r ./target/doc ./doc
 	# Put in the crate version into the docs
