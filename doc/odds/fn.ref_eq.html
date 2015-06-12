@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="API documentation for the Rust `raw_byte_repr` fn in crate `odds`.">
-    <meta name="keywords" content="rust, rustlang, rust-lang, raw_byte_repr">
+    <meta name="description" content="API documentation for the Rust `ref_eq` fn in crate `odds`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, ref_eq">
 
-    <title>arrayvec - 0.3.5 - odds::raw_byte_repr - Rust</title>
+    <title>arrayvec - 0.3.5 - odds::ref_eq - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../main.css">
 
@@ -26,7 +26,7 @@
 
     <section class="sidebar">
         
-        <p class='location'><a href='index.html'>odds</a></p><script>window.sidebarCurrent = {name: 'raw_byte_repr', ty: 'fn', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+        <p class='location'><a href='index.html'>odds</a></p><script>window.sidebarCurrent = {name: 'ref_eq', ty: 'fn', relpath: ''};</script><script defer src="sidebar-items.js"></script>
     </section>
 
     <nav class="sub">
@@ -41,12 +41,12 @@
     </nav>
 
     <section id='main' class="content fn">
-<h1 class='fqn'><span class='in-band'>Function <a href='index.html'>odds</a>::<wbr><a class='fn' href=''>raw_byte_repr</a></span><span class='out-of-band'><span id='render-detail'>
+<h1 class='fqn'><span class='in-band'>Function <a href='index.html'>odds</a>::<wbr><a class='fn' href=''>ref_eq</a></span><span class='out-of-band'><span id='render-detail'>
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-296' class='srclink' href='../src/odds/lib.rs.html#40-45' title='goto source code'>[src]</a></span></h1>
-<pre class='rust fn'>pub unsafe fn raw_byte_repr&lt;'a, T&gt;(ptr: &amp;'a T) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;'a [</a><a href='http://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></pre><div class='docblock'><p>Safe to use with any wholly initialized memory <code>ptr</code></p>
+        </span><a id='src-263' class='srclink' href='../src/odds/lib.rs.html#29-31' title='goto source code'>[src]</a></span></h1>
+<pre class='rust fn'>pub fn ref_eq&lt;T&gt;(a: &amp;T, b: &amp;T) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></pre><div class='docblock'><p>Compare if <strong>a</strong> and <strong>b</strong> are equal <em>as pointers</em>.</p>
 </div></section>
     <section id='search' class="content hidden"></section>
 

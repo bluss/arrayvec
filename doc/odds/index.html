@@ -45,7 +45,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/odds/lib.rs.html#1-65' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-0' class='srclink' href='../src/odds/lib.rs.html#1-125' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>Odds and ends — collection miscellania.</p>
 
 <p>The goal of this crate is to abolish itself. Things that are here
@@ -69,16 +69,6 @@ will move to other places when possible.</p>
                                title='odds::Fix'>Fix</a></td>
                         <td class='docblock short'>
                              <p>Fixpoint combinator for rust closures, generalized over the return type.</p>
-
-                        </td>
-                    </tr>
-                </table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
-<table>
-                    <tr class=' module-item'>
-                        <td><a class='enum' href='enum.Void.html'
-                               title='odds::Void'>Void</a></td>
-                        <td class='docblock short'>
-                             <p>An empty type</p>
 
                         </td>
                     </tr>
@@ -123,10 +113,38 @@ by range syntax like <code>..</code>, <code>a..</code>, <code>..b</code> or <cod
                     </tr>
                 
                     <tr class=' module-item'>
+                        <td><a class='fn' href='fn.ptr_eq.html'
+                               title='odds::ptr_eq'>ptr_eq</a></td>
+                        <td class='docblock short'>
+                             <p>Compare if <strong>a</strong> and <strong>b</strong> are equal pointers.</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
                         <td><a class='fn' href='fn.raw_byte_repr.html'
                                title='odds::raw_byte_repr'>raw_byte_repr</a></td>
                         <td class='docblock short'>
                              <p>Safe to use with any wholly initialized memory <code>ptr</code></p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.ref_eq.html'
+                               title='odds::ref_eq'>ref_eq</a></td>
+                        <td class='docblock short'>
+                             <p>Compare if <strong>a</strong> and <strong>b</strong> are equal <em>as pointers</em>.</p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='fn' href='fn.slice_unchecked.html'
+                               title='odds::slice_unchecked'>slice_unchecked</a></td>
+                        <td class='docblock short'>
+                             <p>Check slicing bounds in debug mode, otherwise just act as an unchecked
+slice call.</p>
 
                         </td>
                     </tr>

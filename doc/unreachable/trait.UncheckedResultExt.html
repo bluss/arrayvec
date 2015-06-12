@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="API documentation for the Rust `raw_byte_repr` fn in crate `odds`.">
-    <meta name="keywords" content="rust, rustlang, rust-lang, raw_byte_repr">
+    <meta name="description" content="API documentation for the Rust `UncheckedResultExt` trait in crate `unreachable`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, UncheckedResultExt">
 
-    <title>arrayvec - 0.3.5 - odds::raw_byte_repr - Rust</title>
+    <title>arrayvec - 0.3.5 - unreachable::UncheckedResultExt - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../main.css">
 
@@ -26,7 +26,7 @@
 
     <section class="sidebar">
         
-        <p class='location'><a href='index.html'>odds</a></p><script>window.sidebarCurrent = {name: 'raw_byte_repr', ty: 'fn', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+        <p class='location'><a href='index.html'>unreachable</a></p><script>window.sidebarCurrent = {name: 'UncheckedResultExt', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script>
     </section>
 
     <nav class="sub">
@@ -40,14 +40,28 @@
         </form>
     </nav>
 
-    <section id='main' class="content fn">
-<h1 class='fqn'><span class='in-band'>Function <a href='index.html'>odds</a>::<wbr><a class='fn' href=''>raw_byte_repr</a></span><span class='out-of-band'><span id='render-detail'>
+    <section id='main' class="content trait">
+<h1 class='fqn'><span class='in-band'>Trait <a href='index.html'>unreachable</a>::<wbr><a class='trait' href=''>UncheckedResultExt</a></span><span class='out-of-band'><span id='render-detail'>
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-296' class='srclink' href='../src/odds/lib.rs.html#40-45' title='goto source code'>[src]</a></span></h1>
-<pre class='rust fn'>pub unsafe fn raw_byte_repr&lt;'a, T&gt;(ptr: &amp;'a T) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;'a [</a><a href='http://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a><a href='http://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></pre><div class='docblock'><p>Safe to use with any wholly initialized memory <code>ptr</code></p>
-</div></section>
+        </span><a id='src-35' class='srclink' href='../src/unreachable/lib.rs.html#36-42' title='goto source code'>[src]</a></span></h1>
+<pre class='rust trait'>pub trait UncheckedResultExt&lt;T, E&gt; {
+    unsafe fn <a href='#tymethod.unchecked_unwrap_ok' class='fnname'>unchecked_unwrap_ok</a>(self) -&gt; T;
+    unsafe fn <a href='#tymethod.unchecked_unwrap_err' class='fnname'>unchecked_unwrap_err</a>(self) -&gt; E;
+}</pre><div class='docblock'><p>An extension trait for <code>Result&lt;T, E&gt;</code> providing unchecked unwrapping methods.</p>
+</div>
+            <h2 id='required-methods'>Required Methods</h2>
+            <div class='methods'>
+        <h3 id='tymethod.unchecked_unwrap_ok' class='method stab '><code>unsafe fn <a href='#tymethod.unchecked_unwrap_ok' class='fnname'>unchecked_unwrap_ok</a>(self) -&gt; T</code></h3><div class='docblock'><p>Get the value out of this Result without checking for Err.</p>
+</div><h3 id='tymethod.unchecked_unwrap_err' class='method stab '><code>unsafe fn <a href='#tymethod.unchecked_unwrap_err' class='fnname'>unchecked_unwrap_err</a>(self) -&gt; E</code></h3><div class='docblock'><p>Get the error out of this Result without checking for Ok.</p>
+</div></div>
+        <h2 id='implementors'>Implementors</h2>
+        <ul class='item-list' id='implementors-list'>
+    <li><code>impl&lt;T, E&gt; <a class='trait' href='../unreachable/trait.UncheckedResultExt.html' title='unreachable::UncheckedResultExt'>UncheckedResultExt</a>&lt;T, E&gt; for <a class='enum' href='http://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;T, E&gt;</code></li>
+</ul><script type="text/javascript" async
+                              src="../implementors/unreachable/trait.UncheckedResultExt.js">
+                      </script></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>
@@ -91,7 +105,7 @@
 
     <script>
         window.rootPath = "../";
-        window.currentCrate = "odds";
+        window.currentCrate = "unreachable";
         window.playgroundUrl = "";
     </script>
     <script src="../jquery.js"></script>
