@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/ulrik/.cargo/registry/src/github.com-0a35038f75765ae4/odds-0.2.2/src/fix.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/ulrik/.cargo/registry/src/github.com-0a35038f75765ae4/odds-0.2.3/src/fix.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>fix.rs.html -- source</title>
@@ -112,16 +112,24 @@
 <span id="70">70</span>
 <span id="71">71</span>
 <span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
 </pre><pre class='rust '>
 
 <span class='doccomment'>/// Fixpoint combinator for rust closures, generalized over the return type.</span>
 <span class='doccomment'>///</span>
-<span class='doccomment'>/// The **Fix** only supports direct function call notation with the nightly channel.</span>
+<span class='doccomment'>/// In **Fix\&lt;T, R\&gt;**, **T** is the argument type, and **R** is the return type,</span>
+<span class='doccomment'>/// **R** defaults to **T**.</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// **Fix** only supports function call notation with the nightly channel and</span>
+<span class='doccomment'>/// the cargo feature ‘unstable’ enabled.</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// ```</span>
 <span class='doccomment'>/// use odds::Fix;</span>
 <span class='doccomment'>///</span>
-<span class='doccomment'>/// let c = |f: Fix&lt;i32, _&gt;, x| if x == 0 { 1 } else { x * f.call(x - 1) };</span>
+<span class='doccomment'>/// let c = |f: Fix&lt;i32&gt;, x| if x == 0 { 1 } else { x * f.call(x - 1) };</span>
 <span class='doccomment'>/// let fact = Fix(&amp;c);</span>
 <span class='doccomment'>/// assert_eq!(fact.call(5), 120);</span>
 <span class='doccomment'>///</span>
@@ -139,13 +147,13 @@
 // using feature `unstable`
 use odds::Fix;
 
-let c = |f: Fix&lt;i32, _&gt;, x| if x == 0 { 1 } else { x * f(x - 1) };
+let c = |f: Fix&lt;i32&gt;, x| if x == 0 { 1 } else { x * f(x - 1) };
 let fact = Fix(&amp;c);
 assert_eq!(fact(5), 120);
 ```
 &quot;</span>
 )]</span>
-<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Fix</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>, <span class='ident'>R</span><span class='op'>&gt;</span>(<span class='kw'>pub</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>Fn</span>(<span class='ident'>Fix</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>R</span><span class='op'>&gt;</span>, <span class='ident'>T</span>) <span class='op'>-&gt;</span> <span class='ident'>R</span>);
+<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Fix</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>, <span class='ident'>R</span> <span class='op'>=</span> <span class='ident'>T</span><span class='op'>&gt;</span>(<span class='kw'>pub</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>Fn</span>(<span class='ident'>Fix</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>R</span><span class='op'>&gt;</span>, <span class='ident'>T</span>) <span class='op'>-&gt;</span> <span class='ident'>R</span>);
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>, <span class='ident'>R</span><span class='op'>&gt;</span> <span class='ident'>Fix</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>, <span class='ident'>R</span><span class='op'>&gt;</span> {
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>call</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>arg</span>: <span class='ident'>T</span>) <span class='op'>-&gt;</span> <span class='ident'>R</span> {
