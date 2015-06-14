@@ -1,6 +1,6 @@
 [package]
 name = "nodrop"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["bluss"]
 
 license = "MIT/Apache-2.0"
@@ -18,4 +18,4 @@ keywords = ["container", "drop"]
 no_drop_flag = []
 
 [dependencies.odds]
-version = "0.1"
+version = "0.2"
