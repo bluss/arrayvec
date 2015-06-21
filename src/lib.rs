@@ -90,11 +90,6 @@ impl<A: Array> ArrayVec<A> {
     #[inline]
     pub fn len(&self) -> usize { self.len.to_usize() }
 
-    unsafe fn set_len(&mut self, length: usize) {
-        debug_assert!(length <= self.capacity());
-        self.len = Index::from(length);
-    }
-
     /// Return the capacity of the **ArrayVec**.
     ///
     /// ## Examples
@@ -264,6 +259,19 @@ impl<A: Array> ArrayVec<A> {
     pub fn clear(&mut self) {
         while let Some(_) = self.pop() { }
     }
+
+    /// Set the vector's length without dropping or moving out elements
+    ///
+    /// May panic if **length** is greater than the capacity.
+    ///
+    /// This function is **unsafe** because it changes the notion of the
+    /// number of “valid” elements in the vector. Use with care.
+    #[inline]
+    pub unsafe fn set_len(&mut self, length: usize) {
+        debug_assert!(length <= self.capacity());
+        self.len = Index::from(length);
+    }
+
 
     /// Create a draining iterator that removes the specified range in the vector
     /// and yields the removed items from start to end. The element range is
