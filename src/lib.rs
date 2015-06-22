@@ -90,11 +90,6 @@ impl<A: Array> ArrayVec<A> {
     #[inline]
     pub fn len(&self) -> usize { self.len.to_usize() }
 
-    unsafe fn set_len(&mut self, length: usize) {
-        debug_assert!(length <= self.capacity());
-        self.len = Index::from(length);
-    }
-
     /// Return the capacity of the **ArrayVec**.
     ///
     /// ## Examples
@@ -265,6 +260,19 @@ impl<A: Array> ArrayVec<A> {
         while let Some(_) = self.pop() { }
     }
 
+    /// Set the vector's length without dropping or moving out elements
+    ///
+    /// May panic if **length** is greater than the capacity.
+    ///
+    /// This function is **unsafe** because it changes the notion of the
+    /// number of “valid” elements in the vector. Use with care.
+    #[inline]
+    pub unsafe fn set_len(&mut self, length: usize) {
+        debug_assert!(length <= self.capacity());
+        self.len = Index::from(length);
+    }
+
+
     /// Create a draining iterator that removes the specified range in the vector
     /// and yields the removed items from start to end. The element range is
     /// removed even if the iterator is not consumed until the end.
@@ -312,6 +320,25 @@ impl<A: Array> ArrayVec<A> {
                 tail_len: len - end,
                 iter: (*range_slice).iter(),
                 vec: self as *mut _,
+            }
+        }
+    }
+
+    /// Return the inner fixed size array, if it is full to its capacity.
+    ///
+    /// Return an **Ok** value with the array if length equals capacity,
+    /// return an **Err** with self otherwise.
+    ///
+    /// **Note:** This function may incur unproportionally large overhead
+    /// to move the array out, its performance is not optimal.
+    pub fn into_inner(self) -> Result<A, Self> {
+        if self.len() < self.capacity() {
+            Err(self)
+        } else {
+            unsafe {
+                let array = ptr::read(&*self.xs);
+                mem::forget(self);
+                Ok(array)
             }
         }
     }

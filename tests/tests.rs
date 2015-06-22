@@ -83,6 +83,21 @@ fn test_drop() {
     }
 
     assert_eq!(flag.get(), 4);
+
+    // test into_inner
+    flag.set(0);
+    {
+        let mut array = ArrayVec::<[_; 3]>::new();
+        array.push(Bump(flag));
+        array.push(Bump(flag));
+        array.push(Bump(flag));
+        let inner = array.into_inner();
+        assert!(inner.is_ok());
+        assert_eq!(flag.get(), 0);
+        drop(inner);
+        assert_eq!(flag.get(), 3);
+    }
+
 }
 
 #[test]
@@ -177,4 +192,29 @@ fn test_in_option() {
         *v.as_mut().unwrap().get_unchecked_mut(0) = mem::zeroed();
     }
     assert!(v.is_some());
+}
+
+#[test]
+fn test_into_inner_1() {
+    let mut v = ArrayVec::from([1, 2]);
+    v.pop();
+    let u = v.clone();
+    assert_eq!(v.into_inner(), Err(u));
+}
+
+#[test]
+fn test_into_inner_2() {
+    let mut v = ArrayVec::<[String; 4]>::new();
+    v.push("a".into());
+    v.push("b".into());
+    v.push("c".into());
+    v.push("d".into());
+    assert_eq!(v.into_inner().unwrap(), ["a", "b", "c", "d"]);
+}
+
+#[test]
+fn test_into_inner_3_() {
+    let mut v = ArrayVec::<[i32; 4]>::new();
+    v.extend(1..);
+    assert_eq!(v.into_inner().unwrap(), [1, 2, 3, 4]);
 }

@@ -19,6 +19,14 @@ __ http://bluss.github.io/arrayvec
 .. |crates2| image:: http://meritbadge.herokuapp.com/nodrop
 .. _crates2: https://crates.io/crates/nodrop
 
+Recent Changes
+--------------
+
+- 0.3.7
+
+  - Added method .into_inner()
+  - Added unsafe method .set_len()
+
 License
 =======
 
