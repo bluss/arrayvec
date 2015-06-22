@@ -1,6 +1,6 @@
 [package]
 name = "arrayvec"
-version = "0.3.6"
+version = "0.3.7"
 authors = ["bluss"]
 license = "MIT/Apache-2.0"
 
