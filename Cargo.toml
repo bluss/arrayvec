@@ -10,9 +10,9 @@ repository = "https://github.com/bluss/arrayvec"
 
 keywords = ["stack", "vector", "array", "container", "data-structure"]
 
-[dependencies]
-
-nodrop = "0.1"
-
 [dependencies.odds]
 version = "0.2"
+
+[dev-dependencies]
+nodrop = "0.1"
+
