@@ -1,7 +1,4 @@
 extern crate odds;
-extern crate nodrop;
-
-use nodrop::NoDrop;
 
 use std::iter;
 use std::mem;
@@ -17,6 +14,8 @@ use std::borrow::{Borrow, BorrowMut};
 use std::hash::{Hash, Hasher};
 use std::fmt;
 
+use odds::debug_assert_unreachable;
+
 mod array;
 pub use array::Array;
 pub use odds::IndexRange as RangeArgument;
@@ -27,8 +26,15 @@ unsafe fn new_array<A: Array>() -> A {
     // Note: Returning an uninitialized value here only works
     // if we can be sure the data is never used. The nullable pointer
     // inside enum optimization conflicts with this this for example,
-    // so we need to be extra careful. See `Flag` enum.
+    // so we need to be extra careful. See `NoDrop` enum.
     mem::uninitialized()
+}
+
+/// repr(u8) - Make sure the non-nullable pointer optimization does not occur!
+#[repr(u8)]
+enum NoDrop<T> {
+    Alive(T),
+    Dropped,
 }
 
 /// A vector with a fixed capacity.
@@ -50,8 +56,13 @@ pub struct ArrayVec<A: Array> {
 
 impl<A: Array> Drop for ArrayVec<A> {
     fn drop(&mut self) {
-        // clear all elements, then NoDrop inhibits drop of inner array
+        // clear all elements
         while let Some(_) = self.pop() { }
+
+        // inhibit drop
+        unsafe {
+            ptr::write(&mut self.xs, NoDrop::Dropped);
+        }
     }
 }
 
@@ -73,7 +84,7 @@ impl<A: Array> ArrayVec<A> {
     /// ```
     pub fn new() -> ArrayVec<A> {
         unsafe {
-            ArrayVec { xs: NoDrop::new(new_array()), len: Index::zero() }
+            ArrayVec { xs: NoDrop::Alive(new_array()), len: Index::zero() }
         }
     }
 
@@ -364,6 +375,31 @@ impl<A: Array> DerefMut for ArrayVec<A> {
     }
 }
 
+impl<T> Deref for NoDrop<T> {
+    type Target = T;
+
+    // Use type invariant, always Alive.
+    #[inline]
+    fn deref(&self) -> &T {
+        match *self {
+            NoDrop::Alive(ref inner) => inner,
+            _ => unsafe { debug_assert_unreachable() }
+        }
+    }
+}
+
+impl<T> DerefMut for NoDrop<T> {
+    // Use type invariant, always Alive.
+    #[inline]
+    fn deref_mut(&mut self) -> &mut T {
+        match *self {
+            NoDrop::Alive(ref mut inner) => inner,
+            _ => unsafe { debug_assert_unreachable() }
+        }
+    }
+}
+
+
 /// Create an **ArrayVec** from an array.
 ///
 /// ## Examples
@@ -376,7 +412,7 @@ impl<A: Array> DerefMut for ArrayVec<A> {
 /// ```
 impl<A: Array> From<A> for ArrayVec<A> {
     fn from(array: A) -> Self {
-        ArrayVec { xs: NoDrop::new(array), len: Index::from(A::capacity()) }
+        ArrayVec { xs: NoDrop::Alive(array), len: Index::from(A::capacity()) }
     }
 }
 
