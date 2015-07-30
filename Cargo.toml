@@ -1,6 +1,6 @@
 [package]
 name = "arrayvec"
-version = "0.3.8"
+version = "0.3.9"
 authors = ["bluss"]
 license = "MIT/Apache-2.0"
 
@@ -10,9 +10,9 @@ repository = "https://github.com/bluss/arrayvec"
 
 keywords = ["stack", "vector", "array", "container", "data-structure"]
 
-[dependencies]
-
-nodrop = "0.1"
-
 [dependencies.odds]
 version = "0.2"
+
+[dev-dependencies]
+nodrop = "0.1"
+
