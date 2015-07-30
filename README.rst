@@ -22,6 +22,11 @@ __ http://bluss.github.io/arrayvec
 Recent Changes
 --------------
 
+- 0.3.8
+
+  - Inline the non-dropping logic to remove one drop flag in the
+    ArrayVec representation.
+
 - 0.3.7
 
   - Added method .into_inner()
