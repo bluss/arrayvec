@@ -17,8 +17,9 @@ use std::fmt;
 use odds::debug_assert_unreachable;
 
 mod array;
+mod range;
 pub use array::Array;
-pub use odds::IndexRange as RangeArgument;
+use range::IntoCheckedRange;
 use array::Index;
 
 
@@ -306,7 +307,9 @@ impl<A: Array> ArrayVec<A> {
     /// assert_eq!(&v[..], &[3]);
     /// assert_eq!(&u[..], &[1, 2]);
     /// ```
-    pub fn drain<R: RangeArgument>(&mut self, range: R) -> Drain<A> {
+    pub fn drain<R>(&mut self, range: R) -> Drain<A>
+        where R: IntoCheckedRange
+    {
         // Memory safety
         //
         // When the Drain is first created, it shortens the length of
@@ -318,17 +321,20 @@ impl<A: Array> ArrayVec<A> {
         // the hole, and the vector length is restored to the new length.
         //
         let len = self.len();
-        let start = range.start().unwrap_or(0);
-        let end = range.end().unwrap_or(len);
         // bounds check happens here
-        let range_slice: *const _ = &self[start..end];
+        let r = match range.into_checked_range(len) {
+            None => drain_panic(),
+            Some(x) => x,
+        };
 
         unsafe {
+            let range_slice: *const _ = odds::slice_unchecked(&*self, r.start, r.end);
+
             // set self.vec length's to start, to be safe in case Drain is leaked
-            self.set_len(start);
+            self.set_len(r.start);
             Drain {
-                tail_start: end,
-                tail_len: len - end,
+                tail_start: r.end,
+                tail_len: len - r.end,
                 iter: (*range_slice).iter(),
                 vec: self as *mut _,
             }
@@ -678,4 +684,18 @@ impl<A: Array> AsMut<[A::Item]> for ArrayVec<A> {
 
 impl<A: Array> fmt::Debug for ArrayVec<A> where A::Item: fmt::Debug {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { (**self).fmt(f) }
+}
+
+#[inline(never)]
+fn drain_panic() -> ! {
+    panic!("ArrayVec::drain: Index out of bounds");
+}
+
+#[test]
+fn drain_range() {
+    let mut arr = ArrayVec::from([1,2,3]);
+    arr.drain(range::InclusiveRange { start: 1, end: 2, });
+    assert_eq!(&arr[..], &[1]);
+    arr.drain(range::InclusiveRange { start: 0, end: 0, });
+    assert_eq!(&arr[..], &[]);
 }
