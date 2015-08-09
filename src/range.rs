@@ -1,3 +1,4 @@
+use std::cmp;
 
 use std::ops::{
     RangeFull,
@@ -18,7 +19,7 @@ pub trait IntoIndexRange {
 }
 
 pub unsafe trait IntoCheckedRange {
-    fn into_checked_range(self, len: usize) -> Option<Range<usize>>;
+    fn into_checked_range(self, len: usize) -> Result<Range<usize>, usize>;
 }
 
 
@@ -61,44 +62,44 @@ impl IntoIndexRange for InclusiveRange<usize> {
 
 unsafe impl IntoCheckedRange for RangeFull {
     #[inline]
-    fn into_checked_range(self, len: usize) -> Option<Range<usize>> {
-        Some(0..len)
+    fn into_checked_range(self, len: usize) -> Result<Range<usize>, usize> {
+        Ok(0..len)
     }
 }
 
 unsafe impl IntoCheckedRange for RangeFrom<usize> {
     #[inline]
-    fn into_checked_range(self, len: usize) -> Option<Range<usize>> {
+    fn into_checked_range(self, len: usize) -> Result<Range<usize>, usize> {
         if self.start <= len {
-            Some(self.into_index_range(len))
-        } else { None }
+            Ok(self.start..len)
+        } else { Err(self.start) }
     }
 }
 
 unsafe impl IntoCheckedRange for RangeTo<usize> {
     #[inline]
-    fn into_checked_range(self, len: usize) -> Option<Range<usize>> {
+    fn into_checked_range(self, len: usize) -> Result<Range<usize>, usize> {
         if self.end <= len {
-            Some(self.into_index_range(len))
-        } else { None }
+            Ok(0..self.end)
+        } else { Err(self.end) }
     }
 }
 
 unsafe impl IntoCheckedRange for Range<usize> {
     #[inline]
-    fn into_checked_range(self, len: usize) -> Option<Range<usize>> {
+    fn into_checked_range(self, len: usize) -> Result<Range<usize>, usize> {
         if self.start <= self.end && self.end <= len {
-            Some(self.into_index_range(len))
-        } else { None }
+            Ok(self.start..self.end)
+        } else { Err(cmp::max(self.start, self.end)) }
     }
 }
 
 unsafe impl IntoCheckedRange for InclusiveRange<usize> {
     #[inline]
     // this doesn't work so well
-    fn into_checked_range(self, len: usize) -> Option<Range<usize>> {
+    fn into_checked_range(self, len: usize) -> Result<Range<usize>, usize> {
         if self.start <= self.end && self.end < len {
-            Some(self.start..self.end + 1)
-        } else { None }
+            Ok(self.start..self.end + 1)
+        } else { Err(cmp::max(self.start, self.end)) }
     }
 }

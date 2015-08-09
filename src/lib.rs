@@ -323,8 +323,8 @@ impl<A: Array> ArrayVec<A> {
         let len = self.len();
         // bounds check happens here
         let r = match range.into_checked_range(len) {
-            None => drain_panic(),
-            Some(x) => x,
+            Err(i) => drain_panic(i),
+            Ok(r) => r,
         };
 
         unsafe {
@@ -687,8 +687,8 @@ impl<A: Array> fmt::Debug for ArrayVec<A> where A::Item: fmt::Debug {
 }
 
 #[inline(never)]
-fn drain_panic() -> ! {
-    panic!("ArrayVec::drain: Index out of bounds");
+fn drain_panic(i: usize) -> ! {
+    panic!("ArrayVec::drain: Index {} out of bounds", i);
 }
 
 #[test]
