@@ -7,7 +7,7 @@
     <meta name="description" content="API documentation for the Rust `string` mod in crate `odds`.">
     <meta name="keywords" content="rust, rustlang, rust-lang, string">
 
-    <title>odds 0.2.4 - odds::string - Rust</title>
+    <title>odds 0.2.5 - odds::string - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../../main.css">
 
@@ -45,8 +45,8 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-175' class='srclink' href='../../src/odds/string.rs.html#1-89' title='goto source code'>[src]</a></span></h1>
-<div class='docblock'><p>Extensions to <code>&amp;str</code></p>
+        </span><a id='src-175' class='srclink' href='../../src/odds/string.rs.html#1-154' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>Extensions to <code>&amp;str</code> and <code>String</code></p>
 </div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
                     <tr class=' module-item'>
@@ -81,7 +81,16 @@
                         <td><a class='trait' href='trait.StrExt.html'
                                title='odds::string::StrExt'>StrExt</a></td>
                         <td class='docblock short'>
-                             <p>Extra methods for strings</p>
+                             <p>Extra methods for <code>str</code></p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='trait' href='trait.StringExt.html'
+                               title='odds::string::StringExt'>StringExt</a></td>
+                        <td class='docblock short'>
+                             <p>Extra methods for <code>String</code></p>
 
                         </td>
                     </tr>
@@ -120,8 +129,8 @@
                 <p>
                     Accepted types are: <code>fn</code>, <code>mod</code>,
                     <code>struct</code>, <code>enum</code>,
-                    <code>trait</code>, <code>typedef</code> (or
-                    <code>tdef</code>).
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
                 </p>
 
                 <p>

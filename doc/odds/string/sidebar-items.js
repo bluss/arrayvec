@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Prefixes","Iterator of all non-empty prefixes"],["Substrings","Iterator of all non-empty substrings"],["Suffixes","Iterator of all non-empty suffixes"]],"trait":[["StrExt","Extra methods for strings"]]});
+initSidebarItems({"struct":[["Prefixes","Iterator of all non-empty prefixes"],["Substrings","Iterator of all non-empty substrings"],["Suffixes","Iterator of all non-empty suffixes"]],"trait":[["StrExt","Extra methods for `str`"],["StringExt","Extra methods for `String`"]]});

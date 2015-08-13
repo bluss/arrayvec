@@ -619,6 +619,8 @@ vector in succession.</p>
 
 <h1 id="examples" class='section-header'><a
                            href="#examples">Examples</a></h1><pre class='rust rust-example-rendered'>
+<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>permutations</span>)]</span>
+
 <span class='kw'>let</span> <span class='ident'>v</span> <span class='op'>=</span> [<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>];
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>perms</span> <span class='op'>=</span> <span class='ident'>v</span>.<span class='ident'>permutations</span>();
 
@@ -628,6 +630,8 @@ vector in succession.</p>
 
 <p>Iterating through permutations one by one.</p>
 <pre class='rust rust-example-rendered'>
+<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>permutations</span>)]</span>
+
 <span class='kw'>let</span> <span class='ident'>v</span> <span class='op'>=</span> [<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>];
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>perms</span> <span class='op'>=</span> <span class='ident'>v</span>.<span class='ident'>permutations</span>();
 
@@ -643,6 +647,8 @@ last-ordered permutation.</p>
 
 <h1 id="example" class='section-header'><a
                            href="#example">Example</a></h1><pre class='rust rust-example-rendered'>
+<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>permutations</span>)]</span>
+
 <span class='kw'>let</span> <span class='ident'>v</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [_] <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='number'>0</span>, <span class='number'>1</span>, <span class='number'>2</span>];
 <span class='ident'>v</span>.<span class='ident'>next_permutation</span>();
 <span class='kw'>let</span> <span class='ident'>b</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [_] <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='number'>0</span>, <span class='number'>2</span>, <span class='number'>1</span>];
@@ -659,6 +665,8 @@ first-ordered permutation.</p>
 
 <h1 id="example" class='section-header'><a
                            href="#example">Example</a></h1><pre class='rust rust-example-rendered'>
+<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>permutations</span>)]</span>
+
 <span class='kw'>let</span> <span class='ident'>v</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [_] <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='number'>1</span>, <span class='number'>0</span>, <span class='number'>2</span>];
 <span class='ident'>v</span>.<span class='ident'>prev_permutation</span>();
 <span class='kw'>let</span> <span class='ident'>b</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [_] <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='number'>0</span>, <span class='number'>2</span>, <span class='number'>1</span>];
@@ -673,6 +681,8 @@ of elements copied.</p>
 
 <h1 id="example" class='section-header'><a
                            href="#example">Example</a></h1><pre class='rust rust-example-rendered'>
+<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>clone_from_slice</span>)]</span>
+
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>dst</span> <span class='op'>=</span> [<span class='number'>0</span>, <span class='number'>0</span>, <span class='number'>0</span>];
 <span class='kw'>let</span> <span class='ident'>src</span> <span class='op'>=</span> [<span class='number'>1</span>, <span class='number'>2</span>];
 
@@ -700,6 +710,8 @@ and <code>end - start</code>).</p>
 
 <h1 id="examples" class='section-header'><a
                            href="#examples">Examples</a></h1><pre class='rust rust-example-rendered'>
+<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>move_from</span>)]</span>
+
 <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>a</span> <span class='op'>=</span> [<span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>3</span>, <span class='number'>4</span>, <span class='number'>5</span>];
 <span class='kw'>let</span> <span class='ident'>b</span> <span class='op'>=</span> <span class='macro'>vec</span><span class='macro'>!</span>[<span class='number'>6</span>, <span class='number'>7</span>, <span class='number'>8</span>];
 <span class='kw'>let</span> <span class='ident'>num_moved</span> <span class='op'>=</span> <span class='ident'>a</span>.<span class='ident'>move_from</span>(<span class='ident'>b</span>, <span class='number'>0</span>, <span class='number'>3</span>);
@@ -821,8 +833,8 @@ occurs if there are more iterator elements.</p>
                 <p>
                     Accepted types are: <code>fn</code>, <code>mod</code>,
                     <code>struct</code>, <code>enum</code>,
-                    <code>trait</code>, <code>typedef</code> (or
-                    <code>tdef</code>).
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
                 </p>
 
                 <p>

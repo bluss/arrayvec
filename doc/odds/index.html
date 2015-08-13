@@ -7,7 +7,7 @@
     <meta name="description" content="API documentation for the Rust `odds` crate.">
     <meta name="keywords" content="rust, rustlang, rust-lang, odds">
 
-    <title>odds 0.2.4 - odds - Rust</title>
+    <title>odds 0.2.5 - odds - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../main.css">
 
@@ -45,11 +45,14 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/odds/lib.rs.html#1-127' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-0' class='srclink' href='../src/odds/lib.rs.html#1-137' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>Odds and ends — collection miscellania.</p>
 
-<p>The goal of this crate is to abolish itself. Things that are here
-will move to other places when possible.</p>
+<ul>
+<li>Utilities for debug-checked, release-unchecked indexing and slicing</li>
+<li>Fixpoint combinator for closures</li>
+<li>String and Vec extensions</li>
+</ul>
 
 <p>The <strong>odds</strong> crate has the following cargo feature flags:</p>
 
@@ -68,7 +71,16 @@ will move to other places when possible.</p>
                         <td><a class='mod' href='string/index.html'
                                title='odds::string'>string</a></td>
                         <td class='docblock short'>
-                             <p>Extensions to <code>&amp;str</code></p>
+                             <p>Extensions to <code>&amp;str</code> and <code>String</code></p>
+
+                        </td>
+                    </tr>
+                
+                    <tr class=' module-item'>
+                        <td><a class='mod' href='vec/index.html'
+                               title='odds::vec'>vec</a></td>
+                        <td class='docblock short'>
+                             <p>Extensions to <code>Vec</code></p>
 
                         </td>
                     </tr>
@@ -193,8 +205,8 @@ slice call.</p>
                 <p>
                     Accepted types are: <code>fn</code>, <code>mod</code>,
                     <code>struct</code>, <code>enum</code>,
-                    <code>trait</code>, <code>typedef</code> (or
-                    <code>tdef</code>).
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
                 </p>
 
                 <p>
