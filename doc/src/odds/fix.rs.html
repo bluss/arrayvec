@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/ulrik/.cargo/registry/src/github.com-0a35038f75765ae4/odds-0.2.5/src/fix.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/ulrik/.cargo/registry/src/github.com-0a35038f75765ae4/odds-0.2.6/src/fix.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>fix.rs.html -- source</title>
@@ -153,7 +153,7 @@ assert_eq!(fact(5), 120);
 ```
 &quot;</span>
 )]</span>
-<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Fix</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>, <span class='ident'>R</span> <span class='op'>=</span> <span class='ident'>T</span><span class='op'>&gt;</span>(<span class='kw'>pub</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>Fn</span>(<span class='ident'>Fix</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>R</span><span class='op'>&gt;</span>, <span class='ident'>T</span>) <span class='op'>-&gt;</span> <span class='ident'>R</span>);
+<span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>Fix</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>: <span class='lifetime'>&#39;a</span>, <span class='ident'>R</span>: <span class='lifetime'>&#39;a</span> <span class='op'>=</span> <span class='ident'>T</span><span class='op'>&gt;</span>(<span class='kw'>pub</span> <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>Fn</span>(<span class='ident'>Fix</span><span class='op'>&lt;</span><span class='ident'>T</span>, <span class='ident'>R</span><span class='op'>&gt;</span>, <span class='ident'>T</span>) <span class='op'>-&gt;</span> <span class='ident'>R</span>);
 
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>, <span class='ident'>R</span><span class='op'>&gt;</span> <span class='ident'>Fix</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>, <span class='ident'>T</span>, <span class='ident'>R</span><span class='op'>&gt;</span> {
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>call</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>, <span class='ident'>arg</span>: <span class='ident'>T</span>) <span class='op'>-&gt;</span> <span class='ident'>R</span> {

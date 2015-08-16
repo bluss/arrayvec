@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/ulrik/.cargo/registry/src/github.com-0a35038f75765ae4/odds-0.2.5/src/vec.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/ulrik/.cargo/registry/src/github.com-0a35038f75765ae4/odds-0.2.6/src/vec.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>vec.rs.html -- source</title>
@@ -209,7 +209,7 @@
             {
                 <span class='kw'>let</span> <span class='ident'>mslc</span> <span class='op'>=</span> <span class='ident'>slice</span>::<span class='ident'>from_raw_parts_mut</span>(<span class='ident'>ptr</span>.<span class='ident'>offset</span>(<span class='ident'>r</span>.<span class='ident'>start</span> <span class='kw'>as</span> <span class='ident'>isize</span>), <span class='ident'>rm_len</span>);
                 <span class='kw'>for</span> <span class='ident'>elt_ptr</span> <span class='kw'>in</span> <span class='ident'>mslc</span> {
-                    <span class='ident'>ptr</span>::<span class='ident'>read</span>(<span class='ident'>elt_ptr</span>);
+                    <span class='ident'>ptr</span>::<span class='ident'>read</span>(<span class='ident'>elt_ptr</span>); <span class='comment'>// Possible panic</span>
                 }
             }
 

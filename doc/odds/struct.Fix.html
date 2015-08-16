@@ -7,7 +7,7 @@
     <meta name="description" content="API documentation for the Rust `Fix` struct in crate `odds`.">
     <meta name="keywords" content="rust, rustlang, rust-lang, Fix">
 
-    <title>odds 0.2.5 - odds::Fix - Rust</title>
+    <title>odds 0.2.6 - odds::Fix - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../main.css">
 
@@ -46,7 +46,7 @@
                 [<span class='inner'>&#x2212;</span>]
             </a>
         </span><a id='src-101' class='srclink' href='../src/odds/fix.rs.html#37' title='goto source code'>[src]</a></span></h1>
-<pre class='rust struct'>pub struct Fix&lt;'a, T, R = T&gt;(pub &amp;'a <a class='trait' href='http://doc.rust-lang.org/nightly/core/ops/trait.Fn.html' title='core::ops::Fn'>Fn</a>(<a class='struct' href='../odds/struct.Fix.html' title='odds::Fix'>Fix</a>&lt;T, R&gt;, T) -&gt; R);</pre><div class='docblock'><p>Fixpoint combinator for rust closures, generalized over the return type.</p>
+<pre class='rust struct'>pub struct Fix&lt;'a, T: 'a, R: 'a = T&gt;(pub &amp;'a <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Fn.html' title='core::ops::Fn'>Fn</a>(<a class='struct' href='../odds/struct.Fix.html' title='odds::Fix'>Fix</a>&lt;T, R&gt;, T) -&gt; R);</pre><div class='docblock'><p>Fixpoint combinator for rust closures, generalized over the return type.</p>
 
 <p>In <strong>Fix&lt;T, R&gt;</strong>, <strong>T</strong> is the argument type, and <strong>R</strong> is the return type,
 <strong>R</strong> defaults to <strong>T</strong>.</p>
@@ -69,9 +69,9 @@ the cargo feature ‘unstable’ enabled.</p>
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>all</span>.<span class='ident'>call</span>(<span class='ident'>data</span>), <span class='boolval'>false</span>);
 </pre>
 </div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;'a, T, R&gt; <a class='struct' href='../odds/struct.Fix.html' title='odds::Fix'>Fix</a>&lt;'a, T, R&gt;</code></h3><div class='impl-items'><h4 id='method.call' class='method'><code>fn <a href='#method.call' class='fnname'>call</a>(&amp;self, arg: T) -&gt; R</code></h4>
-</div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;'a, T, R&gt; <a class='trait' href='http://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a> for <a class='struct' href='../odds/struct.Fix.html' title='odds::Fix'>Fix</a>&lt;'a, T, R&gt;</code></h3><div class='impl-items'><h4 id='method.clone' class='method'><code>fn <a href='http://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone' class='fnname'>clone</a>(&amp;self) -&gt; Self</code></h4>
-<h4 id='method.clone_from' class='method'><code>fn <a href='http://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, source: &amp;Self)</code></h4>
-</div><h3 class='impl'><code>impl&lt;'a, T, R&gt; <a class='trait' href='http://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a> for <a class='struct' href='../odds/struct.Fix.html' title='odds::Fix'>Fix</a>&lt;'a, T, R&gt;</code></h3><div class='impl-items'></div></section>
+</div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;'a, T, R&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a> for <a class='struct' href='../odds/struct.Fix.html' title='odds::Fix'>Fix</a>&lt;'a, T, R&gt;</code></h3><div class='impl-items'><h4 id='method.clone' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone' class='fnname'>clone</a>(&amp;self) -&gt; Self</code></h4>
+<h4 id='method.clone_from' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, source: &amp;Self)</code></h4>
+</div><h3 class='impl'><code>impl&lt;'a, T, R&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a> for <a class='struct' href='../odds/struct.Fix.html' title='odds::Fix'>Fix</a>&lt;'a, T, R&gt;</code></h3><div class='impl-items'></div></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>
