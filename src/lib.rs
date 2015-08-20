@@ -56,13 +56,28 @@ pub struct ArrayVec<A: Array> {
 
 impl<A: Array> Drop for ArrayVec<A> {
     fn drop(&mut self) {
-        // clear all elements
-        while let Some(_) = self.pop() { }
+        // Implementing Drop on NoDrop adds an unnecessary drop flag. However, we need to ensure
+        // that the contents aren't dropped so we use a wrapper here.
+        struct Guard<'a, A: Array + 'a>(&'a mut ArrayVec<A>);
 
-        // inhibit drop
-        unsafe {
-            ptr::write(&mut self.xs, NoDrop::Dropped);
+        impl<'a, A: Array + 'a> Drop for Guard<'a, A> {
+            fn drop(&mut self) {
+                unsafe {
+                    ptr::write(&mut self.0.xs, NoDrop::Dropped);
+                }
+            }
         }
+
+        let mut guard = Guard(self); // Prevents self from dropping.
+
+        // clear all elements
+        while let Some(v) = guard.0.pop() {
+            // DO NOT REMOVE: rust-lang/rust#14875
+            drop(v);
+        }
+
+        // Just to be explicit.
+        drop(guard);
     }
 }
 
@@ -524,10 +539,23 @@ impl<A: Array> ExactSizeIterator for IntoIter<A> { }
 
 impl<A: Array> Drop for IntoIter<A> {
     fn drop(&mut self) {
+        // Implementing Drop on NoDrop adds an unnecessary drop flag. However, we need to ensure
+        // that the contents aren't dropped so we use a wrapper here.
+        struct Guard<'a, A: Array + 'a>(&'a mut IntoIter<A>);
+
+        impl<'a, A: Array + 'a> Drop for Guard<'a, A> {
+            fn drop(&mut self) {
+                unsafe {
+                    self.0.v.set_len(0);
+                }
+            }
+        }
+
+        let guard = Guard(self);
+
         // exhaust iterator and clear the vector
-        while let Some(_) = self.next() { }
-        unsafe {
-            self.v.set_len(0);
+        while let Some(v) = guard.0.next() {
+            drop(v);
         }
     }
 }
@@ -588,6 +616,8 @@ impl<'a, A: Array> Drop for Drain<'a, A>
     where A::Item: 'a
 {
     fn drop(&mut self) {
+        // len is currently 0 so panicking while dropping will not cause a double drop.
+
         // exhaust self first
         while let Some(_) = self.next() { }
 
