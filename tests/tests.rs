@@ -218,3 +218,35 @@ fn test_into_inner_3_() {
     v.extend(1..);
     assert_eq!(v.into_inner().unwrap(), [1, 2, 3, 4]);
 }
+
+
+#[test]
+#[should_panic]
+fn test_drop_panic_arrayvec() {
+    struct DropPanic;
+
+    impl Drop for DropPanic {
+        fn drop(&mut self) {
+            panic!("drop");
+        }
+    }
+
+    let mut array = ArrayVec::<[DropPanic; 1]>::new();
+    array.push(DropPanic);
+}
+
+#[test]
+#[should_panic]
+fn test_drop_panic_into_iter() {
+    struct DropPanic;
+
+    impl Drop for DropPanic {
+        fn drop(&mut self) {
+            panic!("drop");
+        }
+    }
+
+    let mut array = ArrayVec::<[DropPanic; 1]>::new();
+    array.push(DropPanic);
+    array.into_iter();
+}
