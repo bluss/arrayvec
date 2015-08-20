@@ -164,6 +164,37 @@ fn test_drain_oob() {
 }
 
 #[test]
+#[should_panic]
+fn test_drop_panic() {
+    struct DropPanic;
+
+    impl Drop for DropPanic {
+        fn drop(&mut self) {
+            panic!("drop");
+        }
+    }
+
+    let mut array = ArrayVec::<[DropPanic; 1]>::new();
+    array.push(DropPanic);
+}
+
+#[test]
+#[should_panic]
+fn test_drop_panic_into_iter() {
+    struct DropPanic;
+
+    impl Drop for DropPanic {
+        fn drop(&mut self) {
+            panic!("drop");
+        }
+    }
+
+    let mut array = ArrayVec::<[DropPanic; 1]>::new();
+    array.push(DropPanic);
+    array.into_iter();
+}
+
+#[test]
 fn test_insert() {
     let mut v = ArrayVec::from([]);
     assert_eq!(v.push(1), Some(1));
