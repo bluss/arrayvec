@@ -33,8 +33,8 @@ unsafe fn new_array<A: Array>() -> A {
 /// repr(u8) - Make sure the non-nullable pointer optimization does not occur!
 #[repr(u8)]
 enum NoDrop<T> {
-    Alive(T),
     Dropped,
+    Alive(T),
 }
 
 /// A vector with a fixed capacity.
@@ -56,12 +56,62 @@ pub struct ArrayVec<A: Array> {
 
 impl<A: Array> Drop for ArrayVec<A> {
     fn drop(&mut self) {
-        // clear all elements
-        while let Some(_) = self.pop() { }
-
-        // inhibit drop
+        // Black magic ahead
+        //
+        // Due to bugs https://github.com/rust-lang/rust/issues/14875
+        // and https://github.com/bluss/arrayvec/issues/3
+        // elements will drop again, if one of our ArrayVec elements panic
+        // during their drop. To inhibit this, we preemptively flip the enum
+        // discriminator, before attempting to drop the elements of the vector.
+        //
+        // We use #[repr(u8)], so we are guaranteed there is a discriminant field
+        // present.
+        //
+        //    |. a a a a a a a . .|
+        //    1 2             3   4
+        //
+        // 1 pointer to start of NoDrop<A>
+        // 2 pointer to start of A
+        // 3 pointer to end of A
+        // 4 pointer to end of NoDrop<A>
+        //
+        // Simply overwrite all areas that are not the array, areas 1 to 2 and 3 to 4,
+        // and we are guaranteed to hit the enum discriminant.
         unsafe {
-            ptr::write(&mut self.xs, NoDrop::Dropped);
+            let nodrop_ptr = &mut self.xs as *mut _;
+            let array_ptr = match self.xs {
+                NoDrop::Dropped => debug_assert_unreachable(),
+                NoDrop::Alive(ref mut inner) => inner as *mut A,
+            };
+            let prefix_start = &mut self.xs as *mut _ as *mut u8;
+            let suffix_start = array_ptr.offset(1) as *mut u8;
+            let suffix_end = nodrop_ptr.offset(1) as *mut u8;
+
+            // NOTE: We assume two different `NoDrop<X>` and `NoDrop<Y>` have
+            // the same discriminant
+            let discriminant_byte = mem::transmute::<_, u8>(NoDrop::Dropped::<()>);
+            // overwrite everything that's not the array data itself
+            ptr::write_bytes(prefix_start, discriminant_byte, array_ptr as usize - prefix_start as usize);
+            ptr::write_bytes(suffix_start, discriminant_byte, suffix_end as usize - suffix_start as usize);
+
+            let elements = slice::from_raw_parts((*array_ptr).as_ptr(), self.len());
+
+            // drop all elements
+            for elt in elements {
+                ptr::read(elt);
+            }
+
+            debug_assert!(match self.xs {
+                NoDrop::Alive(_) => false,
+                NoDrop::Dropped => true,
+            });
+
+            /* This is how simple inhibiting drop is without bugs..
+            // inhibit drop
+            unsafe {
+                ptr::write(&mut self.xs, NoDrop::Dropped);
+            }
+            */
         }
     }
 }
@@ -383,7 +433,7 @@ impl<T> Deref for NoDrop<T> {
     fn deref(&self) -> &T {
         match *self {
             NoDrop::Alive(ref inner) => inner,
-            _ => unsafe { debug_assert_unreachable() }
+            NoDrop::Dropped => unsafe { debug_assert_unreachable() }
         }
     }
 }
@@ -394,7 +444,7 @@ impl<T> DerefMut for NoDrop<T> {
     fn deref_mut(&mut self) -> &mut T {
         match *self {
             NoDrop::Alive(ref mut inner) => inner,
-            _ => unsafe { debug_assert_unreachable() }
+            NoDrop::Dropped => unsafe { debug_assert_unreachable() }
         }
     }
 }
@@ -524,10 +574,15 @@ impl<A: Array> ExactSizeIterator for IntoIter<A> { }
 
 impl<A: Array> Drop for IntoIter<A> {
     fn drop(&mut self) {
-        // exhaust iterator and clear the vector
-        while let Some(_) = self.next() { }
         unsafe {
+            let len = self.v.len();
+            let index = self.index.to_usize();
             self.v.set_len(0);
+            let elements = slice::from_raw_parts(self.v.get_unchecked_mut(index),
+                                                 len - index);
+            for elt in elements {
+                ptr::read(elt);
+            }
         }
     }
 }
