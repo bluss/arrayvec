@@ -130,12 +130,12 @@ fn test_compact_size() {
     // 4 elements size + 1 len + 1 enum tag + [1 drop flag]
     type ByteArray = ArrayVec<[u8; 4]>;
     println!("{}", mem::size_of::<ByteArray>());
-    assert!(mem::size_of::<ByteArray>() <= 7);
+    assert!(mem::size_of::<ByteArray>() <= 8);
 
     // 12 element size + 1 enum tag + 3 padding + 1 len + 1 drop flag + 2 padding
     type QuadArray = ArrayVec<[u32; 3]>;
     println!("{}", mem::size_of::<QuadArray>());
-    assert!(mem::size_of::<QuadArray>() <= 20);
+    assert!(mem::size_of::<QuadArray>() <= 24);
 }
 
 #[test]
@@ -161,6 +161,37 @@ fn test_drain_oob() {
     let mut v = ArrayVec::from([0; 8]);
     v.pop();
     v.drain(0..8);
+}
+
+#[test]
+#[should_panic]
+fn test_drop_panic() {
+    struct DropPanic;
+
+    impl Drop for DropPanic {
+        fn drop(&mut self) {
+            panic!("drop");
+        }
+    }
+
+    let mut array = ArrayVec::<[DropPanic; 1]>::new();
+    array.push(DropPanic);
+}
+
+#[test]
+#[should_panic]
+fn test_drop_panic_into_iter() {
+    struct DropPanic;
+
+    impl Drop for DropPanic {
+        fn drop(&mut self) {
+            panic!("drop");
+        }
+    }
+
+    let mut array = ArrayVec::<[DropPanic; 1]>::new();
+    array.push(DropPanic);
+    array.into_iter();
 }
 
 #[test]

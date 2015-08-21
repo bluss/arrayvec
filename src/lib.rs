@@ -1,4 +1,5 @@
 extern crate odds;
+extern crate nodrop;
 
 use std::iter;
 use std::mem;
@@ -9,12 +10,12 @@ use std::ops::{
 };
 use std::slice;
 
+use nodrop::NoDrop;
+
 // extra traits
 use std::borrow::{Borrow, BorrowMut};
 use std::hash::{Hash, Hasher};
 use std::fmt;
-
-use odds::debug_assert_unreachable;
 
 mod array;
 pub use array::Array;
@@ -28,13 +29,6 @@ unsafe fn new_array<A: Array>() -> A {
     // inside enum optimization conflicts with this this for example,
     // so we need to be extra careful. See `NoDrop` enum.
     mem::uninitialized()
-}
-
-/// repr(u8) - Make sure the non-nullable pointer optimization does not occur!
-#[repr(u8)]
-enum NoDrop<T> {
-    Alive(T),
-    Dropped,
 }
 
 /// A vector with a fixed capacity.
@@ -57,12 +51,12 @@ pub struct ArrayVec<A: Array> {
 impl<A: Array> Drop for ArrayVec<A> {
     fn drop(&mut self) {
         // clear all elements
-        while let Some(_) = self.pop() { }
-
-        // inhibit drop
-        unsafe {
-            ptr::write(&mut self.xs, NoDrop::Dropped);
+        while let Some(_) = self.pop() {
         }
+
+        // NoDrop inhibits array's drop
+        // panic safety: NoDrop::drop will trigger on panic, so the inner
+        // array will not drop even after panic.
     }
 }
 
@@ -84,7 +78,7 @@ impl<A: Array> ArrayVec<A> {
     /// ```
     pub fn new() -> ArrayVec<A> {
         unsafe {
-            ArrayVec { xs: NoDrop::Alive(new_array()), len: Index::zero() }
+            ArrayVec { xs: NoDrop::new(new_array()), len: Index::zero() }
         }
     }
 
@@ -375,31 +369,6 @@ impl<A: Array> DerefMut for ArrayVec<A> {
     }
 }
 
-impl<T> Deref for NoDrop<T> {
-    type Target = T;
-
-    // Use type invariant, always Alive.
-    #[inline]
-    fn deref(&self) -> &T {
-        match *self {
-            NoDrop::Alive(ref inner) => inner,
-            _ => unsafe { debug_assert_unreachable() }
-        }
-    }
-}
-
-impl<T> DerefMut for NoDrop<T> {
-    // Use type invariant, always Alive.
-    #[inline]
-    fn deref_mut(&mut self) -> &mut T {
-        match *self {
-            NoDrop::Alive(ref mut inner) => inner,
-            _ => unsafe { debug_assert_unreachable() }
-        }
-    }
-}
-
-
 /// Create an **ArrayVec** from an array.
 ///
 /// ## Examples
@@ -412,7 +381,7 @@ impl<T> DerefMut for NoDrop<T> {
 /// ```
 impl<A: Array> From<A> for ArrayVec<A> {
     fn from(array: A) -> Self {
-        ArrayVec { xs: NoDrop::Alive(array), len: Index::from(A::capacity()) }
+        ArrayVec { xs: NoDrop::new(array), len: Index::from(A::capacity()) }
     }
 }
 
@@ -524,10 +493,16 @@ impl<A: Array> ExactSizeIterator for IntoIter<A> { }
 
 impl<A: Array> Drop for IntoIter<A> {
     fn drop(&mut self) {
-        // exhaust iterator and clear the vector
-        while let Some(_) = self.next() { }
+        // panic safety: Set length to 0 before dropping elements.
+        let index = self.index.to_usize();
+        let len = self.v.len();
         unsafe {
             self.v.set_len(0);
+            let elements = slice::from_raw_parts(self.v.get_unchecked_mut(index),
+                                                 len - index);
+            for elt in elements {
+                ptr::read(elt);
+            }
         }
     }
 }
@@ -588,6 +563,8 @@ impl<'a, A: Array> Drop for Drain<'a, A>
     where A::Item: 'a
 {
     fn drop(&mut self) {
+        // len is currently 0 so panicking while dropping will not cause a double drop.
+
         // exhaust self first
         while let Some(_) = self.next() { }
 

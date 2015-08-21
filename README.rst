@@ -22,6 +22,10 @@ __ http://bluss.github.io/arrayvec
 Recent Changes
 --------------
 
+- 0.3.10
+
+  - Go back to using external NoDrop, fixing a panic safety bug (issue #3)
+
 - 0.3.8
 
   - Inline the non-dropping logic to remove one drop flag in the
