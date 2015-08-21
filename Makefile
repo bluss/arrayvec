@@ -22,7 +22,6 @@ subst: $(DOCCRATES)
 
 mkdocs: Cargo.toml
 	cargo doc --features=$(FEATURES)
-	cargo doc -p nodrop
 	rm -rf ./doc
 	cp -r ./target/doc ./doc
 	-cat ./custom.css >> doc/main.css

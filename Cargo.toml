@@ -13,6 +13,6 @@ keywords = ["stack", "vector", "array", "container", "data-structure"]
 [dependencies.odds]
 version = "0.2"
 
-[dev-dependencies]
-nodrop = "0.1"
-
+[dependencies.nodrop]
+version = "0.1.4"
+path = "nodrop"

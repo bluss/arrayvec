@@ -3,6 +3,7 @@ sudo: false
 matrix:
   include:
     - rust: stable
+    - rust: beta
     - rust: nightly
     - rust: nightly
       env:
@@ -11,6 +12,7 @@ script:
   - |
       [ -z "$NODROP_FEATURES" ] && cargo build --verbose --features "$FEATURES"
       [ -z "$NODROP_FEATURES" ] && cargo test --verbose --features "$FEATURES"
+      [ -z "$NODROP_FEATURES" ] && cargo test --release --verbose --features "$FEATURES"
       [ -z "$NODROP_FEATURES" ] && cargo bench --verbose --features "$FEATURES" -- --test
       [ -z "$NODROP_FEATURES" ] && cargo doc --verbose --features "$FEATURES"
       cargo test --verbose --manifest-path=nodrop/Cargo.toml --features "$NODROP_FEATURES"
