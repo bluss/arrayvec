@@ -33,7 +33,7 @@ unsafe fn new_array<A: Array>() -> A {
 
 /// A vector with a fixed capacity.
 ///
-/// The **ArrayVec** is a vector backed by a fixed size array. It keeps track of
+/// The `ArrayVec` is a vector backed by a fixed size array. It keeps track of
 /// the number of initialized elements.
 ///
 /// The vector is a contiguous value that you can store directly on the stack
@@ -61,11 +61,9 @@ impl<A: Array> Drop for ArrayVec<A> {
 }
 
 impl<A: Array> ArrayVec<A> {
-    /// Create a new empty **ArrayVec**.
+    /// Create a new empty `ArrayVec`.
     ///
     /// Capacity is inferred from the type parameter.
-    ///
-    /// ## Examples
     ///
     /// ```
     /// use arrayvec::ArrayVec;
@@ -82,9 +80,8 @@ impl<A: Array> ArrayVec<A> {
         }
     }
 
-    /// Return the number of elements in the **ArrayVec**.
+    /// Return the number of elements in the `ArrayVec`.
     ///
-    /// ## Examples
     /// ```
     /// use arrayvec::ArrayVec;
     ///
@@ -95,9 +92,8 @@ impl<A: Array> ArrayVec<A> {
     #[inline]
     pub fn len(&self) -> usize { self.len.to_usize() }
 
-    /// Return the capacity of the **ArrayVec**.
+    /// Return the capacity of the `ArrayVec`.
     ///
-    /// ## Examples
     /// ```
     /// use arrayvec::ArrayVec;
     ///
@@ -107,12 +103,11 @@ impl<A: Array> ArrayVec<A> {
     #[inline]
     pub fn capacity(&self) -> usize { A::capacity() }
 
-    /// Push **element** to the end of the vector.
+    /// Push `element` to the end of the vector.
     ///
-    /// Return **None** if the push succeeds, or and return **Some(** *element* **)**
+    /// Return `None` if the push succeeds, or and return `Some(` *element* `)`
     /// if the vector is full.
     ///
-    /// ## Examples
     /// ```
     /// use arrayvec::ArrayVec;
     ///
@@ -140,9 +135,8 @@ impl<A: Array> ArrayVec<A> {
 
     /// Remove the last element in the vector.
     ///
-    /// Return **Some(** *element* **)** if the vector is non-empty, else **None**.
+    /// Return `Some(` *element* `)` if the vector is non-empty, else `None`.
     ///
-    /// ## Examples
     /// ```
     /// use arrayvec::ArrayVec;
     ///
@@ -164,13 +158,12 @@ impl<A: Array> ArrayVec<A> {
         }
     }
 
-    /// Insert **element** in position **index**.
+    /// Insert `element` in position `index`.
     ///
-    /// Shift up all elements after **index**. If any is pushed out, it is returned.
+    /// Shift up all elements after `index`. If any is pushed out, it is returned.
     ///
-    /// Return None if no element is shifted out.
+    /// Return `None` if no element is shifted out.
     ///
-    /// ## Examples
     /// ```
     /// use arrayvec::ArrayVec;
     ///
@@ -211,13 +204,12 @@ impl<A: Array> ArrayVec<A> {
         ret
     }
 
-    /// Remove the element at **index** and swap the last element into its place.
+    /// Remove the element at `index` and swap the last element into its place.
     ///
     /// This operation is O(1).
     ///
-    /// Return **Some(** *element* **)** if the index is in bounds, else **None**.
+    /// Return `Some(` *element* `)` if the index is in bounds, else `None`.
     ///
-    /// ## Examples
     /// ```
     /// use arrayvec::ArrayVec;
     ///
@@ -237,11 +229,10 @@ impl<A: Array> ArrayVec<A> {
         self.pop()
     }
 
-    /// Remove the element at **index** and shift down the following elements.
+    /// Remove the element at `index` and shift down the following elements.
     ///
-    /// Return **Some(** *element* **)** if the index is in bounds, else **None**.
+    /// Return `Some(` *element* `)` if the index is in bounds, else `None`.
     ///
-    /// ## Examples
     /// ```
     /// use arrayvec::ArrayVec;
     ///
@@ -267,9 +258,9 @@ impl<A: Array> ArrayVec<A> {
 
     /// Set the vector's length without dropping or moving out elements
     ///
-    /// May panic if **length** is greater than the capacity.
+    /// May panic if `length` is greater than the capacity.
     ///
-    /// This function is **unsafe** because it changes the notion of the
+    /// This function is `unsafe` because it changes the notion of the
     /// number of “valid” elements in the vector. Use with care.
     #[inline]
     pub unsafe fn set_len(&mut self, length: usize) {
@@ -285,12 +276,8 @@ impl<A: Array> ArrayVec<A> {
     /// Note: It is unspecified how many elements are removed from the vector,
     /// if the `Drain` value is leaked.
     ///
-    /// # Panics
-    ///
-    /// Panics if the starting point is greater than the end point or if
+    /// **Panics** if the starting point is greater than the end point or if
     /// the end point is greater than the length of the vector.
-    ///
-    /// # Examples
     ///
     /// ```
     /// use arrayvec::ArrayVec;
@@ -331,10 +318,10 @@ impl<A: Array> ArrayVec<A> {
 
     /// Return the inner fixed size array, if it is full to its capacity.
     ///
-    /// Return an **Ok** value with the array if length equals capacity,
-    /// return an **Err** with self otherwise.
+    /// Return an `Ok` value with the array if length equals capacity,
+    /// return an `Err` with self otherwise.
     ///
-    /// **Note:** This function may incur unproportionally large overhead
+    /// `Note:` This function may incur unproportionally large overhead
     /// to move the array out, its performance is not optimal.
     pub fn into_inner(self) -> Result<A, Self> {
         if self.len() < self.capacity() {
@@ -369,9 +356,8 @@ impl<A: Array> DerefMut for ArrayVec<A> {
     }
 }
 
-/// Create an **ArrayVec** from an array.
+/// Create an `ArrayVec` from an array.
 ///
-/// ## Examples
 /// ```
 /// use arrayvec::ArrayVec;
 ///
@@ -386,9 +372,7 @@ impl<A: Array> From<A> for ArrayVec<A> {
 }
 
 
-/// Iterate the **ArrayVec** with references to each element.
-///
-/// ## Examples
+/// Iterate the `ArrayVec` with references to each element.
 ///
 /// ```
 /// use arrayvec::ArrayVec;
@@ -405,9 +389,7 @@ impl<'a, A: Array> IntoIterator for &'a ArrayVec<A> {
     fn into_iter(self) -> Self::IntoIter { self.iter() }
 }
 
-/// Iterate the **ArrayVec** with mutable references to each element.
-///
-/// ## Examples
+/// Iterate the `ArrayVec` with mutable references to each element.
 ///
 /// ```
 /// use arrayvec::ArrayVec;
@@ -424,11 +406,9 @@ impl<'a, A: Array> IntoIterator for &'a mut ArrayVec<A> {
     fn into_iter(self) -> Self::IntoIter { self.iter_mut() }
 }
 
-/// Iterate the **ArrayVec** with each element by value.
+/// Iterate the `ArrayVec` with each element by value.
 ///
 /// The vector is consumed by this operation.
-///
-/// ## Examples
 ///
 /// ```
 /// use arrayvec::ArrayVec;
@@ -446,7 +426,7 @@ impl<A: Array> IntoIterator for ArrayVec<A> {
 }
 
 
-/// By-value iterator for **ArrayVec**.
+/// By-value iterator for `ArrayVec`.
 pub struct IntoIter<A: Array> {
     index: A::Index,
     v: ArrayVec<A>,
@@ -507,7 +487,7 @@ impl<A: Array> Drop for IntoIter<A> {
     }
 }
 
-/// A draining iterator for **ArrayVec**.
+/// A draining iterator for `ArrayVec`.
 pub struct Drain<'a, A> 
     where A: Array,
           A::Item: 'a,
@@ -586,7 +566,7 @@ impl<'a, A: Array> Drop for Drain<'a, A>
 
 
 
-/// Extend the **ArrayVec** with an iterator.
+/// Extend the `ArrayVec` with an iterator.
 /// 
 /// Does not extract more items than there is space for. No error
 /// occurs if there are more iterator elements.
@@ -599,7 +579,7 @@ impl<A: Array> Extend<A::Item> for ArrayVec<A> {
     }
 }
 
-/// Create an **ArrayVec** from an iterator.
+/// Create an `ArrayVec` from an iterator.
 /// 
 /// Does not extract more items than there is space for. No error
 /// occurs if there are more iterator elements.
