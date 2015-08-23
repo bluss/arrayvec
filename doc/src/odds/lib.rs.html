@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/ulrik/.cargo/registry/src/github.com-0a35038f75765ae4/odds-0.2.6/src/lib.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/ulrik/.cargo/registry/src/github.com-0a35038f75765ae4/odds-0.2.7/src/lib.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>lib.rs.html -- source</title>
@@ -245,7 +245,7 @@
 <span class='doccomment'>/// Act as `debug_assert!` in debug mode, asserting that this point is not reached.</span>
 <span class='doccomment'>///</span>
 <span class='doccomment'>/// In release mode, no checks are done, and it acts like the `unreachable` intrinsic.</span>
-<span class='attribute'>#[<span class='ident'>inline</span>]</span>
+<span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>debug_assert_unreachable</span>() <span class='op'>-&gt;</span> <span class='op'>!</span> {
     <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='boolval'>false</span>, <span class='string'>&quot;Entered unreachable section, this is a bug!&quot;</span>);
     <span class='ident'>unreachable</span>()

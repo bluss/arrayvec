@@ -46,9 +46,17 @@
                 [<span class='inner'>&#x2212;</span>]
             </a>
         </span><a id='src-12' class='srclink' href='../odds/range/trait.RangeArgument.html?gotosrc=12' title='goto source code'>[src]</a></span></h1>
-<pre class='rust trait'>pub trait RangeArgument { }</pre><div class='docblock'><p><strong>IndexRange</strong> is implemented by Rust&#39;s built-in range types, produced
+<pre class='rust trait'>pub trait RangeArgument {
+    fn <a href='#method.start' class='fnname'>start</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt; { ... }
+    fn <a href='#method.end' class='fnname'>end</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt; { ... }
+}</pre><div class='docblock'><p><strong>IndexRange</strong> is implemented by Rust&#39;s built-in range types, produced
 by range syntax like <code>..</code>, <code>a..</code>, <code>..b</code> or <code>c..d</code>.</p>
 </div>
+            <h2 id='provided-methods'>Provided Methods</h2>
+            <div class='methods'>
+        <h3 id='method.start' class='method stab '><code>fn <a href='#method.start' class='fnname'>start</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt;</code></h3><div class='docblock'><p>Start index (inclusive)</p>
+</div><h3 id='method.end' class='method stab '><code>fn <a href='#method.end' class='fnname'>end</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt;</code></h3><div class='docblock'><p>End index (exclusive)</p>
+</div></div>
         <h2 id='implementors'>Implementors</h2>
         <ul class='item-list' id='implementors-list'>
     </ul><script type="text/javascript" async
