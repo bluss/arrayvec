@@ -10,7 +10,7 @@
 //!
 //!
 
-#![cfg_attr(feature="no_drop_flag", feature(unsafe_no_drop_flag))]
+#![cfg_attr(feature="no_drop_flag", feature(unsafe_no_drop_flag, filling_drop, core_intrinsics))]
 
 extern crate odds;
 
@@ -20,7 +20,7 @@ use std::ops::{Deref, DerefMut};
 use std::ptr;
 use std::mem;
 
-/// repr(u8) - Make sure the non-nullable pointer optimization does not occur!
+// repr(u8) - Make sure the non-nullable pointer optimization does not occur!
 #[repr(u8)]
 enum Flag<T> {
     Alive(T),
@@ -49,6 +49,39 @@ impl<T> NoDrop<T> {
         // skip Drop, so we don't even have to overwrite
         mem::forget(self);
         inner
+    }
+
+    /// Extract the inner value from a mutable reference.
+    ///
+    /// Once extracted, it is **not** safe to use this instance beyond letting it drop.
+    #[inline]
+    pub unsafe fn take(&mut self) -> T {
+        match mem::replace(&mut self.0, Flag::Dropped) {
+            Flag::Alive(inner) => inner,
+            _ => debug_assert_unreachable()
+        }
+    }
+
+    /// Determines whether the inner value is safe to use or dereference.
+    #[inline]
+    #[cfg(not(feature="no_drop_flag"))]
+    pub fn is_alive(&self) -> bool {
+        match self.0 {
+            Flag::Alive(..) => true,
+            Flag::Dropped => false
+        }
+    }
+
+    /// Determines whether the inner value is safe to use or dereference.
+    #[inline]
+    #[cfg(feature="no_drop_flag")]
+    pub fn is_alive(&self) -> bool {
+        use std::intrinsics::discriminant_value;
+        unsafe {
+            let dropped: Flag<()> = Flag::Dropped;
+            let discriminant = discriminant_value(&self.0);
+            discriminant != discriminant_value(&dropped) && discriminant as u8 != mem::POST_DROP_U8
+        }
     }
 }
 
@@ -96,6 +129,25 @@ fn test_no_nonnullable_opt() {
 }
 
 #[test]
+#[cfg(feature="no_drop_flag")]
+fn test_discriminants() {
+    use std::intrinsics::discriminant_value;
+
+    let mut alive: NoDrop<()> = NoDrop::new(());
+    let discriminant = unsafe { discriminant_value(&alive.0) };
+
+    assert!(discriminant as u8 != mem::POST_DROP_U8);
+
+    let discriminant = unsafe {
+        alive = mem::dropped();
+        discriminant_value(&alive.0)
+    };
+
+    assert_eq!(discriminant as u8, mem::POST_DROP_U8);
+    assert!(!alive.is_alive());
+}
+
+#[test]
 fn test_drop() {
     use std::cell::Cell;
 
@@ -140,6 +192,15 @@ fn test_drop() {
         let array = NoDrop::new(Bump(flag));
         array.into_inner();
         assert_eq!(flag.get(), 1);
+    }
+    assert_eq!(flag.get(), 1);
+
+    flag.set(0);
+    unsafe {
+        let mut array = NoDrop::new(Bump(flag));
+        array.take();
+        assert_eq!(flag.get(), 1);
+        assert_eq!(array.is_alive(), false);
     }
     assert_eq!(flag.get(), 1);
 }
