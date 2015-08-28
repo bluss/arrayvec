@@ -191,13 +191,13 @@ impl<A: Array> ArrayVec<A> {
         unsafe { // infallible
             // The spot to put the new value
             {
-                let p = self.as_mut_ptr().offset(index as isize);
+                let p = self.get_unchecked_mut(index) as *mut _;
                 // Shift everything over to make space. (Duplicating the
                 // `index`th element into two consecutive places.)
-                ptr::copy(&*p, p.offset(1), len - index);
+                ptr::copy(p, p.offset(1), len - index);
                 // Write it in, overwriting the first copy of the `index`th
                 // element.
-                ptr::write(&mut *p, element);
+                ptr::write(p, element);
             }
             self.set_len(len + 1);
         }
