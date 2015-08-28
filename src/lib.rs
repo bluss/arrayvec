@@ -182,8 +182,7 @@ impl<A: Array> ArrayVec<A> {
             return Some(element);
         }
         let mut ret = None;
-        let old_len = self.len();
-        if old_len == self.capacity() {
+        if self.len() == self.capacity() {
             ret = self.pop();
         }
         let len = self.len();
