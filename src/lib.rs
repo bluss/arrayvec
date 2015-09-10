@@ -1,6 +1,8 @@
 extern crate odds;
 extern crate nodrop;
 
+use std::cmp;
+use std::io;
 use std::iter;
 use std::mem;
 use std::ptr;
@@ -181,8 +183,7 @@ impl<A: Array> ArrayVec<A> {
             return Some(element);
         }
         let mut ret = None;
-        let old_len = self.len();
-        if old_len == self.capacity() {
+        if self.len() == self.capacity() {
             ret = self.pop();
         }
         let len = self.len();
@@ -191,13 +192,13 @@ impl<A: Array> ArrayVec<A> {
         unsafe { // infallible
             // The spot to put the new value
             {
-                let p = self.as_mut_ptr().offset(index as isize);
+                let p = self.get_unchecked_mut(index) as *mut _;
                 // Shift everything over to make space. (Duplicating the
                 // `index`th element into two consecutive places.)
-                ptr::copy(&*p, p.offset(1), len - index);
+                ptr::copy(p, p.offset(1), len - index);
                 // Write it in, overwriting the first copy of the `index`th
                 // element.
-                ptr::write(&mut *p, element);
+                ptr::write(p, element);
             }
             self.set_len(len + 1);
         }
@@ -635,4 +636,60 @@ impl<A: Array> AsMut<[A::Item]> for ArrayVec<A> {
 
 impl<A: Array> fmt::Debug for ArrayVec<A> where A::Item: fmt::Debug {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { (**self).fmt(f) }
+}
+
+impl<A: Array> Default for ArrayVec<A> {
+    fn default() -> ArrayVec<A> {
+        ArrayVec::new()
+    }
+}
+
+impl<A: Array> PartialOrd for ArrayVec<A> where A::Item: PartialOrd {
+    #[inline]
+    fn partial_cmp(&self, other: &ArrayVec<A>) -> Option<cmp::Ordering> {
+        (**self).partial_cmp(other)
+    }
+
+    #[inline]
+    fn lt(&self, other: &Self) -> bool {
+        (**self).lt(other)
+    }
+
+    #[inline]
+    fn le(&self, other: &Self) -> bool {
+        (**self).le(other)
+    }
+
+    #[inline]
+    fn ge(&self, other: &Self) -> bool {
+        (**self).ge(other)
+    }
+
+    #[inline]
+    fn gt(&self, other: &Self) -> bool {
+        (**self).gt(other)
+    }
+}
+
+impl<A: Array> Ord for ArrayVec<A> where A::Item: Ord {
+    fn cmp(&self, other: &ArrayVec<A>) -> cmp::Ordering {
+        (**self).cmp(other)
+    }
+}
+
+/// `Write` appends written data to the end of the vector.
+impl<A: Array<Item=u8>> io::Write for ArrayVec<A> {
+    fn write(&mut self, data: &[u8]) -> io::Result<usize> {
+        unsafe {
+            let len = self.len();
+            let mut tail = slice::from_raw_parts_mut(self.get_unchecked_mut(len),
+                                                     A::capacity() - len);
+            let result = tail.write(data);
+            if let Ok(written) = result {
+                self.set_len(len + written);
+            }
+            result
+        }
+    }
+    fn flush(&mut self) -> io::Result<()> { Ok(()) }
 }

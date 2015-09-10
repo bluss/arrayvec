@@ -22,6 +22,10 @@ __ http://bluss.github.io/arrayvec
 Recent Changes
 --------------
 
+- 0.3.11
+
+  - Added trait impls Default, PartialOrd, Ord, Write for ArrayVec
+
 - 0.3.10
 
   - Go back to using external NoDrop, fixing a panic safety bug (issue #3)
