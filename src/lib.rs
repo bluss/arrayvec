@@ -1,6 +1,7 @@
 extern crate odds;
 extern crate nodrop;
 
+use std::cmp;
 use std::iter;
 use std::mem;
 use std::ptr;
@@ -640,5 +641,17 @@ impl<A: Array> fmt::Debug for ArrayVec<A> where A::Item: fmt::Debug {
 impl<A: Array> Default for ArrayVec<A> {
     fn default() -> ArrayVec<A> {
         ArrayVec::new()
+    }
+}
+
+impl<A: Array> PartialOrd for ArrayVec<A> where A::Item: PartialOrd {
+    fn partial_cmp(&self, other: &ArrayVec<A>) -> Option<cmp::Ordering> {
+        (**self).partial_cmp(other)
+    }
+}
+
+impl<A: Array> Ord for ArrayVec<A> where A::Item: Ord {
+    fn cmp(&self, other: &ArrayVec<A>) -> cmp::Ordering {
+        (**self).cmp(other)
     }
 }
