@@ -644,8 +644,29 @@ impl<A: Array> Default for ArrayVec<A> {
 }
 
 impl<A: Array> PartialOrd for ArrayVec<A> where A::Item: PartialOrd {
+    #[inline]
     fn partial_cmp(&self, other: &ArrayVec<A>) -> Option<cmp::Ordering> {
         (**self).partial_cmp(other)
+    }
+
+    #[inline]
+    fn lt(&self, other: &Self) -> bool {
+        (**self).lt(other)
+    }
+
+    #[inline]
+    fn le(&self, other: &Self) -> bool {
+        (**self).le(other)
+    }
+
+    #[inline]
+    fn ge(&self, other: &Self) -> bool {
+        (**self).ge(other)
+    }
+
+    #[inline]
+    fn gt(&self, other: &Self) -> bool {
+        (**self).gt(other)
     }
 }
 
