@@ -636,3 +636,9 @@ impl<A: Array> AsMut<[A::Item]> for ArrayVec<A> {
 impl<A: Array> fmt::Debug for ArrayVec<A> where A::Item: fmt::Debug {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { (**self).fmt(f) }
 }
+
+impl<A: Array> Default for ArrayVec<A> {
+    fn default() -> ArrayVec<A> {
+        ArrayVec::new()
+    }
+}
