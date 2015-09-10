@@ -677,6 +677,7 @@ impl<A: Array> Ord for ArrayVec<A> where A::Item: Ord {
     }
 }
 
+/// `Write` appends written data to the end of the vector.
 impl<A: Array<Item=u8>> io::Write for ArrayVec<A> {
     fn write(&mut self, data: &[u8]) -> io::Result<usize> {
         unsafe {

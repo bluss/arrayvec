@@ -249,3 +249,14 @@ fn test_into_inner_3_() {
     v.extend(1..);
     assert_eq!(v.into_inner().unwrap(), [1, 2, 3, 4]);
 }
+
+#[test]
+fn test_write() {
+    use std::io::Write;
+    let mut v = ArrayVec::<[_; 8]>::new();
+    write!(&mut v, "\x01\x02\x03").unwrap();
+    assert_eq!(&v[..], &[1, 2, 3]);
+    let r = v.write(&[9; 16]).unwrap();
+    assert_eq!(r, 5);
+    assert_eq!(&v[..], &[1, 2, 3, 9, 9, 9, 9, 9]);
+}
