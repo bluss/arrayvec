@@ -4,8 +4,8 @@ use std::mem;
 use std::ops::Deref;
 use std::str;
 
+use ArrayVec;
 use array::Array;
-use array_vec::ArrayVec;
 
 
 /// A string with a fixed capacity.
