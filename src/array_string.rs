@@ -3,10 +3,10 @@ use std::fmt;
 use std::mem;
 use std::ops::Deref;
 use std::str;
+use std::slice;
 
-use ArrayVec;
 use array::Array;
-
+use array::Index;
 
 /// A string with a fixed capacity.
 ///
@@ -18,8 +18,18 @@ use array::Array;
 ///
 /// Due to technical restrictions, this struct does not implement `Copy` even
 /// though it would be safe to do so.
+#[derive(Copy)]
 pub struct ArrayString<A: Array<Item=u8>> {
-    vec: ArrayVec<A>,
+    xs: A,
+    len: A::Index,
+}
+
+unsafe fn new_array<A: Array<Item=u8>>() -> A {
+    // Note: Returning an uninitialized value here only works
+    // if we can be sure the data is never used. The nullable pointer
+    // inside enum optimization conflicts with this this for example,
+    // so we need to be extra careful. See `NoDrop` enum.
+    mem::uninitialized()
 }
 
 impl<A: Array<Item=u8>> ArrayString<A> {
@@ -36,8 +46,11 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     /// assert_eq!(string.capacity(), 16);
     /// ```
     pub fn new() -> ArrayString<A> {
-        ArrayString {
-            vec: ArrayVec::new()
+        unsafe {
+            ArrayString {
+                xs: new_array(),
+                len: Index::from(0),
+            }
         }
     }
 
@@ -50,12 +63,12 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     /// assert_eq!(string.capacity(), 3);
     /// ```
     #[inline]
-    pub fn capacity(&self) -> usize { self.vec.capacity() }
+    pub fn capacity(&self) -> usize { A::capacity() }
 
-    /// Adds the given character to the end of the string.
+    /// Adds the given char to the end of the string.
     ///
     /// Returns `None` if the push succeeds, or and returns `Some(c)` if the
-    /// backing array is not large enough to fit the additional character.
+    /// backing array is not large enough to fit the additional char.
     ///
     /// ```
     /// use arrayvec::ArrayString;
@@ -98,20 +111,25 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     /// assert_eq!(overflow2, Some("ef"));
     /// ```
     pub fn push_str<'a>(&mut self, s: &'a str) -> Option<&'a str> {
+        use std::io::Write;
+
         if self.len() + s.len() > self.capacity() {
             return Some(s);
         }
-        let mut bytes = s.bytes();
-        self.vec.extend(&mut bytes);
-        assert!(bytes.next().is_none());
+        unsafe {
+            let sl = slice::from_raw_parts_mut(self.xs.as_mut_ptr(), A::capacity());
+            (&mut sl[self.len()..]).write(s.as_bytes()).unwrap();
+            let newl = self.len() + s.len();
+            self.set_len(newl);
+        }
         None
     }
 
-
-
     /// Make the string empty.
     pub fn clear(&mut self) {
-        mem::replace(self, ArrayString::new());
+        unsafe {
+            self.set_len(0);
+        }
     }
 
     /// Set the strings's length.
@@ -119,10 +137,11 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     /// May panic if `length` is greater than the capacity.
     ///
     /// This function is `unsafe` because it changes the notion of the
-    /// number of “valid” characters in the string. Use with care.
+    /// number of “valid” bytes in the string. Use with care.
     #[inline]
     pub unsafe fn set_len(&mut self, length: usize) {
-        self.vec.set_len(length)
+        debug_assert!(length <= self.capacity());
+        self.len = Index::from(length);
     }
 }
 
@@ -130,7 +149,10 @@ impl<A: Array<Item=u8>> Deref for ArrayString<A> {
     type Target = str;
     #[inline]
     fn deref(&self) -> &str {
-        unsafe { str::from_utf8_unchecked(&self.vec) }
+        unsafe {
+            let sl = slice::from_raw_parts(self.xs.as_ptr(), self.len.to_usize());
+            str::from_utf8_unchecked(sl)
+        }
     }
 }
 
@@ -156,10 +178,9 @@ impl<A: Array<Item=u8>> fmt::Write for ArrayString<A> {
     }
 }
 
-//#[derive(Clone, /*Copy,*/ Eq, Hash, Ord, PartialEq, PartialOrd)]
-impl<A: Array<Item=u8>> Clone for ArrayString<A> {
+impl<A: Array<Item=u8> + Copy> Clone for ArrayString<A> {
     fn clone(&self) -> ArrayString<A> {
-        ArrayString { vec: self.vec.clone() }
+        *self
     }
 }
 
