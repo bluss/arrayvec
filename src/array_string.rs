@@ -7,6 +7,7 @@ use std::slice;
 
 use array::Array;
 use array::Index;
+use CapacityError;
 
 /// A string with a fixed capacity.
 ///
@@ -15,9 +16,6 @@ use array::Index;
 ///
 /// The string is a contiguous value that you can store directly on the stack
 /// if needed.
-///
-/// Due to technical restrictions, this struct does not implement `Copy` even
-/// though it would be safe to do so.
 #[derive(Copy)]
 pub struct ArrayString<A: Array<Item=u8>> {
     xs: A,
@@ -67,31 +65,29 @@ impl<A: Array<Item=u8>> ArrayString<A> {
 
     /// Adds the given char to the end of the string.
     ///
-    /// Returns `None` if the push succeeds, or and returns `Some(c)` if the
-    /// backing array is not large enough to fit the additional char.
+    /// Returns `Ok` if the push succeeds, and returns `Err` if the backing
+    /// array is not large enough to fit the additional char.
     ///
     /// ```
     /// use arrayvec::ArrayString;
     ///
     /// let mut string = ArrayString::<[_; 2]>::new();
     ///
-    /// let none1 = string.push('a');
-    /// let none2 = string.push('b');
+    /// string.push('a').unwrap();
+    /// string.push('b').unwrap();
     /// let overflow = string.push('c');
     ///
     /// assert_eq!(&string[..], "ab");
-    /// assert_eq!(none1, None);
-    /// assert_eq!(none2, None);
-    /// assert_eq!(overflow, Some('c'));
+    /// assert_eq!(overflow.err().map(|e| e.element), Some('c'));
     /// ```
-    pub fn push(&mut self, c: char) -> Option<char> {
+    pub fn push(&mut self, c: char) -> Result<(), CapacityError<char>> {
         use std::fmt::Write;
-        self.write_char(c).err().map(|_| c)
+        self.write_char(c).map_err(|_| CapacityError::new(c))
     }
 
     /// Adds the given string slice to the end of the string.
     ///
-    /// Returns `None` if the push succeeds, or and returns `Some(s)` if the
+    /// Returns `Ok` if the push succeeds, and returns `Err` if the
     /// backing array is not large enough to fit the string.
     ///
     /// ```
@@ -99,22 +95,20 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     ///
     /// let mut string = ArrayString::<[_; 2]>::new();
     ///
-    /// let none1 = string.push_str("a");
+    /// string.push_str("a").unwrap();
     /// let overflow1 = string.push_str("bc");
-    /// let none2 = string.push_str("d");
+    /// string.push_str("d").unwrap();
     /// let overflow2 = string.push_str("ef");
     ///
     /// assert_eq!(&string[..], "ad");
-    /// assert_eq!(none1, None);
-    /// assert_eq!(none2, None);
-    /// assert_eq!(overflow1, Some("bc"));
-    /// assert_eq!(overflow2, Some("ef"));
+    /// assert_eq!(overflow1.err().map(|e| e.element), Some("bc"));
+    /// assert_eq!(overflow2.err().map(|e| e.element), Some("ef"));
     /// ```
-    pub fn push_str<'a>(&mut self, s: &'a str) -> Option<&'a str> {
+    pub fn push_str<'a>(&mut self, s: &'a str) -> Result<(), CapacityError<&'a str>> {
         use std::io::Write;
 
         if self.len() + s.len() > self.capacity() {
-            return Some(s);
+            return Err(CapacityError::new(s));
         }
         unsafe {
             let sl = slice::from_raw_parts_mut(self.xs.as_mut_ptr(), A::capacity());
@@ -122,7 +116,7 @@ impl<A: Array<Item=u8>> ArrayString<A> {
             let newl = self.len() + s.len();
             self.set_len(newl);
         }
-        None
+        Ok(())
     }
 
     /// Make the string empty.
@@ -171,10 +165,7 @@ impl<A: Array<Item=u8>> fmt::Debug for ArrayString<A> where A::Item: fmt::Debug 
 /// `Write` appends written data to the end of the string.
 impl<A: Array<Item=u8>> fmt::Write for ArrayString<A> {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        match self.push_str(s) {
-            None => Ok(()),
-            Some(_) => Err(fmt::Error),
-        }
+        self.push_str(s).map_err(|_| fmt::Error)
     }
 }
 

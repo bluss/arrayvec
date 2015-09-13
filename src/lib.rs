@@ -36,6 +36,21 @@ unsafe fn new_array<A: Array>() -> A {
     mem::uninitialized()
 }
 
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub struct CapacityError<T> {
+    _unused: (),
+    pub element: T,
+}
+
+impl<T> CapacityError<T> {
+    fn new(element: T) -> CapacityError<T> {
+        CapacityError {
+            _unused: (),
+            element: element,
+        }
+    }
+}
+
 /// A vector with a fixed capacity.
 ///
 /// The `ArrayVec` is a vector backed by a fixed size array. It keeps track of
