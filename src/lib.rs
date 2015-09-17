@@ -96,7 +96,7 @@ impl<A: Array> ArrayVec<A> {
     /// ```
     pub fn new() -> ArrayVec<A> {
         unsafe {
-            ArrayVec { xs: NoDrop::new(new_array()), len: Index::zero() }
+            ArrayVec { xs: NoDrop::new(new_array()), len: Index::from(0) }
         }
     }
 
@@ -440,7 +440,7 @@ impl<A: Array> IntoIterator for ArrayVec<A> {
     type Item = A::Item;
     type IntoIter = IntoIter<A>;
     fn into_iter(self) -> IntoIter<A> {
-        IntoIter { index: Index::zero(), v: self, }
+        IntoIter { index: Index::from(0), v: self, }
     }
 }
 
