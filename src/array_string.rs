@@ -70,7 +70,7 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     /// let overflow = string.push('c');
     ///
     /// assert_eq!(&string[..], "ab");
-    /// assert_eq!(overflow.err().map(|e| e.element), Some('c'));
+    /// assert_eq!(overflow.unwrap_err().element(), 'c');
     /// ```
     pub fn push(&mut self, c: char) -> Result<(), CapacityError<char>> {
         use std::fmt::Write;
@@ -93,8 +93,8 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     /// let overflow2 = string.push_str("ef");
     ///
     /// assert_eq!(&string[..], "ad");
-    /// assert_eq!(overflow1.err().map(|e| e.element), Some("bc"));
-    /// assert_eq!(overflow2.err().map(|e| e.element), Some("ef"));
+    /// assert_eq!(overflow1.unwrap_err().element(), "bc");
+    /// assert_eq!(overflow2.unwrap_err().element(), "ef");
     /// ```
     pub fn push_str<'a>(&mut self, s: &'a str) -> Result<(), CapacityError<&'a str>> {
         use std::io::Write;

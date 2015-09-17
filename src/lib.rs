@@ -36,18 +36,22 @@ unsafe fn new_array<A: Array>() -> A {
     mem::uninitialized()
 }
 
+/// Error value indicating insufficient capacity
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct CapacityError<T> {
-    _unused: (),
-    pub element: T,
+    element: T,
 }
 
 impl<T> CapacityError<T> {
     fn new(element: T) -> CapacityError<T> {
         CapacityError {
-            _unused: (),
             element: element,
         }
+    }
+
+    /// Extract the overflowing element
+    pub fn element(self) -> T {
+        self.element
     }
 }
 
