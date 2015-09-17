@@ -20,9 +20,12 @@ use std::hash::{Hash, Hasher};
 use std::fmt;
 
 mod array;
+mod array_string;
+
 pub use array::Array;
 pub use odds::IndexRange as RangeArgument;
 use array::Index;
+pub use array_string::ArrayString;
 
 
 unsafe fn new_array<A: Array>() -> A {
@@ -31,6 +34,21 @@ unsafe fn new_array<A: Array>() -> A {
     // inside enum optimization conflicts with this this for example,
     // so we need to be extra careful. See `NoDrop` enum.
     mem::uninitialized()
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub struct CapacityError<T> {
+    _unused: (),
+    pub element: T,
+}
+
+impl<T> CapacityError<T> {
+    fn new(element: T) -> CapacityError<T> {
+        CapacityError {
+            _unused: (),
+            element: element,
+        }
+    }
 }
 
 /// A vector with a fixed capacity.
