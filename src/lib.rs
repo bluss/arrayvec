@@ -15,7 +15,9 @@ use std::slice;
 use nodrop::NoDrop;
 
 // extra traits
+use std::any::Any;
 use std::borrow::{Borrow, BorrowMut};
+use std::error::Error;
 use std::hash::{Hash, Hasher};
 use std::fmt;
 
@@ -34,25 +36,6 @@ unsafe fn new_array<A: Array>() -> A {
     // inside enum optimization conflicts with this this for example,
     // so we need to be extra careful. See `NoDrop` enum.
     mem::uninitialized()
-}
-
-/// Error value indicating insufficient capacity
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct CapacityError<T> {
-    element: T,
-}
-
-impl<T> CapacityError<T> {
-    fn new(element: T) -> CapacityError<T> {
-        CapacityError {
-            element: element,
-        }
-    }
-
-    /// Extract the overflowing element
-    pub fn element(self) -> T {
-        self.element
-    }
 }
 
 /// A vector with a fixed capacity.
@@ -714,4 +697,43 @@ impl<A: Array<Item=u8>> io::Write for ArrayVec<A> {
         }
     }
     fn flush(&mut self) -> io::Result<()> { Ok(()) }
+}
+
+/// Error value indicating insufficient capacity
+#[derive(Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]
+pub struct CapacityError<T> {
+    element: T,
+}
+
+impl<T> CapacityError<T> {
+    fn new(element: T) -> CapacityError<T> {
+        CapacityError {
+            element: element,
+        }
+    }
+
+    /// Extract the overflowing element
+    pub fn element(self) -> T {
+        self.element
+    }
+}
+
+const CAPERROR: &'static str = "insufficient capacity";
+
+impl<T: Any> Error for CapacityError<T> {
+    fn description(&self) -> &str {
+        CAPERROR
+    }
+}
+
+impl<T> fmt::Display for CapacityError<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", CAPERROR)
+    }
+}
+
+impl<T> fmt::Debug for CapacityError<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}: {}", "CapacityError", CAPERROR)
+    }
 }
