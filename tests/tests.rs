@@ -266,6 +266,8 @@ fn test_write() {
 
 #[test]
 fn test_string() {
+    use std::error::Error;
+
     let text = "hello world";
     let mut s = ArrayString::<[_; 16]>::new();
     s.push_str(text).unwrap();
@@ -280,4 +282,12 @@ fn test_string() {
     let mut t = ArrayString::<[_; 2]>::new();
     assert!(t.push_str(text).is_err());
     assert_eq!(&t, "");
+
+    // Test Error trait / try
+    let t = || -> Result<(), Box<Error>> {
+        let mut t = ArrayString::<[_; 2]>::new();
+        try!(t.push_str(text));
+        Ok(())
+    }();
+    assert!(t.is_err());
 }
