@@ -1,6 +1,6 @@
 use std::borrow::Borrow;
 use std::fmt;
-use std::mem;
+use std::hash::{Hash, Hasher};
 use std::ops::Deref;
 use std::str;
 use std::slice;
@@ -22,14 +22,6 @@ pub struct ArrayString<A: Array<Item=u8>> {
     len: A::Index,
 }
 
-unsafe fn new_array<A: Array<Item=u8>>() -> A {
-    // Note: Returning an uninitialized value here only works
-    // if we can be sure the data is never used. The nullable pointer
-    // inside enum optimization conflicts with this this for example,
-    // so we need to be extra careful. See `NoDrop` enum.
-    mem::uninitialized()
-}
-
 impl<A: Array<Item=u8>> ArrayString<A> {
     /// Create a new empty `ArrayString`.
     ///
@@ -46,7 +38,7 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     pub fn new() -> ArrayString<A> {
         unsafe {
             ArrayString {
-                xs: new_array(),
+                xs: ::new_array(),
                 len: Index::from(0),
             }
         }
@@ -78,7 +70,7 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     /// let overflow = string.push('c');
     ///
     /// assert_eq!(&string[..], "ab");
-    /// assert_eq!(overflow.err().map(|e| e.element), Some('c'));
+    /// assert_eq!(overflow.unwrap_err().element(), 'c');
     /// ```
     pub fn push(&mut self, c: char) -> Result<(), CapacityError<char>> {
         use std::fmt::Write;
@@ -101,8 +93,8 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     /// let overflow2 = string.push_str("ef");
     ///
     /// assert_eq!(&string[..], "ad");
-    /// assert_eq!(overflow1.err().map(|e| e.element), Some("bc"));
-    /// assert_eq!(overflow2.err().map(|e| e.element), Some("ef"));
+    /// assert_eq!(overflow1.unwrap_err().element(), "bc");
+    /// assert_eq!(overflow2.unwrap_err().element(), "ef");
     /// ```
     pub fn push_str<'a>(&mut self, s: &'a str) -> Result<(), CapacityError<&'a str>> {
         use std::io::Write;
@@ -150,6 +142,32 @@ impl<A: Array<Item=u8>> Deref for ArrayString<A> {
     }
 }
 
+impl<A: Array<Item=u8>> PartialEq for ArrayString<A> {
+    fn eq(&self, rhs: &Self) -> bool {
+        **self == **rhs
+    }
+}
+
+impl<A: Array<Item=u8>> PartialEq<str> for ArrayString<A> {
+    fn eq(&self, rhs: &str) -> bool {
+        &**self == rhs
+    }
+}
+
+impl<A: Array<Item=u8>> PartialEq<ArrayString<A>> for str {
+    fn eq(&self, rhs: &ArrayString<A>) -> bool {
+        self == &**rhs
+    }
+}
+
+impl<A: Array<Item=u8>> Eq for ArrayString<A> { }
+
+impl<A: Array<Item=u8>> Hash for ArrayString<A> {
+    fn hash<H: Hasher>(&self, h: &mut H) {
+        (**self).hash(h)
+    }
+}
+
 impl<A: Array<Item=u8>> Borrow<str> for ArrayString<A> {
     fn borrow(&self) -> &str { self }
 }
@@ -158,7 +176,11 @@ impl<A: Array<Item=u8>> AsRef<str> for ArrayString<A> {
     fn as_ref(&self) -> &str { self }
 }
 
-impl<A: Array<Item=u8>> fmt::Debug for ArrayString<A> where A::Item: fmt::Debug {
+impl<A: Array<Item=u8>> fmt::Debug for ArrayString<A> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { (**self).fmt(f) }
+}
+
+impl<A: Array<Item=u8>> fmt::Display for ArrayString<A> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { (**self).fmt(f) }
 }
 
@@ -174,4 +196,3 @@ impl<A: Array<Item=u8> + Copy> Clone for ArrayString<A> {
         *self
     }
 }
-

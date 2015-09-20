@@ -36,18 +36,22 @@ unsafe fn new_array<A: Array>() -> A {
     mem::uninitialized()
 }
 
+/// Error value indicating insufficient capacity
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct CapacityError<T> {
-    _unused: (),
-    pub element: T,
+    element: T,
 }
 
 impl<T> CapacityError<T> {
     fn new(element: T) -> CapacityError<T> {
         CapacityError {
-            _unused: (),
             element: element,
         }
+    }
+
+    /// Extract the overflowing element
+    pub fn element(self) -> T {
+        self.element
     }
 }
 
@@ -96,7 +100,7 @@ impl<A: Array> ArrayVec<A> {
     /// ```
     pub fn new() -> ArrayVec<A> {
         unsafe {
-            ArrayVec { xs: NoDrop::new(new_array()), len: Index::zero() }
+            ArrayVec { xs: NoDrop::new(new_array()), len: Index::from(0) }
         }
     }
 
@@ -440,7 +444,7 @@ impl<A: Array> IntoIterator for ArrayVec<A> {
     type Item = A::Item;
     type IntoIter = IntoIter<A>;
     fn into_iter(self) -> IntoIter<A> {
-        IntoIter { index: Index::zero(), v: self, }
+        IntoIter { index: Index::from(0), v: self, }
     }
 }
 
