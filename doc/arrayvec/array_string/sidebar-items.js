@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["ArrayString","A string with a fixed capacity."]]});
