@@ -22,6 +22,10 @@ __ http://bluss.github.io/arrayvec
 Recent Changes
 --------------
 
+- 0.3.12
+
+  - Added ArrayString, a fixed capacity analogy of String
+
 - 0.3.11
 
   - Added trait impls Default, PartialOrd, Ord, Write for ArrayVec

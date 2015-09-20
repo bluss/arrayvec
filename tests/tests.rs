@@ -1,7 +1,10 @@
 extern crate arrayvec;
 
 use arrayvec::ArrayVec;
+use arrayvec::ArrayString;
 use std::mem;
+
+use std::collections::HashMap;
 
 
 #[test]
@@ -259,4 +262,32 @@ fn test_write() {
     let r = v.write(&[9; 16]).unwrap();
     assert_eq!(r, 5);
     assert_eq!(&v[..], &[1, 2, 3, 9, 9, 9, 9, 9]);
+}
+
+#[test]
+fn test_string() {
+    use std::error::Error;
+
+    let text = "hello world";
+    let mut s = ArrayString::<[_; 16]>::new();
+    s.push_str(text).unwrap();
+    assert_eq!(&s, text);
+    assert_eq!(text, &s);
+
+    // Make sure Hash / Eq / Borrow match up so we can use HashMap
+    let mut map = HashMap::new();
+    map.insert(s, 1);
+    assert_eq!(map[text], 1);
+
+    let mut t = ArrayString::<[_; 2]>::new();
+    assert!(t.push_str(text).is_err());
+    assert_eq!(&t, "");
+
+    // Test Error trait / try
+    let t = || -> Result<(), Box<Error>> {
+        let mut t = ArrayString::<[_; 2]>::new();
+        try!(t.push_str(text));
+        Ok(())
+    }();
+    assert!(t.is_err());
 }

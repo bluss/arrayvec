@@ -15,14 +15,11 @@ pub unsafe trait Array {
 }
 
 pub trait Index : PartialEq + Copy {
-    fn zero() -> Self;
     fn to_usize(self) -> usize;
     fn from(usize) -> Self;
 }
 
 impl Index for u8 {
-    #[inline(always)]
-    fn zero() -> Self { 0 }
     #[inline(always)]
     fn to_usize(self) -> usize { self as usize }
     #[inline(always)]
@@ -30,8 +27,6 @@ impl Index for u8 {
 }
 
 impl Index for u16 {
-    #[inline(always)]
-    fn zero() -> Self { 0 }
     #[inline(always)]
     fn to_usize(self) -> usize { self as usize }
     #[inline(always)]

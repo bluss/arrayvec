@@ -15,14 +15,19 @@ use std::slice;
 use nodrop::NoDrop;
 
 // extra traits
+use std::any::Any;
 use std::borrow::{Borrow, BorrowMut};
+use std::error::Error;
 use std::hash::{Hash, Hasher};
 use std::fmt;
 
 mod array;
+mod array_string;
+
 pub use array::Array;
 pub use odds::IndexRange as RangeArgument;
 use array::Index;
+pub use array_string::ArrayString;
 
 
 unsafe fn new_array<A: Array>() -> A {
@@ -78,7 +83,7 @@ impl<A: Array> ArrayVec<A> {
     /// ```
     pub fn new() -> ArrayVec<A> {
         unsafe {
-            ArrayVec { xs: NoDrop::new(new_array()), len: Index::zero() }
+            ArrayVec { xs: NoDrop::new(new_array()), len: Index::from(0) }
         }
     }
 
@@ -422,7 +427,7 @@ impl<A: Array> IntoIterator for ArrayVec<A> {
     type Item = A::Item;
     type IntoIter = IntoIter<A>;
     fn into_iter(self) -> IntoIter<A> {
-        IntoIter { index: Index::zero(), v: self, }
+        IntoIter { index: Index::from(0), v: self, }
     }
 }
 
@@ -692,4 +697,43 @@ impl<A: Array<Item=u8>> io::Write for ArrayVec<A> {
         }
     }
     fn flush(&mut self) -> io::Result<()> { Ok(()) }
+}
+
+/// Error value indicating insufficient capacity
+#[derive(Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]
+pub struct CapacityError<T> {
+    element: T,
+}
+
+impl<T> CapacityError<T> {
+    fn new(element: T) -> CapacityError<T> {
+        CapacityError {
+            element: element,
+        }
+    }
+
+    /// Extract the overflowing element
+    pub fn element(self) -> T {
+        self.element
+    }
+}
+
+const CAPERROR: &'static str = "insufficient capacity";
+
+impl<T: Any> Error for CapacityError<T> {
+    fn description(&self) -> &str {
+        CAPERROR
+    }
+}
+
+impl<T> fmt::Display for CapacityError<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", CAPERROR)
+    }
+}
+
+impl<T> fmt::Debug for CapacityError<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}: {}", "CapacityError", CAPERROR)
+    }
 }
