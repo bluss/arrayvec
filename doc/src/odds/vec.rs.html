@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/ulrik/.cargo/registry/src/github.com-0a35038f75765ae4/odds-0.2.7/src/vec.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/ulrik/.cargo/registry/src/github.com-0a35038f75765ae4/odds-0.2.8/src/vec.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>vec.rs.html -- source</title>
@@ -155,6 +155,50 @@
 <span id="113">113</span>
 <span id="114">114</span>
 <span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Extensions to `Vec`</span>
 
@@ -175,6 +219,27 @@
         <span class='kw'>where</span> <span class='ident'>I</span>: <span class='ident'>IntoIterator</span><span class='op'>&lt;</span><span class='ident'>Item</span><span class='op'>=</span><span class='ident'>T</span><span class='op'>&gt;</span>,
               <span class='ident'>I</span>::<span class='ident'>IntoIter</span>: <span class='ident'>ExactSizeIterator</span>,
               <span class='ident'>R</span>: <span class='ident'>IndexRange</span>;
+
+    <span class='doccomment'>/// Retains only the elements specified by the predicate.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// In other words, remove all elements `e` such that `f(&amp;mut e)` returns false.</span>
+    <span class='doccomment'>/// This method operates in place and preserves the order of the retained</span>
+    <span class='doccomment'>/// elements.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// # Examples</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// ```</span>
+    <span class='doccomment'>/// use odds::vec::VecExt;</span>
+    <span class='doccomment'>/// let mut vec = vec![1, 2, 3, 4];</span>
+    <span class='doccomment'>/// vec.retain_mut(|x| {</span>
+    <span class='doccomment'>///     let keep = *x % 2 == 0;</span>
+    <span class='doccomment'>///     *x *= 10;</span>
+    <span class='doccomment'>///     keep</span>
+    <span class='doccomment'>/// });</span>
+    <span class='doccomment'>/// assert_eq!(vec, [20, 40]);</span>
+    <span class='doccomment'>/// ```</span>
+    <span class='kw'>fn</span> <span class='ident'>retain_mut</span><span class='op'>&lt;</span><span class='ident'>F</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>f</span>: <span class='ident'>F</span>)
+        <span class='kw'>where</span> <span class='ident'>F</span>: <span class='ident'>FnMut</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>T</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span>;
 }
 
 <span class='doccomment'>/// `Vec::splice`: Remove elements in a range, and insert from an iterator</span>
@@ -240,6 +305,29 @@
             }
         }
         <span class='comment'>//assert!(iter.next().is_none(), &quot;splice: iterator not exact size&quot;);</span>
+    }
+
+    <span class='comment'>// Adapted from libcollections/vec.rs in Rust</span>
+    <span class='comment'>// Primary author in Rust: Michael Darakananda</span>
+    <span class='kw'>fn</span> <span class='ident'>retain_mut</span><span class='op'>&lt;</span><span class='ident'>F</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='kw-2'>mut</span> <span class='ident'>f</span>: <span class='ident'>F</span>)
+        <span class='kw'>where</span> <span class='ident'>F</span>: <span class='ident'>FnMut</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>T</span>) <span class='op'>-&gt;</span> <span class='ident'>bool</span>
+    {
+        <span class='kw'>let</span> <span class='ident'>len</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>len</span>();
+        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>del</span> <span class='op'>=</span> <span class='number'>0</span>;
+        {
+            <span class='kw'>let</span> <span class='ident'>v</span> <span class='op'>=</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='op'>*</span><span class='op'>*</span><span class='self'>self</span>;
+
+            <span class='kw'>for</span> <span class='ident'>i</span> <span class='kw'>in</span> <span class='number'>0</span>..<span class='ident'>len</span> {
+                <span class='kw'>if</span> <span class='op'>!</span><span class='ident'>f</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>v</span>[<span class='ident'>i</span>]) {
+                    <span class='ident'>del</span> <span class='op'>+=</span> <span class='number'>1</span>;
+                } <span class='kw'>else</span> <span class='kw'>if</span> <span class='ident'>del</span> <span class='op'>&gt;</span> <span class='number'>0</span> {
+                    <span class='ident'>v</span>.<span class='ident'>swap</span>(<span class='ident'>i</span> <span class='op'>-</span> <span class='ident'>del</span>, <span class='ident'>i</span>);
+                }
+            }
+        }
+        <span class='kw'>if</span> <span class='ident'>del</span> <span class='op'>&gt;</span> <span class='number'>0</span> {
+            <span class='self'>self</span>.<span class='ident'>truncate</span>(<span class='ident'>len</span> <span class='op'>-</span> <span class='ident'>del</span>);
+        }
     }
 }
 
