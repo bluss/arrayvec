@@ -7,7 +7,7 @@
     <meta name="description" content="API documentation for the Rust `StrExt` trait in crate `odds`.">
     <meta name="keywords" content="rust, rustlang, rust-lang, StrExt">
 
-    <title>odds 0.2.8 - odds::string::StrExt - Rust</title>
+    <title>odds 0.2.9 - odds::string::StrExt - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../../main.css">
 
@@ -47,21 +47,21 @@
             </a>
         </span><a id='src-80' class='srclink' href='../../src/odds/string.rs.html#13-46' title='goto source code'>[src]</a></span></h1>
 <pre class='rust trait'>pub trait StrExt {
-    fn <a href='#tymethod.rep' class='fnname'>rep</a>(&amp;self, n: <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>;
-    fn <a href='#tymethod.append' class='fnname'>append</a>(&amp;self, s: &amp;<a href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>;
+    fn <a href='#tymethod.rep' class='fnname'>rep</a>(&amp;self, n: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>;
+    fn <a href='#tymethod.append' class='fnname'>append</a>(&amp;self, s: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>;
     fn <a href='#tymethod.prefixes' class='fnname'>prefixes</a>(&amp;self) -&gt; <a class='struct' href='../../odds/string/struct.Prefixes.html' title='odds::string::Prefixes'>Prefixes</a>;
     fn <a href='#tymethod.suffixes' class='fnname'>suffixes</a>(&amp;self) -&gt; <a class='struct' href='../../odds/string/struct.Suffixes.html' title='odds::string::Suffixes'>Suffixes</a>;
     fn <a href='#tymethod.substrings' class='fnname'>substrings</a>(&amp;self) -&gt; <a class='struct' href='../../odds/string/struct.Substrings.html' title='odds::string::Substrings'>Substrings</a>;
-    fn <a href='#tymethod.is_acceptable_index' class='fnname'>is_acceptable_index</a>(&amp;self, index: <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>;
+    fn <a href='#tymethod.is_acceptable_index' class='fnname'>is_acceptable_index</a>(&amp;self, index: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>;
 }</pre><div class='docblock'><p>Extra methods for <code>str</code></p>
 </div>
             <h2 id='required-methods'>Required Methods</h2>
             <div class='methods'>
-        <h3 id='tymethod.rep' class='method stab '><code>fn <a href='#tymethod.rep' class='fnname'>rep</a>(&amp;self, n: <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code></h3><div class='docblock'><p>Repeat the string <code>n</code> times.</p>
-</div><h3 id='tymethod.append' class='method stab '><code>fn <a href='#tymethod.append' class='fnname'>append</a>(&amp;self, s: &amp;<a href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code></h3><h3 id='tymethod.prefixes' class='method stab '><code>fn <a href='#tymethod.prefixes' class='fnname'>prefixes</a>(&amp;self) -&gt; <a class='struct' href='../../odds/string/struct.Prefixes.html' title='odds::string::Prefixes'>Prefixes</a></code></h3><div class='docblock'><p>All non-empty prefixes</p>
+        <h3 id='tymethod.rep' class='method stab '><code>fn <a href='#tymethod.rep' class='fnname'>rep</a>(&amp;self, n: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code></h3><div class='docblock'><p>Repeat the string <code>n</code> times.</p>
+</div><h3 id='tymethod.append' class='method stab '><code>fn <a href='#tymethod.append' class='fnname'>append</a>(&amp;self, s: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code></h3><h3 id='tymethod.prefixes' class='method stab '><code>fn <a href='#tymethod.prefixes' class='fnname'>prefixes</a>(&amp;self) -&gt; <a class='struct' href='../../odds/string/struct.Prefixes.html' title='odds::string::Prefixes'>Prefixes</a></code></h3><div class='docblock'><p>All non-empty prefixes</p>
 </div><h3 id='tymethod.suffixes' class='method stab '><code>fn <a href='#tymethod.suffixes' class='fnname'>suffixes</a>(&amp;self) -&gt; <a class='struct' href='../../odds/string/struct.Suffixes.html' title='odds::string::Suffixes'>Suffixes</a></code></h3><div class='docblock'><p>All non-empty suffixes</p>
 </div><h3 id='tymethod.substrings' class='method stab '><code>fn <a href='#tymethod.substrings' class='fnname'>substrings</a>(&amp;self) -&gt; <a class='struct' href='../../odds/string/struct.Substrings.html' title='odds::string::Substrings'>Substrings</a></code></h3><div class='docblock'><p>Produce all non-empty substrings</p>
-</div><h3 id='tymethod.is_acceptable_index' class='method stab '><code>fn <a href='#tymethod.is_acceptable_index' class='fnname'>is_acceptable_index</a>(&amp;self, index: <a href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h3><div class='docblock'><p>Return <code>true</code> if <code>index</code> is acceptable for slicing the string.</p>
+</div><h3 id='tymethod.is_acceptable_index' class='method stab '><code>fn <a href='#tymethod.is_acceptable_index' class='fnname'>is_acceptable_index</a>(&amp;self, index: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h3><div class='docblock'><p>Return <code>true</code> if <code>index</code> is acceptable for slicing the string.</p>
 
 <p>Acceptable indices are byte offsets from the start of the string
 that mark the start of an encoded utf-8 sequence, or an index equal
@@ -79,7 +79,7 @@ indices are <em>0, 1, 2, 3, 5, 7,</em> and <em>9</em>.</p>
 </div></div>
         <h2 id='implementors'>Implementors</h2>
         <ul class='item-list' id='implementors-list'>
-    <li><code>impl <a class='trait' href='../../odds/string/trait.StrExt.html' title='odds::string::StrExt'>StrExt</a> for <a href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a></code></li>
+    <li><code>impl <a class='trait' href='../../odds/string/trait.StrExt.html' title='odds::string::StrExt'>StrExt</a> for <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a></code></li>
 </ul><script type="text/javascript" async
                               src="../../implementors/odds/string/trait.StrExt.js">
                       </script></section>
@@ -141,6 +141,6 @@ indices are <em>0, 1, 2, 3, 5, 7,</em> and <em>9</em>.</p>
     <script src="../../jquery.js"></script>
     <script src="../../main.js"></script>
     
-    <script async src="../../search-index.js"></script>
+    <script defer src="../../search-index.js"></script>
 </body>
 </html>

@@ -7,7 +7,7 @@
     <meta name="description" content="API documentation for the Rust `VecExt` trait in crate `odds`.">
     <meta name="keywords" content="rust, rustlang, rust-lang, VecExt">
 
-    <title>odds 0.2.8 - odds::vec::VecExt - Rust</title>
+    <title>odds 0.2.9 - odds::vec::VecExt - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../../main.css">
 
@@ -48,7 +48,7 @@
         </span><a id='src-184' class='srclink' href='../../src/odds/vec.rs.html#8-41' title='goto source code'>[src]</a></span></h1>
 <pre class='rust trait'>pub trait VecExt&lt;T&gt; {
     fn <a href='#tymethod.splice' class='fnname'>splice</a>&lt;R, I&gt;(&amp;mut self, r: R, iter: I) <span class='where'>where I: <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.IntoIterator.html' title='core::iter::IntoIterator'>IntoIterator</a>&lt;Item=T&gt;, I::IntoIter: <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/trait.ExactSizeIterator.html' title='core::iter::ExactSizeIterator'>ExactSizeIterator</a>, R: <a class='trait' href='../../odds/trait.IndexRange.html' title='odds::IndexRange'>IndexRange</a></span>;
-    fn <a href='#tymethod.retain_mut' class='fnname'>retain_mut</a>&lt;F&gt;(&amp;mut self, f: F) <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnMut.html' title='core::ops::FnMut'>FnMut</a>(&amp;mut T) -&gt; <a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></span>;
+    fn <a href='#tymethod.retain_mut' class='fnname'>retain_mut</a>&lt;F&gt;(&amp;mut self, f: F) <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnMut.html' title='core::ops::FnMut'>FnMut</a>(&amp;mut T) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></span>;
 }</pre><div class='docblock'><p>Extra methods for <code>Vec&lt;T&gt;</code></p>
 </div>
             <h2 id='required-methods'>Required Methods</h2>
@@ -60,7 +60,7 @@
 <p><strong>Panics</strong> if range <code>r</code> is out of bounds.</p>
 
 <p><strong>Panics</strong> if iterator <code>iter</code> is not of exact length.</p>
-</div><h3 id='tymethod.retain_mut' class='method stab '><code>fn <a href='#tymethod.retain_mut' class='fnname'>retain_mut</a>&lt;F&gt;(&amp;mut self, f: F) <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnMut.html' title='core::ops::FnMut'>FnMut</a>(&amp;mut T) -&gt; <a href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></span></code></h3><div class='docblock'><p>Retains only the elements specified by the predicate.</p>
+</div><h3 id='tymethod.retain_mut' class='method stab '><code>fn <a href='#tymethod.retain_mut' class='fnname'>retain_mut</a>&lt;F&gt;(&amp;mut self, f: F) <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnMut.html' title='core::ops::FnMut'>FnMut</a>(&amp;mut T) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></span></code></h3><div class='docblock'><p>Retains only the elements specified by the predicate.</p>
 
 <p>In other words, remove all elements <code>e</code> such that <code>f(&amp;mut e)</code> returns false.
 This method operates in place and preserves the order of the retained
@@ -140,6 +140,6 @@ elements.</p>
     <script src="../../jquery.js"></script>
     <script src="../../main.js"></script>
     
-    <script async src="../../search-index.js"></script>
+    <script defer src="../../search-index.js"></script>
 </body>
 </html>

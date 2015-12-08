@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="API documentation for the Rust `get_unchecked_mut` fn in crate `odds`.">
-    <meta name="keywords" content="rust, rustlang, rust-lang, get_unchecked_mut">
+    <meta name="description" content="API documentation for the Rust `slice_unchecked_mut` fn in crate `odds`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, slice_unchecked_mut">
 
-    <title>odds 0.2.9 - odds::get_unchecked_mut - Rust</title>
+    <title>odds 0.2.9 - odds::slice_unchecked_mut - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../main.css">
 
@@ -26,7 +26,7 @@
 
     <nav class="sidebar">
         
-        <p class='location'><a href='index.html'>odds</a></p><script>window.sidebarCurrent = {name: 'get_unchecked_mut', ty: 'fn', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+        <p class='location'><a href='index.html'>odds</a></p><script>window.sidebarCurrent = {name: 'slice_unchecked_mut', ty: 'fn', relpath: ''};</script><script defer src="sidebar-items.js"></script>
     </nav>
 
     <nav class="sub">
@@ -41,12 +41,13 @@
     </nav>
 
     <section id='main' class="content fn">
-<h1 class='fqn'><span class='in-band'>Function <a href='index.html'>odds</a>::<wbr><a class='fn' href=''>get_unchecked_mut</a></span><span class='out-of-band'><span id='render-detail'>
+<h1 class='fqn'><span class='in-band'>Function <a href='index.html'>odds</a>::<wbr><a class='fn' href=''>slice_unchecked_mut</a></span><span class='out-of-band'><span id='render-detail'>
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-254' class='srclink' href='../src/odds/lib.rs.html#60-63' title='goto source code'>[src]</a></span></h1>
-<pre class='rust fn'>pub unsafe fn get_unchecked_mut&lt;T&gt;(data: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, index: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; &amp;mut T</pre><div class='docblock'><p>Use <code>debug_assert!</code> to check indexing in debug mode. In release mode, no checks are done.</p>
+        </span><a id='src-267' class='srclink' href='../src/odds/lib.rs.html#85-88' title='goto source code'>[src]</a></span></h1>
+<pre class='rust fn'>pub unsafe fn slice_unchecked_mut&lt;T&gt;(data: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, from: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>, to: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;mut [</a>T<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a></pre><div class='docblock'><p>Check slicing bounds in debug mode, otherwise just act as an unchecked
+slice call.</p>
 </div></section>
     <section id='search' class="content hidden"></section>
 
