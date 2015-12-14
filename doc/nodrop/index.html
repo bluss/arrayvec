@@ -7,8 +7,9 @@
     <meta name="description" content="API documentation for the Rust `nodrop` crate.">
     <meta name="keywords" content="rust, rustlang, rust-lang, nodrop">
 
-    <title>nodrop 0.1.4 - nodrop - Rust</title>
+    <title>nodrop 0.1.5 - nodrop - Rust</title>
 
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../main.css">
 
     
@@ -45,10 +46,17 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/nodrop/lib.rs.html#1-145' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-0' class='srclink' href='../src/nodrop/lib.rs.html#1-166' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>The <strong>nodrop</strong> crate has the following cargo feature flags:</p>
 
 <ul>
+<li><code>use_needs_drop</code>
+
+<ul>
+<li>Optional</li>
+<li>Requires nightly channel.</li>
+<li>Use <code>needs_drop</code> to skip overwriting if not necessary</li>
+</ul></li>
 <li><code>no_drop_flag</code>.
 
 <ul>

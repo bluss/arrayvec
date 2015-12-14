@@ -9,6 +9,7 @@
 
     <title>lib.rs.html -- source</title>
 
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../main.css">
 
     
@@ -185,10 +186,35 @@
 <span id="143">143</span>
 <span id="144">144</span>
 <span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! The **nodrop** crate has the following cargo feature flags:</span>
 <span class='doccomment'>//!</span>
+<span class='doccomment'>//! - `use_needs_drop`</span>
+<span class='doccomment'>//!   - Optional</span>
+<span class='doccomment'>//!   - Requires nightly channel.</span>
+<span class='doccomment'>//!   - Use `needs_drop` to skip overwriting if not necessary</span>
 <span class='doccomment'>//! - `no_drop_flag`.</span>
 <span class='doccomment'>//!   - Optional.</span>
 <span class='doccomment'>//!   - Requires nightly channel.</span>
@@ -199,6 +225,7 @@
 <span class='doccomment'>//!</span>
 
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>cfg_attr</span>(<span class='ident'>feature</span><span class='op'>=</span><span class='string'>&quot;no_drop_flag&quot;</span>, <span class='ident'>feature</span>(<span class='ident'>unsafe_no_drop_flag</span>))]</span>
+<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>cfg_attr</span>(<span class='ident'>feature</span><span class='op'>=</span><span class='string'>&quot;use_needs_drop&quot;</span>, <span class='ident'>feature</span>(<span class='ident'>core_intrinsics</span>))]</span>
 
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>odds</span>;
 
@@ -240,12 +267,28 @@
     }
 }
 
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>not</span>(<span class='ident'>feature</span> <span class='op'>=</span> <span class='string'>&quot;use_needs_drop&quot;</span>))]</span>
+<span class='attribute'>#[<span class='ident'>inline</span>]</span>
+<span class='kw'>fn</span> <span class='ident'>needs_drop</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>() <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
+    <span class='boolval'>true</span>
+}
+
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>feature</span> <span class='op'>=</span> <span class='string'>&quot;use_needs_drop&quot;</span>)]</span>
+<span class='attribute'>#[<span class='ident'>inline</span>]</span>
+<span class='kw'>fn</span> <span class='ident'>needs_drop</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>() <span class='op'>-&gt;</span> <span class='ident'>bool</span> {
+    <span class='kw'>unsafe</span> {
+        <span class='ident'>std</span>::<span class='ident'>intrinsics</span>::<span class='ident'>needs_drop</span>::<span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>()
+    }
+}
+
 <span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> <span class='ident'>Drop</span> <span class='kw'>for</span> <span class='ident'>NoDrop</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
     <span class='kw'>fn</span> <span class='ident'>drop</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) {
-        <span class='comment'>// no drop flag info: writing repeatedly is idempotent</span>
-        <span class='comment'>// inhibit drop</span>
-        <span class='kw'>unsafe</span> {
-            <span class='ident'>ptr</span>::<span class='ident'>write</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>Flag</span>::<span class='ident'>Dropped</span>);
+        <span class='kw'>if</span> <span class='ident'>needs_drop</span>::<span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>() {
+            <span class='comment'>// no drop flag info: writing repeatedly is idempotent</span>
+            <span class='comment'>// inhibit drop</span>
+            <span class='kw'>unsafe</span> {
+                <span class='ident'>ptr</span>::<span class='ident'>write</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>.<span class='number'>0</span>, <span class='ident'>Flag</span>::<span class='ident'>Dropped</span>);
+            }
         }
     }
 }
