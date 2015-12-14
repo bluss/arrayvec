@@ -7,7 +7,7 @@ matrix:
     - rust: nightly
     - rust: nightly
       env:
-      - NODROP_FEATURES='no_drop_flag'
+      - NODROP_FEATURES='no_drop_flag use_needs_drop'
 script:
   - |
       [ -z "$NODROP_FEATURES" ] && cargo build --verbose --features "$FEATURES"
