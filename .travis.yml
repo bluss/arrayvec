@@ -8,6 +8,9 @@ matrix:
     - rust: nightly
       env:
       - NODROP_FEATURES='no_drop_flag use_needs_drop'
+branches:
+  only:
+    - master
 script:
   - |
       [ -z "$NODROP_FEATURES" ] && cargo build --verbose --features "$FEATURES"
