@@ -1,6 +1,6 @@
 [package]
 name = "nodrop"
-version = "0.1.4"
+version = "0.1.5"
 authors = ["bluss"]
 
 license = "MIT/Apache-2.0"
@@ -16,6 +16,10 @@ keywords = ["container", "drop"]
 # Optional, nightly channel
 # Use no drop flag. See API doc for more info.
 no_drop_flag = []
+
+# Optional, nightly channel
+# Use `needs_drop` to skip overwriting if not necessary
+use_needs_drop = []
 
 [dependencies.odds]
 version = "0.2"

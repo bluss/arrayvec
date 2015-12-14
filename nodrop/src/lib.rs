@@ -1,6 +1,10 @@
 //!
 //! The **nodrop** crate has the following cargo feature flags:
 //!
+//! - `use_needs_drop`
+//!   - Optional
+//!   - Requires nightly channel.
+//!   - Use `needs_drop` to skip overwriting if not necessary
 //! - `no_drop_flag`.
 //!   - Optional.
 //!   - Requires nightly channel.
@@ -11,6 +15,7 @@
 //!
 
 #![cfg_attr(feature="no_drop_flag", feature(unsafe_no_drop_flag))]
+#![cfg_attr(feature="use_needs_drop", feature(core_intrinsics))]
 
 extern crate odds;
 
@@ -52,12 +57,28 @@ impl<T> NoDrop<T> {
     }
 }
 
+#[cfg(not(feature = "use_needs_drop"))]
+#[inline]
+fn needs_drop<T>() -> bool {
+    true
+}
+
+#[cfg(feature = "use_needs_drop")]
+#[inline]
+fn needs_drop<T>() -> bool {
+    unsafe {
+        std::intrinsics::needs_drop::<T>()
+    }
+}
+
 impl<T> Drop for NoDrop<T> {
     fn drop(&mut self) {
-        // no drop flag info: writing repeatedly is idempotent
-        // inhibit drop
-        unsafe {
-            ptr::write(&mut self.0, Flag::Dropped);
+        if needs_drop::<T>() {
+            // no drop flag info: writing repeatedly is idempotent
+            // inhibit drop
+            unsafe {
+                ptr::write(&mut self.0, Flag::Dropped);
+            }
         }
     }
 }

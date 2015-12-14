@@ -19,8 +19,8 @@ __ http://bluss.github.io/arrayvec
 .. |crates2| image:: http://meritbadge.herokuapp.com/nodrop
 .. _crates2: https://crates.io/crates/nodrop
 
-Recent Changes
---------------
+Recent Changes (arrayvec)
+-------------------------
 
 - 0.3.12
 
@@ -43,6 +43,16 @@ Recent Changes
 
   - Added method .into_inner()
   - Added unsafe method .set_len()
+
+Recent Changes (nodrop)
+-----------------------
+
+- 0.1.5
+
+  - Added crate feature ``use_needs_drop`` which is a nightly-only
+    optimization, which skips overwriting if the inner value does not need
+    drop.
+
 
 License
 =======
