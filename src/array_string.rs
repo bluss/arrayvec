@@ -99,7 +99,7 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     pub fn push_str<'a>(&mut self, s: &'a str) -> Result<(), CapacityError<&'a str>> {
         use std::io::Write;
 
-        if self.len() + s.len() > self.capacity() {
+        if s.len() > self.capacity() - self.len() {
             return Err(CapacityError::new(s));
         }
         unsafe {
