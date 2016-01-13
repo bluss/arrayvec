@@ -283,6 +283,12 @@ fn test_string() {
     assert!(t.push_str(text).is_err());
     assert_eq!(&t, "");
 
+    t.push_str("ab").unwrap();
+    // DerefMut
+    let tmut: &mut str = &mut t;
+    assert_eq!(tmut, "ab");
+
+
     // Test Error trait / try
     let t = || -> Result<(), Box<Error>> {
         let mut t = ArrayString::<[_; 2]>::new();
