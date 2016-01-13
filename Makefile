@@ -1,7 +1,7 @@
 DOCCRATES = arrayvec nodrop odds
 
 # deps to delete the generated docs
-RMDOCS = unreachable void
+RMDOCS = 
 
 FEATURES = odds/unstable
 

@@ -57,9 +57,7 @@ pub struct ArrayVec<A: Array> {
 
 impl<A: Array> Drop for ArrayVec<A> {
     fn drop(&mut self) {
-        // clear all elements
-        while let Some(_) = self.pop() {
-        }
+        self.clear();
 
         // NoDrop inhibits array's drop
         // panic safety: NoDrop::drop will trigger on panic, so the inner
@@ -339,6 +337,12 @@ impl<A: Array> ArrayVec<A> {
                 Ok(array)
             }
         }
+    }
+
+    /// Dispose of `self` without the overwriting that is needed in Drop.
+    pub fn dispose(mut self) {
+        self.clear();
+        mem::forget(self);
     }
 }
 
@@ -701,7 +705,7 @@ impl<A: Array<Item=u8>> io::Write for ArrayVec<A> {
 
 /// Error value indicating insufficient capacity
 #[derive(Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]
-pub struct CapacityError<T> {
+pub struct CapacityError<T = ()> {
     element: T,
 }
 
@@ -715,6 +719,11 @@ impl<T> CapacityError<T> {
     /// Extract the overflowing element
     pub fn element(self) -> T {
         self.element
+    }
+
+    /// Convert into a `CapacityError` that does not carry an element.
+    pub fn simplify(self) -> CapacityError {
+        CapacityError { element: () }
     }
 }
 

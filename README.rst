@@ -22,6 +22,12 @@ __ http://bluss.github.io/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.3.13
+
+  - Added ``DerefMut`` impl for ``ArrayString``.
+  - Added method ``.simplify()`` to drop the element for ``CapacityError``.
+  - Added method ``.dispose()`` to ``ArrayVec``
+
 - 0.3.12
 
   - Added ArrayString, a fixed capacity analogy of String
