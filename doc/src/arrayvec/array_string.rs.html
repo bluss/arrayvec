@@ -239,11 +239,24 @@
 <span id="196">196</span>
 <span id="197">197</span>
 <span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>borrow</span>::<span class='ident'>Borrow</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>fmt</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>hash</span>::{<span class='ident'>Hash</span>, <span class='ident'>Hasher</span>};
-<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>ops</span>::<span class='ident'>Deref</span>;
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>mem</span>;
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>ops</span>::{<span class='ident'>Deref</span>, <span class='ident'>DerefMut</span>};
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>str</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>slice</span>;
 
@@ -341,7 +354,7 @@
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>push_str</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span><span class='op'>&gt;</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>s</span>: <span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>str</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Result</span><span class='op'>&lt;</span>(), <span class='ident'>CapacityError</span><span class='op'>&lt;</span><span class='kw-2'>&amp;</span><span class='lifetime'>&#39;a</span> <span class='ident'>str</span><span class='op'>&gt;&gt;</span> {
         <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::<span class='ident'>Write</span>;
 
-        <span class='kw'>if</span> <span class='self'>self</span>.<span class='ident'>len</span>() <span class='op'>+</span> <span class='ident'>s</span>.<span class='ident'>len</span>() <span class='op'>&gt;</span> <span class='self'>self</span>.<span class='ident'>capacity</span>() {
+        <span class='kw'>if</span> <span class='ident'>s</span>.<span class='ident'>len</span>() <span class='op'>&gt;</span> <span class='self'>self</span>.<span class='ident'>capacity</span>() <span class='op'>-</span> <span class='self'>self</span>.<span class='ident'>len</span>() {
             <span class='kw'>return</span> <span class='prelude-val'>Err</span>(<span class='ident'>CapacityError</span>::<span class='ident'>new</span>(<span class='ident'>s</span>));
         }
         <span class='kw'>unsafe</span> {
@@ -380,6 +393,17 @@
         <span class='kw'>unsafe</span> {
             <span class='kw'>let</span> <span class='ident'>sl</span> <span class='op'>=</span> <span class='ident'>slice</span>::<span class='ident'>from_raw_parts</span>(<span class='self'>self</span>.<span class='ident'>xs</span>.<span class='ident'>as_ptr</span>(), <span class='self'>self</span>.<span class='ident'>len</span>.<span class='ident'>to_usize</span>());
             <span class='ident'>str</span>::<span class='ident'>from_utf8_unchecked</span>(<span class='ident'>sl</span>)
+        }
+    }
+}
+
+<span class='kw'>impl</span><span class='op'>&lt;</span><span class='ident'>A</span>: <span class='ident'>Array</span><span class='op'>&lt;</span><span class='ident'>Item</span><span class='op'>=</span><span class='ident'>u8</span><span class='op'>&gt;&gt;</span> <span class='ident'>DerefMut</span> <span class='kw'>for</span> <span class='ident'>ArrayString</span><span class='op'>&lt;</span><span class='ident'>A</span><span class='op'>&gt;</span> {
+    <span class='attribute'>#[<span class='ident'>inline</span>]</span>
+    <span class='kw'>fn</span> <span class='ident'>deref_mut</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='ident'>str</span> {
+        <span class='kw'>unsafe</span> {
+            <span class='kw'>let</span> <span class='ident'>sl</span> <span class='op'>=</span> <span class='ident'>slice</span>::<span class='ident'>from_raw_parts_mut</span>(<span class='self'>self</span>.<span class='ident'>xs</span>.<span class='ident'>as_mut_ptr</span>(), <span class='self'>self</span>.<span class='ident'>len</span>.<span class='ident'>to_usize</span>());
+            <span class='comment'>// FIXME: Nothing but transmute to do this right now</span>
+            <span class='ident'>mem</span>::<span class='ident'>transmute</span>(<span class='ident'>sl</span>)
         }
     }
 }

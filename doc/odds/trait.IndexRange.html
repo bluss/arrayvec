@@ -7,7 +7,7 @@
     <meta name="description" content="API documentation for the Rust `IndexRange` trait in crate `odds`.">
     <meta name="keywords" content="rust, rustlang, rust-lang, IndexRange">
 
-    <title>odds 0.2.10 - odds::IndexRange - Rust</title>
+    <title>odds 0.2.11 - odds::IndexRange - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../main.css">
@@ -46,24 +46,24 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-8' class='srclink' href='../src/odds/range.rs.html#11-18' title='goto source code'>[src]</a></span></h1>
-<pre class='rust trait'>pub trait IndexRange {
-    fn <a href='#method.start' class='fnname'>start</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt; { ... }
-    fn <a href='#method.end' class='fnname'>end</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt; { ... }
+        </span><a id='src-7' class='srclink' href='../src/odds/range.rs.html#11-18' title='goto source code'>[src]</a></span></h1>
+<pre class='rust trait'>pub trait IndexRange&lt;T = <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt; {
+    fn <a href='#method.start' class='fnname'>start</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;T&gt; { ... }
+    fn <a href='#method.end' class='fnname'>end</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;T&gt; { ... }
 }</pre><div class='docblock'><p><strong>IndexRange</strong> is implemented by Rust&#39;s built-in range types, produced
 by range syntax like <code>..</code>, <code>a..</code>, <code>..b</code> or <code>c..d</code>.</p>
 </div>
             <h2 id='provided-methods'>Provided Methods</h2>
             <div class='methods'>
-        <h3 id='method.start' class='method stab '><code>fn <a href='#method.start' class='fnname'>start</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt;</code></h3><div class='docblock'><p>Start index (inclusive)</p>
-</div><h3 id='method.end' class='method stab '><code>fn <a href='#method.end' class='fnname'>end</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt;</code></h3><div class='docblock'><p>End index (exclusive)</p>
+        <h3 id='method.start' class='method stab '><code>fn <a href='#method.start' class='fnname'>start</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;T&gt;</code></h3><div class='docblock'><p>Start index (inclusive)</p>
+</div><h3 id='method.end' class='method stab '><code>fn <a href='#method.end' class='fnname'>end</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;T&gt;</code></h3><div class='docblock'><p>End index (exclusive)</p>
 </div></div>
         <h2 id='implementors'>Implementors</h2>
         <ul class='item-list' id='implementors-list'>
-    <li><code>impl <a class='trait' href='../odds/trait.IndexRange.html' title='odds::IndexRange'>IndexRange</a> for <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeFull.html' title='core::ops::RangeFull'>RangeFull</a></code></li>
-<li><code>impl <a class='trait' href='../odds/trait.IndexRange.html' title='odds::IndexRange'>IndexRange</a> for <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeFrom.html' title='core::ops::RangeFrom'>RangeFrom</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt;</code></li>
-<li><code>impl <a class='trait' href='../odds/trait.IndexRange.html' title='odds::IndexRange'>IndexRange</a> for <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeTo.html' title='core::ops::RangeTo'>RangeTo</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt;</code></li>
-<li><code>impl <a class='trait' href='../odds/trait.IndexRange.html' title='odds::IndexRange'>IndexRange</a> for <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.Range.html' title='core::ops::Range'>Range</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt;</code></li>
+    <li><code>impl&lt;T&gt; <a class='trait' href='../odds/trait.IndexRange.html' title='odds::IndexRange'>IndexRange</a>&lt;T&gt; for <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeFull.html' title='core::ops::RangeFull'>RangeFull</a></code></li>
+<li><code>impl&lt;T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a>&gt; <a class='trait' href='../odds/trait.IndexRange.html' title='odds::IndexRange'>IndexRange</a>&lt;T&gt; for <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeFrom.html' title='core::ops::RangeFrom'>RangeFrom</a>&lt;T&gt;</code></li>
+<li><code>impl&lt;T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a>&gt; <a class='trait' href='../odds/trait.IndexRange.html' title='odds::IndexRange'>IndexRange</a>&lt;T&gt; for <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeTo.html' title='core::ops::RangeTo'>RangeTo</a>&lt;T&gt;</code></li>
+<li><code>impl&lt;T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a>&gt; <a class='trait' href='../odds/trait.IndexRange.html' title='odds::IndexRange'>IndexRange</a>&lt;T&gt; for <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.Range.html' title='core::ops::Range'>Range</a>&lt;T&gt;</code></li>
 </ul><script type="text/javascript" async
                               src="../implementors/odds/trait.IndexRange.js">
                       </script></section>

@@ -7,7 +7,7 @@
     <meta name="description" content="API documentation for the Rust `ArrayString` struct in crate `arrayvec`.">
     <meta name="keywords" content="rust, rustlang, rust-lang, ArrayString">
 
-    <title>arrayvec 0.3.12 - arrayvec::ArrayString - Rust</title>
+    <title>arrayvec 0.3.13 - arrayvec::ArrayString - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../main.css">
@@ -46,7 +46,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-532' class='srclink' href='../src/arrayvec/array_string.rs.html#20-23' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-533' class='srclink' href='../src/arrayvec/array_string.rs.html#21-24' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct ArrayString&lt;A: <a class='trait' href='../arrayvec/trait.Array.html' title='arrayvec::Array'>Array</a>&lt;Item=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt;&gt; {
     // some fields omitted
 }</pre><div class='docblock'><p>A string with a fixed capacity.</p>
@@ -203,7 +203,7 @@ satisifed:</p>
 
 <ul>
 <li><code>begin</code> must come before <code>end</code>.</li>
-<li><code>begin</code> and <code>end</code> must be bye positions within the string slice.</li>
+<li><code>begin</code> and <code>end</code> must be byte positions within the string slice.</li>
 <li><code>begin</code> and <code>end</code> must lie on UTF-8 sequence boundaries.</li>
 </ul>
 
@@ -237,7 +237,7 @@ satisifed:</p>
 
 <ul>
 <li><code>begin</code> must come before <code>end</code>.</li>
-<li><code>begin</code> and <code>end</code> must be bye positions within the string slice.</li>
+<li><code>begin</code> and <code>end</code> must be byte positions within the string slice.</li>
 <li><code>begin</code> and <code>end</code> must lie on UTF-8 sequence boundaries.</li>
 </ul>
 </div><h4 id='method.char_range_at' class='method'><code>fn <a href='#method.char_range_at' class='fnname'>char_range_at</a>(&amp;self, start: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/core/str/struct.CharRange.html' title='core::str::CharRange'>CharRange</a></code></h4>
@@ -434,9 +434,9 @@ beyond the last code point of the string slice.</p>
 <div class='docblock'><p>Returns an iterator over the <code>char</code>s of a string slice.</p>
 
 <p>As a string slice consists of valid UTF-8, we can iterate through a
-string slice by <a href="../primitive.char.html"><code>char</code></a>. This method returns such an iterator.</p>
+string slice by <a href="primitive.char.html"><code>char</code></a>. This method returns such an iterator.</p>
 
-<p>It&#39;s important to remember that <a href="../primitive.char.html"><code>char</code></a> represents a Unicode Scalar
+<p>It&#39;s important to remember that <a href="primitive.char.html"><code>char</code></a> represents a Unicode Scalar
 Value, and may not match your idea of what a &#39;character&#39; is. Iteration
 over grapheme clusters may be what you actually want.</p>
 
@@ -1057,7 +1057,7 @@ Core Property <code>White_Space</code>.</p>
 <div class='docblock'><p>Returns a string slice with all prefixes and suffixes that match a
 pattern repeatedly removed.</p>
 
-<p>The pattern can be a <code>&amp;str</code>, <a href="primtive.char.html"><code>char</code></a>, or a closure that determines
+<p>The pattern can be a <code>&amp;str</code>, <a href="primitive.char.html"><code>char</code></a>, or a closure that determines
 if a character matches.</p>
 
 <h1 id='examples-36' class='section-header'><a href='#examples-36'>Examples</a></h1>
@@ -1115,7 +1115,7 @@ the syntax affectionately known as the &#39;turbofish&#39;: <code>::&lt;&gt;</co
 helps the inference algorithm understand specifically which type
 you&#39;re trying to parse into.</p>
 
-<p><code>parse()</code> can parse any type that implements the <a href="trait.FromStr.html"><code>FromStr</code></a> trait.</p>
+<p><code>parse()</code> can parse any type that implements the <a href="str/trait.FromStr.html"><code>FromStr</code></a> trait.</p>
 
 <h1 id='failure' class='section-header'><a href='#failure'>Failure</a></h1>
 <p>Will return <code>Err</code> if it&#39;s not possible to parse this string slice into
@@ -1222,6 +1222,7 @@ the replacement string slice.</p>
 <span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>boxed_str</span>.<span class='ident'>into_string</span>(), <span class='ident'>string</span>);</pre>
 </div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;A: <a class='trait' href='../arrayvec/trait.Array.html' title='arrayvec::Array'>Array</a>&lt;Item=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt;&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html' title='core::ops::Deref'>Deref</a> for <a class='struct' href='../arrayvec/struct.ArrayString.html' title='arrayvec::ArrayString'>ArrayString</a>&lt;A&gt;</code></h3><div class='impl-items'><h4 id='assoc_type.Target' class='type'><code>type Target = <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a></code></h4>
 <h4 id='method.deref' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#method.deref' class='fnname'>deref</a>(&amp;self) -&gt; &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a></code></h4>
+</div><h3 class='impl'><code>impl&lt;A: <a class='trait' href='../arrayvec/trait.Array.html' title='arrayvec::Array'>Array</a>&lt;Item=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt;&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.DerefMut.html' title='core::ops::DerefMut'>DerefMut</a> for <a class='struct' href='../arrayvec/struct.ArrayString.html' title='arrayvec::ArrayString'>ArrayString</a>&lt;A&gt;</code></h3><div class='impl-items'><h4 id='method.deref_mut' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.DerefMut.html#method.deref_mut' class='fnname'>deref_mut</a>(&amp;mut self) -&gt; &amp;mut <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a></code></h4>
 </div><h3 class='impl'><code>impl&lt;A: <a class='trait' href='../arrayvec/trait.Array.html' title='arrayvec::Array'>Array</a>&lt;Item=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt;&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html' title='core::cmp::PartialEq'>PartialEq</a> for <a class='struct' href='../arrayvec/struct.ArrayString.html' title='arrayvec::ArrayString'>ArrayString</a>&lt;A&gt;</code></h3><div class='impl-items'><h4 id='method.eq' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#method.eq' class='fnname'>eq</a>(&amp;self, rhs: &amp;Self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
 <h4 id='method.ne' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#method.ne' class='fnname'>ne</a>(&amp;self, other: &amp;Rhs) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
 </div><h3 class='impl'><code>impl&lt;A: <a class='trait' href='../arrayvec/trait.Array.html' title='arrayvec::Array'>Array</a>&lt;Item=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt;&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html' title='core::cmp::PartialEq'>PartialEq</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>&gt; for <a class='struct' href='../arrayvec/struct.ArrayString.html' title='arrayvec::ArrayString'>ArrayString</a>&lt;A&gt;</code></h3><div class='impl-items'><h4 id='method.eq-1' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#method.eq' class='fnname'>eq</a>(&amp;self, rhs: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>

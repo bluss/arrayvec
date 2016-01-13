@@ -7,7 +7,7 @@
     <meta name="description" content="API documentation for the Rust `ArrayVec` struct in crate `arrayvec`.">
     <meta name="keywords" content="rust, rustlang, rust-lang, ArrayVec">
 
-    <title>arrayvec 0.3.12 - arrayvec::ArrayVec - Rust</title>
+    <title>arrayvec 0.3.13 - arrayvec::ArrayVec - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../main.css">
@@ -46,7 +46,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-624' class='srclink' href='../src/arrayvec/lib.rs.html#53-56' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-630' class='srclink' href='../src/arrayvec/lib.rs.html#53-56' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct ArrayVec&lt;A: <a class='trait' href='../arrayvec/trait.Array.html' title='arrayvec::Array'>Array</a>&gt; {
     // some fields omitted
 }</pre><div class='docblock'><p>A vector with a fixed capacity.</p>
@@ -196,6 +196,8 @@ return an <code>Err</code> with self otherwise.</p>
 
 <p><code>Note:</code> This function may incur unproportionally large overhead
 to move the array out, its performance is not optimal.</p>
+</div><h4 id='method.dispose' class='method'><code>fn <a href='#method.dispose' class='fnname'>dispose</a>(self)</code></h4>
+<div class='docblock'><p>Dispose of <code>self</code> without the overwriting that is needed in Drop.</p>
 </div></div><h2 id='deref-methods'>Methods from <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html' title='core::ops::Deref'>Deref</a>&lt;Target=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>[A::Item]</a>&gt;</h2><div class='impl-items'><h4 id='method.len-1' class='method'><code>fn <a href='#method.len' class='fnname'>len</a>(&amp;self) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a></code></h4>
 <div class='docblock'><p>Returns the number of elements in the slice.</p>
 
@@ -533,7 +535,7 @@ found; the fourth could match any position in <code>[1,4]</code>.</p>
 
 <span class='ident'>v</span>.<span class='ident'>sort</span>();
 <span class='macro'>assert</span><span class='macro'>!</span>(<span class='ident'>v</span> <span class='op'>==</span> [<span class='op'>-</span><span class='number'>5</span>, <span class='op'>-</span><span class='number'>3</span>, <span class='number'>1</span>, <span class='number'>2</span>, <span class='number'>4</span>]);</pre>
-</div><h4 id='method.sort_by_key' class='method'><code>fn <a href='#method.sort_by_key' class='fnname'>sort_by_key</a>&lt;B, F&gt;(&amp;mut self, f: F) <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnMut.html' title='core::ops::FnMut'>FnMut</a>(&amp;T) -&gt; B, B: <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html' title='core::cmp::Ord'>Ord</a></span></code></h4>
+</div><h4 id='method.sort_by_key' class='method'><code>fn <a href='#method.sort_by_key' class='fnname'>sort_by_key</a>&lt;B, F&gt;(&amp;mut self, f: F) <span class='where'>where B: <a class='trait' href='https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html' title='core::cmp::Ord'>Ord</a>, F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnMut.html' title='core::ops::FnMut'>FnMut</a>(&amp;T) -&gt; B</span></code></h4>
 <div class='stability'><em class='stab unstable'>Unstable (<code>slice_sort_by_key</code>)<p>: recently added</p>
 </em></div><div class='docblock'><p>Sorts the slice, in place, using <code>key</code> to extract a key by which to
 order the sort by.</p>

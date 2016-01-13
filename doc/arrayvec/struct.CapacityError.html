@@ -7,7 +7,7 @@
     <meta name="description" content="API documentation for the Rust `CapacityError` struct in crate `arrayvec`.">
     <meta name="keywords" content="rust, rustlang, rust-lang, CapacityError">
 
-    <title>arrayvec 0.3.12 - arrayvec::CapacityError - Rust</title>
+    <title>arrayvec 0.3.13 - arrayvec::CapacityError - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../main.css">
@@ -46,12 +46,14 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-874' class='srclink' href='../src/arrayvec/lib.rs.html#704-706' title='goto source code'>[src]</a></span></h1>
-<pre class='rust struct'>pub struct CapacityError&lt;T&gt; {
+        </span><a id='src-882' class='srclink' href='../src/arrayvec/lib.rs.html#708-710' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct CapacityError&lt;T = <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt; {
     // some fields omitted
 }</pre><div class='docblock'><p>Error value indicating insufficient capacity</p>
 </div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl&lt;T&gt; <a class='struct' href='../arrayvec/struct.CapacityError.html' title='arrayvec::CapacityError'>CapacityError</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.element' class='method'><code>fn <a href='#method.element' class='fnname'>element</a>(self) -&gt; T</code></h4>
 <div class='docblock'><p>Extract the overflowing element</p>
+</div><h4 id='method.simplify' class='method'><code>fn <a href='#method.simplify' class='fnname'>simplify</a>(self) -&gt; <a class='struct' href='../arrayvec/struct.CapacityError.html' title='arrayvec::CapacityError'>CapacityError</a></code></h4>
+<div class='docblock'><p>Convert into a <code>CapacityError</code> that does not carry an element.</p>
 </div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl&lt;T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/any/trait.Any.html' title='core::any::Any'>Any</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/std/error/trait.Error.html' title='std::error::Error'>Error</a> for <a class='struct' href='../arrayvec/struct.CapacityError.html' title='arrayvec::CapacityError'>CapacityError</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.description' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/std/error/trait.Error.html#method.description' class='fnname'>description</a>(&amp;self) -&gt; &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a></code></h4>
 <h4 id='method.cause' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/std/error/trait.Error.html#method.cause' class='fnname'>cause</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;<a class='trait' href='https://doc.rust-lang.org/nightly/std/error/trait.Error.html' title='std::error::Error'>Error</a>&gt;</code></h4>
 </div><h3 class='impl'><code>impl&lt;T&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html' title='core::fmt::Display'>Display</a> for <a class='struct' href='../arrayvec/struct.CapacityError.html' title='arrayvec::CapacityError'>CapacityError</a>&lt;T&gt;</code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html#method.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>

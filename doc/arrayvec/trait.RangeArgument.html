@@ -7,7 +7,7 @@
     <meta name="description" content="API documentation for the Rust `RangeArgument` trait in crate `arrayvec`.">
     <meta name="keywords" content="rust, rustlang, rust-lang, RangeArgument">
 
-    <title>arrayvec 0.3.12 - arrayvec::RangeArgument - Rust</title>
+    <title>arrayvec 0.3.13 - arrayvec::RangeArgument - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../main.css">
@@ -46,17 +46,17 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-8' class='srclink' href='../odds/range/trait.RangeArgument.html?gotosrc=8' title='goto source code'>[src]</a></span></h1>
-<pre class='rust trait'>pub trait RangeArgument {
-    fn <a href='#method.start' class='fnname'>start</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt; { ... }
-    fn <a href='#method.end' class='fnname'>end</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt; { ... }
+        </span><a id='src-7' class='srclink' href='../odds/range/trait.RangeArgument.html?gotosrc=7' title='goto source code'>[src]</a></span></h1>
+<pre class='rust trait'>pub trait RangeArgument&lt;T = <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt; {
+    fn <a href='#method.start' class='fnname'>start</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;T&gt; { ... }
+    fn <a href='#method.end' class='fnname'>end</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;T&gt; { ... }
 }</pre><div class='docblock'><p><strong>IndexRange</strong> is implemented by Rust&#39;s built-in range types, produced
 by range syntax like <code>..</code>, <code>a..</code>, <code>..b</code> or <code>c..d</code>.</p>
 </div>
             <h2 id='provided-methods'>Provided Methods</h2>
             <div class='methods'>
-        <h3 id='method.start' class='method stab '><code>fn <a href='#method.start' class='fnname'>start</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt;</code></h3><div class='docblock'><p>Start index (inclusive)</p>
-</div><h3 id='method.end' class='method stab '><code>fn <a href='#method.end' class='fnname'>end</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt;</code></h3><div class='docblock'><p>End index (exclusive)</p>
+        <h3 id='method.start' class='method stab '><code>fn <a href='#method.start' class='fnname'>start</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;T&gt;</code></h3><div class='docblock'><p>Start index (inclusive)</p>
+</div><h3 id='method.end' class='method stab '><code>fn <a href='#method.end' class='fnname'>end</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;T&gt;</code></h3><div class='docblock'><p>End index (exclusive)</p>
 </div></div>
         <h2 id='implementors'>Implementors</h2>
         <ul class='item-list' id='implementors-list'>
