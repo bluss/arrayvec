@@ -705,7 +705,7 @@ impl<A: Array<Item=u8>> io::Write for ArrayVec<A> {
 
 /// Error value indicating insufficient capacity
 #[derive(Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]
-pub struct CapacityError<T> {
+pub struct CapacityError<T = ()> {
     element: T,
 }
 
@@ -719,6 +719,11 @@ impl<T> CapacityError<T> {
     /// Extract the overflowing element
     pub fn element(self) -> T {
         self.element
+    }
+
+    /// Convert into a `CapacityError` that does not carry an element.
+    pub fn simplify(self) -> CapacityError {
+        CapacityError { element: () }
     }
 }
 
