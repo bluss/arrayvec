@@ -1,7 +1,8 @@
 use std::borrow::Borrow;
 use std::fmt;
 use std::hash::{Hash, Hasher};
-use std::ops::Deref;
+use std::mem;
+use std::ops::{Deref, DerefMut};
 use std::str;
 use std::slice;
 
@@ -138,6 +139,17 @@ impl<A: Array<Item=u8>> Deref for ArrayString<A> {
         unsafe {
             let sl = slice::from_raw_parts(self.xs.as_ptr(), self.len.to_usize());
             str::from_utf8_unchecked(sl)
+        }
+    }
+}
+
+impl<A: Array<Item=u8>> DerefMut for ArrayString<A> {
+    #[inline]
+    fn deref_mut(&mut self) -> &mut str {
+        unsafe {
+            let sl = slice::from_raw_parts_mut(self.xs.as_mut_ptr(), self.len.to_usize());
+            // FIXME: Nothing but transmute to do this right now
+            mem::transmute(sl)
         }
     }
 }
