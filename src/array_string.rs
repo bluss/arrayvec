@@ -44,7 +44,25 @@ impl<A: Array<Item=u8>> ArrayString<A> {
             }
         }
     }
-
+	
+    /// Create a new `ArrayString` from a string slice.
+    ///
+    /// Capacity is inferred from the type parameter.
+    ///
+    /// ```
+    /// use arrayvec::ArrayString;
+    ///
+    /// let mut string = ArrayString::<[_; 3]>::from("foo").unwrap();
+    /// assert_eq!(&string[..], "foo");
+	/// assert_eq!(string.len(), 3);
+    /// assert_eq!(string.capacity(), 3);
+    /// ```
+	pub fn from(s: &str) -> Result<Self, CapacityError<&str>> {
+		let mut arraystr = Self::new();
+		try!(arraystr.push_str(s));
+		Ok(arraystr)
+	}
+	
     /// Return the capacity of the `ArrayString`.
     ///
     /// ```
