@@ -298,6 +298,6 @@ fn test_string() {
 
 	// Test `from` constructor
     let u = ArrayString::<[_; 11]>::from(text).unwrap();
-	assert_eq!(&u, text);
+    assert_eq!(&u, text);
     assert_eq!(u.len(), text.len());
 }
