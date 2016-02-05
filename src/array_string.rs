@@ -44,7 +44,7 @@ impl<A: Array<Item=u8>> ArrayString<A> {
             }
         }
     }
-	
+
     /// Create a new `ArrayString` from a string slice.
     ///
     /// Capacity is inferred from the type parameter.
@@ -62,7 +62,7 @@ impl<A: Array<Item=u8>> ArrayString<A> {
 		try!(arraystr.push_str(s));
 		Ok(arraystr)
 	}
-	
+
     /// Return the capacity of the `ArrayString`.
     ///
     /// ```

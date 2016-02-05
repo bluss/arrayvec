@@ -26,6 +26,17 @@ fn test_simple() {
 }
 
 #[test]
+fn test_u16_index() {
+    const N: usize = 4096;
+    let mut vec: ArrayVec<[_; N]> = ArrayVec::new();
+    for _ in 0..N {
+        assert!(vec.push(1u8).is_none());
+    }
+    assert!(vec.push(0).is_some());
+    assert_eq!(vec.len(), N);
+}
+
+#[test]
 fn test_iter() {
     let mut iter = ArrayVec::from([1, 2, 3]).into_iter();
     assert_eq!(iter.size_hint(), (3, Some(3)));
@@ -284,7 +295,7 @@ fn test_string() {
         Ok(())
     }();
     assert!(t.is_err());
-	
+
 	// Test `from` constructor
     let u = ArrayString::<[_; 11]>::from(text).unwrap();
 	assert_eq!(&u, text);
