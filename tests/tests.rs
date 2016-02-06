@@ -265,6 +265,29 @@ fn test_write() {
 }
 
 #[test]
+fn array_clone_from() {
+    let mut v = ArrayVec::<[_; 4]>::new();
+    v.push(vec![1, 2]);
+    v.push(vec![3, 4, 5]);
+    v.push(vec![6]);
+    let reference = v.to_vec();
+    let mut u = ArrayVec::<[_; 4]>::new();
+    u.clone_from(&v);
+    assert_eq!(&u, &reference[..]);
+
+    let mut t = ArrayVec::<[_; 4]>::new();
+    t.push(vec![97]);
+    t.push(vec![]);
+    t.push(vec![5, 6, 2]);
+    t.push(vec![2]);
+    t.clone_from(&v);
+    assert_eq!(&t, &reference[..]);
+    t.clear();
+    t.clone_from(&v);
+    assert_eq!(&t, &reference[..]);
+}
+
+#[test]
 fn test_string() {
     use std::error::Error;
 
@@ -295,9 +318,23 @@ fn test_string() {
         Ok(())
     }();
     assert!(t.is_err());
+}
 
+#[test]
+fn test_string_from() {
+    let text = "hello world";
 	// Test `from` constructor
     let u = ArrayString::<[_; 11]>::from(text).unwrap();
     assert_eq!(&u, text);
     assert_eq!(u.len(), text.len());
+}
+
+#[test]
+fn test_string_clone() {
+    let text = "hi";
+    let mut s = ArrayString::<[_; 4]>::new();
+    s.push_str("abcd").unwrap();
+    let t = ArrayString::<[_; 4]>::from(text).unwrap();
+    s.clone_from(&t);
+    assert_eq!(&t, &s);
 }
