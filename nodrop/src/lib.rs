@@ -1,6 +1,10 @@
 //!
 //! The **nodrop** crate has the following cargo feature flags:
 //!
+//! - `std`
+//!   - Optional, enabled by default
+//!   - Requires Rust 1.6 *to disable*
+//!   - Use libstd
 //! - `use_needs_drop`
 //!   - Optional
 //!   - Requires nightly channel.
@@ -16,6 +20,10 @@
 
 #![cfg_attr(feature="no_drop_flag", feature(unsafe_no_drop_flag))]
 #![cfg_attr(feature="use_needs_drop", feature(core_intrinsics))]
+
+#![cfg_attr(not(any(test, feature="std")), no_std)]
+#[cfg(not(any(test, feature="std")))]
+extern crate core as std;
 
 extern crate odds;
 
@@ -107,6 +115,7 @@ impl<T> DerefMut for NoDrop<T> {
     }
 }
 
+#[cfg(test)]
 #[test]
 fn test_no_nonnullable_opt() {
     // Make sure `Flag` does not apply the non-nullable pointer optimization
@@ -116,6 +125,7 @@ fn test_no_nonnullable_opt() {
     assert!(mem::size_of::<Option<Flag<&i32>>>() > mem::size_of::<Flag<&i32>>());
 }
 
+#[cfg(test)]
 #[test]
 fn test_drop() {
     use std::cell::Cell;

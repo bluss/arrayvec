@@ -2,6 +2,7 @@ use std::borrow::Borrow;
 use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::mem;
+use std::ptr;
 use std::ops::{Deref, DerefMut};
 use std::str;
 use std::slice;
@@ -116,14 +117,13 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     /// assert_eq!(overflow2.unwrap_err().element(), "ef");
     /// ```
     pub fn push_str<'a>(&mut self, s: &'a str) -> Result<(), CapacityError<&'a str>> {
-        use std::io::Write;
-
         if s.len() > self.capacity() - self.len() {
             return Err(CapacityError::new(s));
         }
         unsafe {
-            let sl = slice::from_raw_parts_mut(self.xs.as_mut_ptr(), A::capacity());
-            (&mut sl[self.len()..]).write(s.as_bytes()).unwrap();
+            let dst = self.xs.as_mut_ptr().offset(self.len() as isize);
+            let src = s.as_ptr();
+            ptr::copy_nonoverlapping(src, dst, s.len());
             let newl = self.len() + s.len();
             self.set_len(newl);
         }
@@ -224,5 +224,11 @@ impl<A: Array<Item=u8>> fmt::Write for ArrayString<A> {
 impl<A: Array<Item=u8> + Copy> Clone for ArrayString<A> {
     fn clone(&self) -> ArrayString<A> {
         *self
+    }
+
+    fn clone_from(&mut self, rhs: &Self) {
+        // guaranteed to fit due to types matching.
+        self.clear();
+        self.push_str(rhs).ok();
     }
 }

@@ -4,8 +4,12 @@ matrix:
   include:
     - rust: 1.2.0
     - rust: stable
+      env:
+        - NODEFAULT=1
     - rust: beta
     - rust: nightly
+      env:
+        - NODEFAULT=1
     - rust: nightly
       env:
       - NODROP_FEATURES='no_drop_flag use_needs_drop'
@@ -14,10 +18,12 @@ branches:
     - master
 script:
   - |
-      [ -z "$NODROP_FEATURES" ] && cargo build --verbose --features "$FEATURES"
-      [ -z "$NODROP_FEATURES" ] && cargo test --verbose --features "$FEATURES"
-      [ -z "$NODROP_FEATURES" ] && cargo test --release --verbose --features "$FEATURES"
-      [ -z "$NODROP_FEATURES" ] && cargo bench --verbose --features "$FEATURES" -- --test
-      [ -z "$NODROP_FEATURES" ] && cargo doc --verbose --features "$FEATURES"
-      cargo test --verbose --manifest-path=nodrop/Cargo.toml --features "$NODROP_FEATURES"
+      ([ ! -z "$NODROP_FEATURES" ] || cargo build --verbose --features "$FEATURES") &&
+      ([ "$NODEFAULT" != 1 ] || cargo build --verbose --no-default-features) &&
+      ([ ! -z "$NODROP_FEATURES" ] || cargo test --verbose --features "$FEATURES") &&
+      ([ ! -z "$NODROP_FEATURES" ] || cargo test --release --verbose --features "$FEATURES") &&
+      ([ ! -z "$NODROP_FEATURES" ] || cargo bench --verbose --features "$FEATURES" -- --test) &&
+      ([ ! -z "$NODROP_FEATURES" ] || cargo doc --verbose --features "$FEATURES") &&
+      ([ "$NODEFAULT" != 1 ] || cargo build --verbose --manifest-path=nodrop/Cargo.toml --no-default-features) &&
+      cargo test --verbose --manifest-path=nodrop/Cargo.toml --features "$NODROP_FEATURES" &&
       cargo bench --verbose --manifest-path=nodrop/Cargo.toml --features "$NODROP_FEATURES" -- --test
