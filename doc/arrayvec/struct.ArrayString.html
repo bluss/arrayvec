@@ -7,7 +7,7 @@
     <meta name="description" content="API documentation for the Rust `ArrayString` struct in crate `arrayvec`.">
     <meta name="keywords" content="rust, rustlang, rust-lang, ArrayString">
 
-    <title>arrayvec 0.3.14 - arrayvec::ArrayString - Rust</title>
+    <title>arrayvec 0.3.15 - arrayvec::ArrayString - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../main.css">
@@ -46,7 +46,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-533' class='srclink' href='../src/arrayvec/array_string.rs.html#21-24' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-534' class='srclink' href='../src/arrayvec/array_string.rs.html#22-25' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct ArrayString&lt;A: <a class='trait' href='../arrayvec/trait.Array.html' title='arrayvec::Array'>Array</a>&lt;Item=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt;&gt; {
     // some fields omitted
 }</pre><div class='docblock'><p>A string with a fixed capacity.</p>
@@ -1292,7 +1292,7 @@ replaces them with the replacement string slice.</p>
 <h4 id='method.write_char' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html#method.write_char' class='fnname'>write_char</a>(&amp;mut self, c: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.char.html'>char</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>, <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html' title='core::fmt::Error'>Error</a>&gt;</code></h4>
 <h4 id='method.write_fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Write.html#method.write_fmt' class='fnname'>write_fmt</a>(&amp;mut self, args: <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Arguments.html' title='core::fmt::Arguments'>Arguments</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>, <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Error.html' title='core::fmt::Error'>Error</a>&gt;</code></h4>
 </div><h3 class='impl'><code>impl&lt;A: <a class='trait' href='../arrayvec/trait.Array.html' title='arrayvec::Array'>Array</a>&lt;Item=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt; + <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a>&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a> for <a class='struct' href='../arrayvec/struct.ArrayString.html' title='arrayvec::ArrayString'>ArrayString</a>&lt;A&gt;</code></h3><div class='impl-items'><h4 id='method.clone' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone' class='fnname'>clone</a>(&amp;self) -&gt; <a class='struct' href='../arrayvec/struct.ArrayString.html' title='arrayvec::ArrayString'>ArrayString</a>&lt;A&gt;</code></h4>
-<h4 id='method.clone_from' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, source: &amp;Self)</code></h4>
+<h4 id='method.clone_from' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, rhs: &amp;Self)</code></h4>
 </div><h3 id='derived_implementations'>Derived Implementations </h3><h3 class='impl'><code>impl&lt;A: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a> + <a class='trait' href='../arrayvec/trait.Array.html' title='arrayvec::Array'>Array</a>&lt;Item=<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt;&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a> for <a class='struct' href='../arrayvec/struct.ArrayString.html' title='arrayvec::ArrayString'>ArrayString</a>&lt;A&gt; <span class='where'>where A::Index: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a></span></code></h3><div class='impl-items'></div></section>
     <section id='search' class="content hidden"></section>
 

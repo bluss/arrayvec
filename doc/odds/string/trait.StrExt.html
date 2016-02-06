@@ -7,7 +7,7 @@
     <meta name="description" content="API documentation for the Rust `StrExt` trait in crate `odds`.">
     <meta name="keywords" content="rust, rustlang, rust-lang, StrExt">
 
-    <title>odds 0.2.11 - odds::string::StrExt - Rust</title>
+    <title>odds 0.2.12 - odds::string::StrExt - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../main.css">
@@ -46,7 +46,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-84' class='srclink' href='../../src/odds/string.rs.html#13-46' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-84' class='srclink' href='../../src/odds/string.rs.html#14-52' title='goto source code'>[src]</a></span></h1>
 <pre class='rust trait'>pub trait StrExt {
     fn <a href='#tymethod.rep' class='fnname'>rep</a>(&amp;self, n: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>;
     fn <a href='#tymethod.append' class='fnname'>append</a>(&amp;self, s: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>;
@@ -59,7 +59,10 @@
             <h2 id='required-methods'>Required Methods</h2>
             <div class='methods'>
         <h3 id='tymethod.rep' class='method stab '><code>fn <a href='#tymethod.rep' class='fnname'>rep</a>(&amp;self, n: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code></h3><div class='docblock'><p>Repeat the string <code>n</code> times.</p>
-</div><h3 id='tymethod.append' class='method stab '><code>fn <a href='#tymethod.append' class='fnname'>append</a>(&amp;self, s: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code></h3><h3 id='tymethod.prefixes' class='method stab '><code>fn <a href='#tymethod.prefixes' class='fnname'>prefixes</a>(&amp;self) -&gt; <a class='struct' href='../../odds/string/struct.Prefixes.html' title='odds::string::Prefixes'>Prefixes</a></code></h3><div class='docblock'><p>All non-empty prefixes</p>
+
+<p>Requires <code>feature=&quot;std&quot;</code></p>
+</div><h3 id='tymethod.append' class='method stab '><code>fn <a href='#tymethod.append' class='fnname'>append</a>(&amp;self, s: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code></h3><div class='docblock'><p>Requires <code>feature=&quot;std&quot;</code></p>
+</div><h3 id='tymethod.prefixes' class='method stab '><code>fn <a href='#tymethod.prefixes' class='fnname'>prefixes</a>(&amp;self) -&gt; <a class='struct' href='../../odds/string/struct.Prefixes.html' title='odds::string::Prefixes'>Prefixes</a></code></h3><div class='docblock'><p>All non-empty prefixes</p>
 </div><h3 id='tymethod.suffixes' class='method stab '><code>fn <a href='#tymethod.suffixes' class='fnname'>suffixes</a>(&amp;self) -&gt; <a class='struct' href='../../odds/string/struct.Suffixes.html' title='odds::string::Suffixes'>Suffixes</a></code></h3><div class='docblock'><p>All non-empty suffixes</p>
 </div><h3 id='tymethod.substrings' class='method stab '><code>fn <a href='#tymethod.substrings' class='fnname'>substrings</a>(&amp;self) -&gt; <a class='struct' href='../../odds/string/struct.Substrings.html' title='odds::string::Substrings'>Substrings</a></code></h3><div class='docblock'><p>Produce all non-empty substrings</p>
 </div><h3 id='tymethod.is_acceptable_index' class='method stab '><code>fn <a href='#tymethod.is_acceptable_index' class='fnname'>is_acceptable_index</a>(&amp;self, index: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h3><div class='docblock'><p>Return <code>true</code> if <code>index</code> is acceptable for slicing the string.</p>

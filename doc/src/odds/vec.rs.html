@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/ulrik/.cargo/registry/src/github.com-88ac128001ac3a9a/odds-0.2.11/src/vec.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/ulrik/.cargo/registry/src/github.com-88ac128001ac3a9a/odds-0.2.12/src/vec.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>vec.rs.html -- source</title>
@@ -200,14 +200,24 @@
 <span id="157">157</span>
 <span id="158">158</span>
 <span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Extensions to `Vec`</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! Requires `feature=&quot;std&quot;`</span>
+<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>cfg</span>(<span class='ident'>feature</span><span class='op'>=</span><span class='string'>&quot;std&quot;</span>)]</span>
 
 <span class='kw'>use</span> <span class='ident'>range</span>::<span class='ident'>IndexRange</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>ptr</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>slice</span>;
 
 <span class='doccomment'>/// Extra methods for `Vec&lt;T&gt;`</span>
+<span class='doccomment'>///</span>
+<span class='doccomment'>/// Requires `feature=&quot;std&quot;`</span>
 <span class='kw'>pub</span> <span class='kw'>trait</span> <span class='ident'>VecExt</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span> {
     <span class='doccomment'>/// Remove elements in a range, and insert from an iterator in their place.</span>
     <span class='doccomment'>///</span>

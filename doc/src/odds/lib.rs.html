@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/ulrik/.cargo/registry/src/github.com-88ac128001ac3a9a/odds-0.2.11/src/lib.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/ulrik/.cargo/registry/src/github.com-88ac128001ac3a9a/odds-0.2.12/src/lib.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>lib.rs.html -- source</title>
@@ -206,6 +206,15 @@
 <span id="163">163</span>
 <span id="164">164</span>
 <span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! Odds and ends — collection miscellania.</span>
 <span class='doccomment'>//!</span>
@@ -215,6 +224,10 @@
 <span class='doccomment'>//!</span>
 <span class='doccomment'>//! The **odds** crate has the following cargo feature flags:</span>
 <span class='doccomment'>//!</span>
+<span class='doccomment'>//! - `std`</span>
+<span class='doccomment'>//!   - Default</span>
+<span class='doccomment'>//!   - Requires Rust 1.6 *to opt out of*</span>
+<span class='doccomment'>//!   - Use libstd and std features.</span>
 <span class='doccomment'>//! - `unstable`.</span>
 <span class='doccomment'>//!   - Optional.</span>
 <span class='doccomment'>//!   - Requires nightly channel.</span>
@@ -222,6 +235,11 @@
 <span class='doccomment'>//!</span>
 
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>cfg_attr</span>(<span class='ident'>feature</span><span class='op'>=</span><span class='string'>&quot;unstable&quot;</span>, <span class='ident'>feature</span>(<span class='ident'>unboxed_closures</span>, <span class='ident'>fn_traits</span>))]</span>
+
+<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>cfg_attr</span>(<span class='ident'>not</span>(<span class='ident'>feature</span><span class='op'>=</span><span class='string'>&quot;std&quot;</span>), <span class='ident'>no_std</span>)]</span>
+
+<span class='attribute'>#[<span class='ident'>cfg</span>(<span class='ident'>not</span>(<span class='ident'>feature</span><span class='op'>=</span><span class='string'>&quot;std&quot;</span>))]</span>
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>core</span> <span class='kw'>as</span> <span class='ident'>std</span>;
 
 <span class='kw'>mod</span> <span class='ident'>range</span>;
 <span class='kw'>mod</span> <span class='ident'>fix</span>;
