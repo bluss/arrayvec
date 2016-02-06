@@ -16,7 +16,7 @@ default = ["std"]
 
 # Default, Rust 1.6+
 # Use libstd
-std = []
+std = ["odds/std"]
 
 # Optional, nightly channel
 # Use no drop flag. See API doc for more info.
@@ -27,4 +27,5 @@ no_drop_flag = []
 use_needs_drop = []
 
 [dependencies.odds]
-version = "0.2"
+version = "0.2.12"
+default-features = false
