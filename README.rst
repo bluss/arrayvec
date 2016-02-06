@@ -22,6 +22,10 @@ __ http://bluss.github.io/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.3.14
+
+  - Add ``ArrayString::from(&str)``
+
 - 0.3.13
 
   - Added ``DerefMut`` impl for ``ArrayString``.

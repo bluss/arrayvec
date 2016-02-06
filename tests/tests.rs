@@ -288,7 +288,6 @@ fn test_string() {
     let tmut: &mut str = &mut t;
     assert_eq!(tmut, "ab");
 
-
     // Test Error trait / try
     let t = || -> Result<(), Box<Error>> {
         let mut t = ArrayString::<[_; 2]>::new();
@@ -296,4 +295,9 @@ fn test_string() {
         Ok(())
     }();
     assert!(t.is_err());
+
+	// Test `from` constructor
+    let u = ArrayString::<[_; 11]>::from(text).unwrap();
+    assert_eq!(&u, text);
+    assert_eq!(u.len(), text.len());
 }
