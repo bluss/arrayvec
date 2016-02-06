@@ -2,7 +2,7 @@
 arrayvec
 ========
 
-A vector with fixed capacity.
+A vector with fixed capacity.  Requires Rust 1.2+.
 
 Please read the `API documentation here`__
 
