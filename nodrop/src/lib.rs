@@ -1,6 +1,10 @@
 //!
 //! The **nodrop** crate has the following cargo feature flags:
 //!
+//! - `std`
+//!   - Optional, enabled by default
+//!   - Requires Rust 1.6 *to disable*
+//!   - Use libstd
 //! - `use_needs_drop`
 //!   - Optional
 //!   - Requires nightly channel.
@@ -17,17 +21,17 @@
 #![cfg_attr(feature="no_drop_flag", feature(unsafe_no_drop_flag))]
 #![cfg_attr(feature="use_needs_drop", feature(core_intrinsics))]
 
-#![cfg_attr(not(test), no_std)]
-#[cfg(test)]
-extern crate core;
+#![cfg_attr(not(any(test, feature="std")), no_std)]
+#[cfg(not(any(test, feature="std")))]
+extern crate core as std;
 
 extern crate odds;
 
 use odds::debug_assert_unreachable;
 
-use core::ops::{Deref, DerefMut};
-use core::ptr;
-use core::mem;
+use std::ops::{Deref, DerefMut};
+use std::ptr;
+use std::mem;
 
 /// repr(u8) - Make sure the non-nullable pointer optimization does not occur!
 #[repr(u8)]
