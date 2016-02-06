@@ -225,4 +225,10 @@ impl<A: Array<Item=u8> + Copy> Clone for ArrayString<A> {
     fn clone(&self) -> ArrayString<A> {
         *self
     }
+
+    fn clone_from(&mut self, rhs: &Self) {
+        // guaranteed to fit due to types matching.
+        self.clear();
+        self.push_str(rhs).ok();
+    }
 }
