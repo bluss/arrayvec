@@ -8,11 +8,17 @@ description = "A vector with a fixed capacity, it can be stored on the stack too
 documentation = "http://bluss.github.io/arrayvec"
 repository = "https://github.com/bluss/arrayvec"
 
-keywords = ["stack", "vector", "array", "string", "data-structure"]
+keywords = ["stack", "vector", "array", "data-structure", "no_std"]
 
 [dependencies.odds]
-version = "0.2"
+version = "0.2.12"
+default-features = false
 
 [dependencies.nodrop]
-version = "0.1.4"
+version = "0.1.6"
 path = "nodrop"
+default-features = false
+
+[features]
+default = ["std"]
+std = ["odds/std", "nodrop/std"]
