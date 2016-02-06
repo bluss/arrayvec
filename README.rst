@@ -57,6 +57,10 @@ Recent Changes (arrayvec)
 Recent Changes (nodrop)
 -----------------------
 
+- 0.1.6
+
+  - Add feature std, which you can opt out of to use ``no_std``.
+
 - 0.1.5
 
   - Added crate feature ``use_needs_drop`` which is a nightly-only
