@@ -1,6 +1,6 @@
 [package]
 name = "nodrop"
-version = "0.1.5"
+version = "0.1.6"
 authors = ["bluss"]
 
 license = "MIT/Apache-2.0"
@@ -9,12 +9,12 @@ description = "A wrapper type to inhibit drop (destructor)."
 documentation = "http://bluss.github.io/arrayvec/doc/nodrop"
 repository = "https://github.com/bluss/arrayvec"
 
-keywords = ["container", "drop"]
+keywords = ["container", "drop", "no_std"]
 
 [features]
 default = ["std"]
 
-# Default, Rust 1.6+
+# Default, requires Rust 1.6+ to disable
 # Use libstd
 std = ["odds/std"]
 
