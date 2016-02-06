@@ -8,6 +8,7 @@ matrix:
         - NODEFAULT=1
     - rust: beta
     - rust: nightly
+      env:
         - NODEFAULT=1
     - rust: nightly
       env:
@@ -17,11 +18,11 @@ branches:
     - master
 script:
   - |
-      ([ -z "$NODROP_FEATURES" ] && cargo build --verbose --features "$FEATURES") &&
-      ([ -z "$NODROP_FEATURES" ] && cargo test --verbose --features "$FEATURES") &&
-      ([ -z "$NODROP_FEATURES" ] && cargo test --release --verbose --features "$FEATURES") &&
-      ([ -z "$NODROP_FEATURES" ] && cargo bench --verbose --features "$FEATURES" -- --test) &&
-      ([ -z "$NODROP_FEATURES" ] && cargo doc --verbose --features "$FEATURES") &&
-      ([ "$NODEFAULT" = 1 ] && cargo build --verbose --manifest-path=nodrop/Cargo.toml --no-default-features) &&
+      ([ ! -z "$NODROP_FEATURES" ] || cargo build --verbose --features "$FEATURES") &&
+      ([ ! -z "$NODROP_FEATURES" ] || cargo test --verbose --features "$FEATURES") &&
+      ([ ! -z "$NODROP_FEATURES" ] || cargo test --release --verbose --features "$FEATURES") &&
+      ([ ! -z "$NODROP_FEATURES" ] || cargo bench --verbose --features "$FEATURES" -- --test) &&
+      ([ ! -z "$NODROP_FEATURES" ] || cargo doc --verbose --features "$FEATURES") &&
+      ([ "$NODEFAULT" != 1 ] || cargo build --verbose --manifest-path=nodrop/Cargo.toml --no-default-features) &&
       cargo test --verbose --manifest-path=nodrop/Cargo.toml --features "$NODROP_FEATURES" &&
       cargo bench --verbose --manifest-path=nodrop/Cargo.toml --features "$NODROP_FEATURES" -- --test
