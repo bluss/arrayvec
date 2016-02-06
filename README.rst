@@ -22,6 +22,12 @@ __ http://bluss.github.io/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.3.15
+
+  - Add feature std, which you can opt out of to use ``no_std`` (requires Rust 1.6
+    to opt out).
+  - Implement ``Clone::clone_from`` for ArrayVec and ArrayString
+
 - 0.3.14
 
   - Add ``ArrayString::from(&str)``
