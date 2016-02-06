@@ -17,13 +17,17 @@
 #![cfg_attr(feature="no_drop_flag", feature(unsafe_no_drop_flag))]
 #![cfg_attr(feature="use_needs_drop", feature(core_intrinsics))]
 
+#![cfg_attr(not(test), no_std)]
+#[cfg(test)]
+extern crate core;
+
 extern crate odds;
 
 use odds::debug_assert_unreachable;
 
-use std::ops::{Deref, DerefMut};
-use std::ptr;
-use std::mem;
+use core::ops::{Deref, DerefMut};
+use core::ptr;
+use core::mem;
 
 /// repr(u8) - Make sure the non-nullable pointer optimization does not occur!
 #[repr(u8)]
@@ -107,6 +111,7 @@ impl<T> DerefMut for NoDrop<T> {
     }
 }
 
+#[cfg(test)]
 #[test]
 fn test_no_nonnullable_opt() {
     // Make sure `Flag` does not apply the non-nullable pointer optimization
@@ -116,6 +121,7 @@ fn test_no_nonnullable_opt() {
     assert!(mem::size_of::<Option<Flag<&i32>>>() > mem::size_of::<Flag<&i32>>());
 }
 
+#[cfg(test)]
 #[test]
 fn test_drop() {
     use std::cell::Cell;
