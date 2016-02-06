@@ -1,8 +1,20 @@
+//! **arrayvec** provides the types `ArrayVec` and `ArrayString`: 
+//! array-backed vector and string types, which store their contents inline.
+//!
+//! The **arrayvec** crate has the following cargo feature flags:
+//!
+//! - `std`
+//!   - Optional, enabled by default
+//!   - Requires Rust 1.6 *to disable*
+//!   - Use libstd
+#![cfg_attr(not(feature="std"), no_std)]
 extern crate odds;
 extern crate nodrop;
 
+#[cfg(not(feature="std"))]
+extern crate core as std;
+
 use std::cmp;
-use std::io;
 use std::iter;
 use std::mem;
 use std::ptr;
@@ -12,14 +24,19 @@ use std::ops::{
 };
 use std::slice;
 
-use nodrop::NoDrop;
-
 // extra traits
-use std::any::Any;
 use std::borrow::{Borrow, BorrowMut};
-use std::error::Error;
 use std::hash::{Hash, Hasher};
 use std::fmt;
+
+#[cfg(feature="std")]
+use std::io;
+#[cfg(feature="std")]
+use std::error::Error;
+#[cfg(feature="std")]
+use std::any::Any; // core but unused
+
+use nodrop::NoDrop;
 
 mod array;
 mod array_string;
@@ -686,7 +703,10 @@ impl<A: Array> Ord for ArrayVec<A> where A::Item: Ord {
     }
 }
 
+#[cfg(feature="std")]
 /// `Write` appends written data to the end of the vector.
+///
+/// Requires `features="std"`.
 impl<A: Array<Item=u8>> io::Write for ArrayVec<A> {
     fn write(&mut self, data: &[u8]) -> io::Result<usize> {
         unsafe {
@@ -729,12 +749,16 @@ impl<T> CapacityError<T> {
 
 const CAPERROR: &'static str = "insufficient capacity";
 
+#[cfg(feature="std")]
+/// Requires `features="std"`.
 impl<T: Any> Error for CapacityError<T> {
     fn description(&self) -> &str {
         CAPERROR
     }
 }
 
+#[cfg(feature="std")]
+/// Requires `features="std"`.
 impl<T> fmt::Display for CapacityError<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", CAPERROR)

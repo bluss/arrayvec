@@ -19,6 +19,7 @@ branches:
 script:
   - |
       ([ ! -z "$NODROP_FEATURES" ] || cargo build --verbose --features "$FEATURES") &&
+      ([ "$NODEFAULT" != 1 ] || cargo build --verbose --no-default-features) &&
       ([ ! -z "$NODROP_FEATURES" ] || cargo test --verbose --features "$FEATURES") &&
       ([ ! -z "$NODROP_FEATURES" ] || cargo test --release --verbose --features "$FEATURES") &&
       ([ ! -z "$NODROP_FEATURES" ] || cargo bench --verbose --features "$FEATURES" -- --test) &&
