@@ -787,8 +787,6 @@ impl<T: Any> Error for CapacityError<T> {
     }
 }
 
-#[cfg(feature="std")]
-/// Requires `features="std"`.
 impl<T> fmt::Display for CapacityError<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", CAPERROR)
