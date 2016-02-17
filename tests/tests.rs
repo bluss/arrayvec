@@ -159,6 +159,23 @@ fn test_drain() {
 }
 
 #[test]
+fn test_retain() {
+    let mut v = ArrayVec::from([0; 8]);
+    for (i, elt) in v.iter_mut().enumerate() {
+        *elt = i;
+    }
+    v.retain(|_| true);
+    assert_eq!(&v[..], &[0, 1, 2, 3, 4, 5, 6, 7]);
+    v.retain(|elt| {
+        *elt /= 2;
+        *elt % 2 == 0
+    });
+    assert_eq!(&v[..], &[0, 0, 2, 2]);
+    v.retain(|_| false);
+    assert_eq!(&v[..], &[]);
+}
+
+#[test]
 #[should_panic]
 fn test_drain_oob() {
     let mut v = ArrayVec::from([0; 8]);

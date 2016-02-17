@@ -155,31 +155,6 @@ impl<A: Array> ArrayVec<A> {
         }
     }
 
-    /// Remove the last element in the vector.
-    ///
-    /// Return `Some(` *element* `)` if the vector is non-empty, else `None`.
-    ///
-    /// ```
-    /// use arrayvec::ArrayVec;
-    ///
-    /// let mut array = ArrayVec::<[_; 2]>::new();
-    ///
-    /// array.push(1);
-    ///
-    /// assert_eq!(array.pop(), Some(1));
-    /// assert_eq!(array.pop(), None);
-    /// ```
-    pub fn pop(&mut self) -> Option<A::Item> {
-        if self.len() == 0 {
-            return None
-        }
-        unsafe {
-            let new_len = self.len() - 1;
-            self.set_len(new_len);
-            Some(ptr::read(self.get_unchecked_mut(new_len)))
-        }
-    }
-
     /// Insert `element` in position `index`.
     ///
     /// Shift up all elements after `index`. If any is pushed out, it is returned.
@@ -223,6 +198,31 @@ impl<A: Array> ArrayVec<A> {
             self.set_len(len + 1);
         }
         ret
+    }
+
+    /// Remove the last element in the vector.
+    ///
+    /// Return `Some(` *element* `)` if the vector is non-empty, else `None`.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::<[_; 2]>::new();
+    ///
+    /// array.push(1);
+    ///
+    /// assert_eq!(array.pop(), Some(1));
+    /// assert_eq!(array.pop(), None);
+    /// ```
+    pub fn pop(&mut self) -> Option<A::Item> {
+        if self.len() == 0 {
+            return None
+        }
+        unsafe {
+            let new_len = self.len() - 1;
+            self.set_len(new_len);
+            Some(ptr::read(self.get_unchecked_mut(new_len)))
+        }
     }
 
     /// Remove the element at `index` and swap the last element into its place.
@@ -275,6 +275,40 @@ impl<A: Array> ArrayVec<A> {
     /// Remove all elements in the vector.
     pub fn clear(&mut self) {
         while let Some(_) = self.pop() { }
+    }
+
+    /// Retains only the elements specified by the predicate.
+    ///
+    /// In other words, remove all elements `e` such that `f(&mut e)` returns false.
+    /// This method operates in place and preserves the order of the retained
+    /// elements.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::from([1, 2, 3, 4]);
+    /// array.retain(|x| *x & 1 != 0 );
+    /// assert_eq!(&array[..], &[1, 3]);
+    /// ```
+    pub fn retain<F>(&mut self, mut f: F)
+        where F: FnMut(&mut A::Item) -> bool
+    {
+        let len = self.len();
+        let mut del = 0;
+        {
+            let v = &mut **self;
+
+            for i in 0..len {
+                if !f(&mut v[i]) {
+                    del += 1;
+                } else if del > 0 {
+                    v.swap(i - del, i);
+                }
+            }
+        }
+        if del > 0 {
+            self.drain(len - del..);
+        }
     }
 
     /// Set the vector's length without dropping or moving out elements

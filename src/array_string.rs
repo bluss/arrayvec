@@ -50,6 +50,8 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     ///
     /// Capacity is inferred from the type parameter.
     ///
+    /// **Errors** if the backing array is not large enough to fit the string.
+    ///
     /// ```
     /// use arrayvec::ArrayString;
     ///
@@ -77,8 +79,9 @@ impl<A: Array<Item=u8>> ArrayString<A> {
 
     /// Adds the given char to the end of the string.
     ///
-    /// Returns `Ok` if the push succeeds, and returns `Err` if the backing
-    /// array is not large enough to fit the additional char.
+    /// Returns `Ok` if the push succeeds.
+    ///
+    /// **Errors** if the backing array is not large enough to fit the additional char.
     ///
     /// ```
     /// use arrayvec::ArrayString;
@@ -99,8 +102,9 @@ impl<A: Array<Item=u8>> ArrayString<A> {
 
     /// Adds the given string slice to the end of the string.
     ///
-    /// Returns `Ok` if the push succeeds, and returns `Err` if the
-    /// backing array is not large enough to fit the string.
+    /// Returns `Ok` if the push succeeds.
+    ///
+    /// **Errors** if the backing array is not large enough to fit the string.
     ///
     /// ```
     /// use arrayvec::ArrayString;
