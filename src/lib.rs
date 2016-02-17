@@ -155,31 +155,6 @@ impl<A: Array> ArrayVec<A> {
         }
     }
 
-    /// Remove the last element in the vector.
-    ///
-    /// Return `Some(` *element* `)` if the vector is non-empty, else `None`.
-    ///
-    /// ```
-    /// use arrayvec::ArrayVec;
-    ///
-    /// let mut array = ArrayVec::<[_; 2]>::new();
-    ///
-    /// array.push(1);
-    ///
-    /// assert_eq!(array.pop(), Some(1));
-    /// assert_eq!(array.pop(), None);
-    /// ```
-    pub fn pop(&mut self) -> Option<A::Item> {
-        if self.len() == 0 {
-            return None
-        }
-        unsafe {
-            let new_len = self.len() - 1;
-            self.set_len(new_len);
-            Some(ptr::read(self.get_unchecked_mut(new_len)))
-        }
-    }
-
     /// Insert `element` in position `index`.
     ///
     /// Shift up all elements after `index`. If any is pushed out, it is returned.
@@ -223,6 +198,31 @@ impl<A: Array> ArrayVec<A> {
             self.set_len(len + 1);
         }
         ret
+    }
+
+    /// Remove the last element in the vector.
+    ///
+    /// Return `Some(` *element* `)` if the vector is non-empty, else `None`.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::<[_; 2]>::new();
+    ///
+    /// array.push(1);
+    ///
+    /// assert_eq!(array.pop(), Some(1));
+    /// assert_eq!(array.pop(), None);
+    /// ```
+    pub fn pop(&mut self) -> Option<A::Item> {
+        if self.len() == 0 {
+            return None
+        }
+        unsafe {
+            let new_len = self.len() - 1;
+            self.set_len(new_len);
+            Some(ptr::read(self.get_unchecked_mut(new_len)))
+        }
     }
 
     /// Remove the element at `index` and swap the last element into its place.
