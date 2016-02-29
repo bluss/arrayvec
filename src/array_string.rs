@@ -152,6 +152,11 @@ impl<A: Array<Item=u8>> ArrayString<A> {
         debug_assert!(length <= self.capacity());
         self.len = Index::from(length);
     }
+
+    /// Return a string slice of the whole `ArrayString`.
+    pub fn as_str(&self) -> &str {
+        self
+    }
 }
 
 impl<A: Array<Item=u8>> Deref for ArrayString<A> {

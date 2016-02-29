@@ -395,6 +395,16 @@ impl<A: Array> ArrayVec<A> {
         self.clear();
         mem::forget(self);
     }
+
+    /// Return a slice containing all elements of the vector.
+    pub fn as_slice(&self) -> &[A::Item] {
+        self
+    }
+
+    /// Return a mutable slice containing all elements of the vector.
+    pub fn as_mut_slice(&mut self) -> &mut [A::Item] {
+        self
+    }
 }
 
 impl<A: Array> Deref for ArrayVec<A> {
