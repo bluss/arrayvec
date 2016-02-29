@@ -22,6 +22,12 @@ __ http://bluss.github.io/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.3.16
+
+  - Added method ``.retain()`` to ``ArrayVec``.
+  - Added methods ``.as_slice(), .as_mut_slice()`` to ``ArrayVec`` and ``.as_str()``
+    to ``ArrayString``.
+
 - 0.3.15
 
   - Add feature std, which you can opt out of to use ``no_std`` (requires Rust 1.6
