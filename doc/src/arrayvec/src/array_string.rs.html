@@ -9,8 +9,8 @@
 
     <title>array_string.rs.html -- source</title>
 
-    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
-    <link rel="stylesheet" type="text/css" href="../../main.css">
+    <link rel="stylesheet" type="text/css" href="../../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../../main.css">
 
     
     
@@ -275,6 +275,15 @@
 <span id="232">232</span>
 <span id="233">233</span>
 <span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
 </pre><pre class='rust '>
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>borrow</span>::<span class='ident'>Borrow</span>;
 <span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>fmt</span>;
@@ -328,6 +337,8 @@
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// Capacity is inferred from the type parameter.</span>
     <span class='doccomment'>///</span>
+    <span class='doccomment'>/// **Errors** if the backing array is not large enough to fit the string.</span>
+    <span class='doccomment'>///</span>
     <span class='doccomment'>/// ```</span>
     <span class='doccomment'>/// use arrayvec::ArrayString;</span>
     <span class='doccomment'>///</span>
@@ -355,8 +366,9 @@
 
     <span class='doccomment'>/// Adds the given char to the end of the string.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// Returns `Ok` if the push succeeds, and returns `Err` if the backing</span>
-    <span class='doccomment'>/// array is not large enough to fit the additional char.</span>
+    <span class='doccomment'>/// Returns `Ok` if the push succeeds.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// **Errors** if the backing array is not large enough to fit the additional char.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// ```</span>
     <span class='doccomment'>/// use arrayvec::ArrayString;</span>
@@ -377,8 +389,9 @@
 
     <span class='doccomment'>/// Adds the given string slice to the end of the string.</span>
     <span class='doccomment'>///</span>
-    <span class='doccomment'>/// Returns `Ok` if the push succeeds, and returns `Err` if the</span>
-    <span class='doccomment'>/// backing array is not large enough to fit the string.</span>
+    <span class='doccomment'>/// Returns `Ok` if the push succeeds.</span>
+    <span class='doccomment'>///</span>
+    <span class='doccomment'>/// **Errors** if the backing array is not large enough to fit the string.</span>
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// ```</span>
     <span class='doccomment'>/// use arrayvec::ArrayString;</span>
@@ -425,6 +438,11 @@
     <span class='kw'>pub</span> <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>set_len</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>length</span>: <span class='ident'>usize</span>) {
         <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='ident'>length</span> <span class='op'>&lt;=</span> <span class='self'>self</span>.<span class='ident'>capacity</span>());
         <span class='self'>self</span>.<span class='ident'>len</span> <span class='op'>=</span> <span class='ident'>Index</span>::<span class='ident'>from</span>(<span class='ident'>length</span>);
+    }
+
+    <span class='doccomment'>/// Return a string slice of the whole `ArrayString`.</span>
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>as_str</span>(<span class='kw-2'>&amp;</span><span class='self'>self</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='ident'>str</span> {
+        <span class='self'>self</span>
     }
 }
 
@@ -554,7 +572,7 @@
 
                 <p>
                     Search functions by type signature (e.g.
-                    <code>vec -> usize</code>)
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
                 </p>
             </div>
         </div>
@@ -563,13 +581,13 @@
     
 
     <script>
-        window.rootPath = "../../";
+        window.rootPath = "../../../";
         window.currentCrate = "arrayvec";
         window.playgroundUrl = "";
     </script>
-    <script src="../../jquery.js"></script>
-    <script src="../../main.js"></script>
+    <script src="../../../jquery.js"></script>
+    <script src="../../../main.js"></script>
     
-    <script defer src="../../search-index.js"></script>
+    <script defer src="../../../search-index.js"></script>
 </body>
 </html>

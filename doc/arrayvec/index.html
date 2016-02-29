@@ -7,7 +7,7 @@
     <meta name="description" content="API documentation for the Rust `arrayvec` crate.">
     <meta name="keywords" content="rust, rustlang, rust-lang, arrayvec">
 
-    <title>arrayvec 0.3.15 - arrayvec - Rust</title>
+    <title>arrayvec 0.3.16 - arrayvec - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../main.css">
@@ -46,7 +46,7 @@
             <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                 [<span class='inner'>&#x2212;</span>]
             </a>
-        </span><a id='src-0' class='srclink' href='../src/arrayvec/lib.rs.html#1-802' title='goto source code'>[src]</a></span></h1>
+        </span><a id='src-0' class='srclink' href='../src/arrayvec/src/lib.rs.html#1-844' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p><strong>arrayvec</strong> provides the types <code>ArrayVec</code> and <code>ArrayString</code>:
 array-backed vector and string types, which store their contents inline.</p>
 
@@ -68,7 +68,6 @@ array-backed vector and string types, which store their contents inline.</p>
                                title='arrayvec::ArrayString'>ArrayString</a></td>
                         <td class='docblock short'>
                              <p>A string with a fixed capacity.</p>
-
                         </td>
                     </tr>
                 
@@ -77,7 +76,6 @@ array-backed vector and string types, which store their contents inline.</p>
                                title='arrayvec::ArrayVec'>ArrayVec</a></td>
                         <td class='docblock short'>
                              <p>A vector with a fixed capacity.</p>
-
                         </td>
                     </tr>
                 
@@ -86,7 +84,6 @@ array-backed vector and string types, which store their contents inline.</p>
                                title='arrayvec::CapacityError'>CapacityError</a></td>
                         <td class='docblock short'>
                              <p>Error value indicating insufficient capacity</p>
-
                         </td>
                     </tr>
                 
@@ -95,7 +92,6 @@ array-backed vector and string types, which store their contents inline.</p>
                                title='arrayvec::Drain'>Drain</a></td>
                         <td class='docblock short'>
                              <p>A draining iterator for <code>ArrayVec</code>.</p>
-
                         </td>
                     </tr>
                 
@@ -104,7 +100,6 @@ array-backed vector and string types, which store their contents inline.</p>
                                title='arrayvec::IntoIter'>IntoIter</a></td>
                         <td class='docblock short'>
                              <p>By-value iterator for <code>ArrayVec</code>.</p>
-
                         </td>
                     </tr>
                 </table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
@@ -114,7 +109,6 @@ array-backed vector and string types, which store their contents inline.</p>
                                title='arrayvec::Array'>Array</a></td>
                         <td class='docblock short'>
                              <p>Trait for fixed size arrays.</p>
-
                         </td>
                     </tr>
                 
@@ -124,7 +118,6 @@ array-backed vector and string types, which store their contents inline.</p>
                         <td class='docblock short'>
                              <p><strong>IndexRange</strong> is implemented by Rust&#39;s built-in range types, produced
 by range syntax like <code>..</code>, <code>a..</code>, <code>..b</code> or <code>c..d</code>.</p>
-
                         </td>
                     </tr>
                 </table></section>
@@ -170,7 +163,7 @@ by range syntax like <code>..</code>, <code>a..</code>, <code>..b</code> or <cod
 
                 <p>
                     Search functions by type signature (e.g.
-                    <code>vec -> usize</code>)
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
                 </p>
             </div>
         </div>
