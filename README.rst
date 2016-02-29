@@ -2,7 +2,7 @@
 arrayvec
 ========
 
-A vector with fixed capacity.
+A vector with fixed capacity.  Requires Rust 1.2+.
 
 Please read the `API documentation here`__
 
@@ -21,6 +21,12 @@ __ http://bluss.github.io/arrayvec
 
 Recent Changes (arrayvec)
 -------------------------
+
+- 0.3.16
+
+  - Added method ``.retain()`` to ``ArrayVec``.
+  - Added methods ``.as_slice(), .as_mut_slice()`` to ``ArrayVec`` and ``.as_str()``
+    to ``ArrayString``.
 
 - 0.3.15
 
