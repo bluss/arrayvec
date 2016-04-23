@@ -41,11 +41,13 @@ use nodrop::NoDrop;
 
 mod array;
 mod array_string;
+mod uninit;
 
 pub use array::Array;
 pub use odds::IndexRange as RangeArgument;
 use array::Index;
 pub use array_string::ArrayString;
+use uninit::Uninit;
 
 
 unsafe fn new_array<A: Array>() -> A {
@@ -168,7 +170,7 @@ impl<A: Copy + Array> Repr for A {
 
 #[derive(Copy, Clone)]
 struct CopyRepr<A: Array> {
-    xs: A,
+    xs: Uninit<A>,
     len: A::Index,
 }
 
@@ -176,7 +178,7 @@ impl<A: Array> Default for CopyRepr<A> {
     fn default() -> Self {
         unsafe {
             CopyRepr {
-                xs: new_array(), len: Index::from(0)
+                xs: uninit::new(new_array()), len: Index::from(0)
             }
         }
     }
@@ -193,8 +195,10 @@ impl<A: Array> Len for CopyRepr<A> {
 impl<A: Array> FromArray for CopyRepr<A> {
     type Array = A;
     fn from_array(xs: A) -> Self {
-        CopyRepr {
-            xs: xs, len: Index::from(A::capacity())
+        unsafe {
+            CopyRepr {
+                xs: uninit::new(xs), len: Index::from(A::capacity())
+            }
         }
     }
     fn array_ref(&self) -> &Self::Array {
