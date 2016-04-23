@@ -1,6 +1,5 @@
 
 use std::ops::{Deref, DerefMut};
-use odds::debug_assert_unreachable;
 
 /// repr(u8) - Make sure the non-nullable pointer optimization does not occur!
 #[repr(u8)]
@@ -8,10 +7,13 @@ use odds::debug_assert_unreachable;
 pub enum Uninit<T> {
     Alive(T),
     #[allow(dead_code)]
-    Dropped,
+    Void(Void),
 }
 
-pub unsafe fn new<T>(value: T) -> Uninit<T> {
+#[derive(Copy, Clone)]
+pub enum Void { }
+
+pub fn new<T>(value: T) -> Uninit<T> {
     Uninit::Alive(value)
 }
 
@@ -23,7 +25,7 @@ impl<T> Deref for Uninit<T> {
     fn deref(&self) -> &T {
         match *self {
             Uninit::Alive(ref inner) => inner,
-            _ => unsafe { debug_assert_unreachable() }
+            Uninit::Void(ref inner) => match *inner { /* unreachable */ }
         }
     }
 }
@@ -34,7 +36,7 @@ impl<T> DerefMut for Uninit<T> {
     fn deref_mut(&mut self) -> &mut T {
         match *self {
             Uninit::Alive(ref mut inner) => inner,
-            _ => unsafe { debug_assert_unreachable() }
+            Uninit::Void(ref inner) => match *inner { /* unreachable */ }
         }
     }
 }

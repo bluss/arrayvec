@@ -202,10 +202,8 @@ impl<A: Array> Len for CopyRepr<A> {
 impl<A: Array> FromArray for CopyRepr<A> {
     type Array = A;
     fn from_array(xs: A) -> Self {
-        unsafe {
-            CopyRepr {
-                xs: uninit::new(xs), len: Index::from(A::capacity())
-            }
+        CopyRepr {
+            xs: uninit::new(xs), len: Index::from(A::capacity())
         }
     }
     fn array_ref(&self) -> &Self::Array {
