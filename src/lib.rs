@@ -75,8 +75,20 @@ pub struct ArrayVec<A: Array> {
 trait Repr {
     type Item;
     type Array;
-    type Data: Default + DerefMut<Target=[Self::Item]> + Len + FromArray<Array=Self::Array>;
+    type Data: Clone + Default + DerefMut<Target=[Self::Item]> + Len + FromArray<Array=Self::Array>;
 }
+
+/*
+impl<A: Array> Copy for ArrayVec<A>
+    where A::Data: Copy
+    //where <A as Repr>::Data: Copy
+{ }
+*/
+
+impl<A: Copy + Repr + Array> Copy for ArrayVec<A>
+    where A::Data: Copy, <A as Array>::Item: Copy,
+    //where <A as Repr>::Data: Copy
+{ }
 
 trait Len {
     fn len(&self) -> usize;
@@ -154,6 +166,7 @@ impl<A: Copy + Array> Repr for A {
     type Data = CopyRepr<A>;
 }
 
+#[derive(Copy, Clone)]
 struct CopyRepr<A: Array> {
     xs: A,
     len: A::Index,

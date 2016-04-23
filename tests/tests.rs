@@ -248,6 +248,14 @@ fn test_in_option() {
 }
 
 #[test]
+fn test_copy() {
+    let mut v = ArrayVec::from([1, 2, 3]);
+    let mut u = v;
+    v[0] = 0;
+    assert!(v != u);
+}
+
+#[test]
 fn test_into_inner_1() {
     let mut v = ArrayVec::from([1, 2]);
     v.pop();
