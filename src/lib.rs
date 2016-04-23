@@ -8,6 +8,7 @@
 //!   - Requires Rust 1.6 *to disable*
 //!   - Use libstd
 #![cfg_attr(not(feature="std"), no_std)]
+#![feature(specialization)]
 extern crate odds;
 extern crate nodrop;
 
@@ -70,11 +71,120 @@ unsafe fn new_array<A: Array>() -> A {
 pub struct ArrayVec<A: Array> {
     xs: NoDrop<A>,
     len: A::Index,
+    repr: <A as Repr>::Data,
 }
 
-impl<A: Array> Drop for ArrayVec<A> {
+trait Repr {
+    type Item;
+    type Data: Default + DerefMut<Target=[Self::Item]> + Len;
+}
+
+trait Len {
+    fn len(&self) -> usize;
+    fn set_len(&mut self, l: usize);
+}
+
+impl<A: Array> Repr for A {
+    type Item = A::Item;
+    default type Data = GeneralRepr<A>;
+}
+
+struct GeneralRepr<A: Array> {
+    xs: NoDrop<A>,
+    len: A::Index,
+}
+
+impl<A: Array> Len for GeneralRepr<A> {
+    fn len(&self) -> usize { self.len.to_usize() }
+    fn set_len(&mut self, l: usize) {
+        self.len = Index::from(l);
+    }
+}
+
+impl<A: Array> Default for GeneralRepr<A> {
+    fn default() -> Self {
+        unsafe {
+            GeneralRepr {
+                xs: NoDrop::new(new_array()), len: Index::from(0)
+            }
+        }
+    }
+}
+
+impl<A: Array> Deref for GeneralRepr<A> {
+    type Target = [A::Item];
+    #[inline]
+    fn deref(&self) -> &[A::Item] {
+        unsafe {
+            slice::from_raw_parts(self.xs.as_ptr(), self.len())
+        }
+    }
+}
+
+impl<A: Array> DerefMut for GeneralRepr<A> {
+    #[inline]
+    fn deref_mut(&mut self) -> &mut [A::Item] {
+        let len = self.len();
+        unsafe {
+            slice::from_raw_parts_mut(self.xs.as_mut_ptr(), len)
+        }
+    }
+}
+
+impl<A: Copy + Array> Repr for A {
+    type Data = CopyRepr<A>;
+}
+
+struct CopyRepr<A: Array> {
+    xs: A,
+    len: A::Index,
+}
+
+impl<A: Array> Default for CopyRepr<A> {
+    fn default() -> Self {
+        unsafe {
+            CopyRepr {
+                xs: new_array(), len: Index::from(0)
+            }
+        }
+    }
+}
+
+impl<A: Array> Len for CopyRepr<A> {
+    fn len(&self) -> usize { self.len.to_usize() }
+    fn set_len(&mut self, l: usize) {
+        self.len = Index::from(l);
+    }
+}
+
+impl<A: Array> Deref for CopyRepr<A> {
+    type Target = [A::Item];
+    #[inline]
+    fn deref(&self) -> &[A::Item] {
+        unsafe {
+            slice::from_raw_parts(self.xs.as_ptr(), self.len())
+        }
+    }
+}
+
+impl<A: Array> DerefMut for CopyRepr<A> {
+    #[inline]
+    fn deref_mut(&mut self) -> &mut [A::Item] {
+        let len = self.len();
+        unsafe {
+            slice::from_raw_parts_mut(self.xs.as_mut_ptr(), len)
+        }
+    }
+}
+
+
+impl<A: Array> Drop for GeneralRepr<A> {
     fn drop(&mut self) {
-        self.clear();
+        let len = self.len.to_usize();
+        unsafe {
+            let data = slice::from_raw_parts_mut(self.xs.as_mut_ptr(), len);
+            ptr::drop_in_place(data)
+        }
 
         // NoDrop inhibits array's drop
         // panic safety: NoDrop::drop will trigger on panic, so the inner
@@ -98,7 +208,9 @@ impl<A: Array> ArrayVec<A> {
     /// ```
     pub fn new() -> ArrayVec<A> {
         unsafe {
-            ArrayVec { xs: NoDrop::new(new_array()), len: Index::from(0) }
+            ArrayVec { xs: NoDrop::new(new_array()), len: Index::from(0),
+            repr: <_>::default(),
+            }
         }
     }
 
@@ -438,7 +550,8 @@ impl<A: Array> DerefMut for ArrayVec<A> {
 /// ```
 impl<A: Array> From<A> for ArrayVec<A> {
     fn from(array: A) -> Self {
-        ArrayVec { xs: NoDrop::new(array), len: Index::from(A::capacity()) }
+        panic!()
+        //ArrayVec { xs: NoDrop::new(array), len: Index::from(A::capacity()) }
     }
 }
 
