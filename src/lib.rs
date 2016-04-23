@@ -8,7 +8,7 @@
 //!   - Requires Rust 1.6 *to disable*
 //!   - Use libstd
 #![cfg_attr(not(feature="std"), no_std)]
-#![feature(specialization)]
+#![cfg_attr(feature = "specialization", feature(specialization))]
 extern crate odds;
 extern crate nodrop;
 
@@ -41,13 +41,13 @@ use nodrop::NoDrop;
 
 mod array;
 mod array_string;
+#[cfg(feature = "specialization")]
 mod uninit;
 
 pub use array::Array;
 pub use odds::IndexRange as RangeArgument;
 use array::Index;
 pub use array_string::ArrayString;
-use uninit::Uninit;
 
 
 unsafe fn new_array<A: Array>() -> A {
@@ -80,6 +80,7 @@ trait Repr {
     type Data: Default + DerefMut<Target=[Self::Item]> + Len + FromArray<Array=Self::Array>;
 }
 
+#[cfg(feature = "specialization")]
 impl<A: Copy + Repr + Array> Copy for ArrayVec<A>
     where A::Data: Copy, <A as Array>::Item: Copy,
     //where <A as Repr>::Data: Copy
@@ -96,6 +97,14 @@ trait FromArray {
     fn array_ref(&self) -> &Self::Array;
 }
 
+#[cfg(not(feature = "specialization"))]
+impl<A: Array> Repr for A {
+    type Item = A::Item;
+    type Array = A;
+    type Data = GeneralRepr<A>;
+}
+
+#[cfg(feature = "specialization")]
 impl<A: Array> Repr for A {
     type Item = A::Item;
     type Array = A;
@@ -157,16 +166,19 @@ impl<A: Array> DerefMut for GeneralRepr<A> {
     }
 }
 
+#[cfg(feature = "specialization")]
 impl<A: Copy + Array> Repr for A {
     type Data = CopyRepr<A>;
 }
 
+#[cfg(feature = "specialization")]
 #[derive(Copy, Clone)]
 struct CopyRepr<A: Array> {
-    xs: Uninit<A>,
+    xs: uninit::Uninit<A>,
     len: A::Index,
 }
 
+#[cfg(feature = "specialization")]
 impl<A: Array> Default for CopyRepr<A> {
     fn default() -> Self {
         unsafe {
@@ -177,6 +189,7 @@ impl<A: Array> Default for CopyRepr<A> {
     }
 }
 
+#[cfg(feature = "specialization")]
 impl<A: Array> Len for CopyRepr<A> {
     #[inline(always)]
     fn len(&self) -> usize { self.len.to_usize() }
@@ -185,6 +198,7 @@ impl<A: Array> Len for CopyRepr<A> {
     }
 }
 
+#[cfg(feature = "specialization")]
 impl<A: Array> FromArray for CopyRepr<A> {
     type Array = A;
     fn from_array(xs: A) -> Self {
@@ -199,6 +213,7 @@ impl<A: Array> FromArray for CopyRepr<A> {
     }
 }
 
+#[cfg(feature = "specialization")]
 impl<A: Array> Deref for CopyRepr<A> {
     type Target = [A::Item];
     #[inline]
@@ -209,6 +224,7 @@ impl<A: Array> Deref for CopyRepr<A> {
     }
 }
 
+#[cfg(feature = "specialization")]
 impl<A: Array> DerefMut for CopyRepr<A> {
     #[inline]
     fn deref_mut(&mut self) -> &mut [A::Item] {

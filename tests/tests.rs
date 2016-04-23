@@ -247,10 +247,11 @@ fn test_in_option() {
     assert!(v.is_some());
 }
 
+#[cfg(feature = "specialization")]
 #[test]
 fn test_copy() {
     let mut v = ArrayVec::from([1, 2, 3]);
-    let mut u = v;
+    let u = v;
     v[0] = 0;
     assert!(v != u);
 }
