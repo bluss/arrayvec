@@ -126,6 +126,8 @@ fn test_is_send_sync() {
     &data as &Send;
     &data as &Sync;
 }
+/*
+*/
 
 #[test]
 fn test_compact_size() {

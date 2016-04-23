@@ -74,7 +74,8 @@ pub struct ArrayVec<A: Array> {
 
 trait Repr {
     type Item;
-    type Data: Default + DerefMut<Target=[Self::Item]> + Len;
+    type Array;
+    type Data: Default + DerefMut<Target=[Self::Item]> + Len + FromArray<Array=Self::Array>;
 }
 
 trait Len {
@@ -82,8 +83,15 @@ trait Len {
     fn set_len(&mut self, l: usize);
 }
 
+trait FromArray {
+    type Array;
+    fn from_array(Self::Array) -> Self;
+    fn array_ref(&self) -> &Self::Array;
+}
+
 impl<A: Array> Repr for A {
     type Item = A::Item;
+    type Array = A;
     default type Data = GeneralRepr<A>;
 }
 
@@ -107,6 +115,18 @@ impl<A: Array> Default for GeneralRepr<A> {
                 xs: NoDrop::new(new_array()), len: Index::from(0)
             }
         }
+    }
+}
+
+impl<A: Array> FromArray for GeneralRepr<A> {
+    type Array = A;
+    fn from_array(xs: A) -> Self {
+        GeneralRepr {
+            xs: NoDrop::new(xs), len: Index::from(A::capacity())
+        }
+    }
+    fn array_ref(&self) -> &Self::Array {
+        &self.xs
     }
 }
 
@@ -154,6 +174,18 @@ impl<A: Array> Len for CopyRepr<A> {
     fn len(&self) -> usize { self.len.to_usize() }
     fn set_len(&mut self, l: usize) {
         self.len = Index::from(l);
+    }
+}
+
+impl<A: Array> FromArray for CopyRepr<A> {
+    type Array = A;
+    fn from_array(xs: A) -> Self {
+        CopyRepr {
+            xs: xs, len: Index::from(A::capacity())
+        }
+    }
+    fn array_ref(&self) -> &Self::Array {
+        &self.xs
     }
 }
 
@@ -492,14 +524,11 @@ impl<A: Array> ArrayVec<A> {
         if self.len() < self.capacity() {
             Err(self)
         } else {
-            panic!() 
-                /*
             unsafe {
-                let array = ptr::read(&*self.repr);
+                let array = ptr::read(self.repr.array_ref());
                 mem::forget(self);
                 Ok(array)
             }
-            */
         }
     }
 
@@ -546,8 +575,9 @@ impl<A: Array> DerefMut for ArrayVec<A> {
 /// ```
 impl<A: Array> From<A> for ArrayVec<A> {
     fn from(array: A) -> Self {
-        panic!()
-        //ArrayVec { xs: NoDrop::new(array), len: Index::from(A::capacity()) }
+        ArrayVec {
+            repr: <_>::from_array(array)
+        }
     }
 }
 
@@ -681,6 +711,8 @@ pub struct Drain<'a, A>
     vec: *mut ArrayVec<A>,
 }
 
+unsafe impl<A: Array + Sync> Sync for ArrayVec<A> { }
+unsafe impl<A: Array + Send> Send for ArrayVec<A> { }
 unsafe impl<'a, A: Array + Sync> Sync for Drain<'a, A> {}
 unsafe impl<'a, A: Array + Send> Send for Drain<'a, A> {}
 
