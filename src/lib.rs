@@ -77,15 +77,8 @@ pub struct ArrayVec<A: Array> {
 trait Repr {
     type Item;
     type Array;
-    type Data: Clone + Default + DerefMut<Target=[Self::Item]> + Len + FromArray<Array=Self::Array>;
+    type Data: Default + DerefMut<Target=[Self::Item]> + Len + FromArray<Array=Self::Array>;
 }
-
-/*
-impl<A: Array> Copy for ArrayVec<A>
-    where A::Data: Copy
-    //where <A as Repr>::Data: Copy
-{ }
-*/
 
 impl<A: Copy + Repr + Array> Copy for ArrayVec<A>
     where A::Data: Copy, <A as Array>::Item: Copy,
