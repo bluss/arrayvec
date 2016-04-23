@@ -69,8 +69,6 @@ unsafe fn new_array<A: Array>() -> A {
 ///
 /// ArrayVec can be converted into a by value iterator.
 pub struct ArrayVec<A: Array> {
-    xs: NoDrop<A>,
-    len: A::Index,
     repr: <A as Repr>::Data,
 }
 
@@ -95,6 +93,7 @@ struct GeneralRepr<A: Array> {
 }
 
 impl<A: Array> Len for GeneralRepr<A> {
+    #[inline(always)]
     fn len(&self) -> usize { self.len.to_usize() }
     fn set_len(&mut self, l: usize) {
         self.len = Index::from(l);
@@ -151,6 +150,7 @@ impl<A: Array> Default for CopyRepr<A> {
 }
 
 impl<A: Array> Len for CopyRepr<A> {
+    #[inline(always)]
     fn len(&self) -> usize { self.len.to_usize() }
     fn set_len(&mut self, l: usize) {
         self.len = Index::from(l);
@@ -207,10 +207,8 @@ impl<A: Array> ArrayVec<A> {
     /// assert_eq!(array.capacity(), 16);
     /// ```
     pub fn new() -> ArrayVec<A> {
-        unsafe {
-            ArrayVec { xs: NoDrop::new(new_array()), len: Index::from(0),
+        ArrayVec { 
             repr: <_>::default(),
-            }
         }
     }
 
@@ -224,7 +222,7 @@ impl<A: Array> ArrayVec<A> {
     /// assert_eq!(array.len(), 2);
     /// ```
     #[inline]
-    pub fn len(&self) -> usize { self.len.to_usize() }
+    pub fn len(&self) -> usize { self.repr.len() }
 
     /// Return the capacity of the `ArrayVec`.
     ///
@@ -432,7 +430,7 @@ impl<A: Array> ArrayVec<A> {
     #[inline]
     pub unsafe fn set_len(&mut self, length: usize) {
         debug_assert!(length <= self.capacity());
-        self.len = Index::from(length);
+        self.repr.set_len(length);
     }
 
 
@@ -494,11 +492,14 @@ impl<A: Array> ArrayVec<A> {
         if self.len() < self.capacity() {
             Err(self)
         } else {
+            panic!() 
+                /*
             unsafe {
-                let array = ptr::read(&*self.xs);
+                let array = ptr::read(&*self.repr);
                 mem::forget(self);
                 Ok(array)
             }
+            */
         }
     }
 
@@ -523,19 +524,14 @@ impl<A: Array> Deref for ArrayVec<A> {
     type Target = [A::Item];
     #[inline]
     fn deref(&self) -> &[A::Item] {
-        unsafe {
-            slice::from_raw_parts(self.xs.as_ptr(), self.len())
-        }
+        &*self.repr
     }
 }
 
 impl<A: Array> DerefMut for ArrayVec<A> {
     #[inline]
     fn deref_mut(&mut self) -> &mut [A::Item] {
-        let len = self.len();
-        unsafe {
-            slice::from_raw_parts_mut(self.xs.as_mut_ptr(), len)
-        }
+        &mut *self.repr
     }
 }
 
@@ -605,14 +601,14 @@ impl<A: Array> IntoIterator for ArrayVec<A> {
     type Item = A::Item;
     type IntoIter = IntoIter<A>;
     fn into_iter(self) -> IntoIter<A> {
-        IntoIter { index: Index::from(0), v: self, }
+        IntoIter { index: 0, v: self, }
     }
 }
 
 
 /// By-value iterator for `ArrayVec`.
 pub struct IntoIter<A: Array> {
-    index: A::Index,
+    index: usize,
     v: ArrayVec<A>,
 }
 
@@ -621,19 +617,19 @@ impl<A: Array> Iterator for IntoIter<A> {
 
     #[inline]
     fn next(&mut self) -> Option<A::Item> {
-        if self.index == self.v.len {
+        if self.index >= self.v.len() {
             None
         } else {
             unsafe {
-                let index = self.index.to_usize();
-                self.index = Index::from(index + 1);
+                let index = self.index;
+                self.index += 1;
                 Some(ptr::read(self.v.get_unchecked_mut(index)))
             }
         }
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let len = self.v.len() - self.index.to_usize();
+        let len = self.v.len() - self.index;
         (len, Some(len))
     }
 }
@@ -641,7 +637,7 @@ impl<A: Array> Iterator for IntoIter<A> {
 impl<A: Array> DoubleEndedIterator for IntoIter<A> {
     #[inline]
     fn next_back(&mut self) -> Option<A::Item> {
-        if self.index == self.v.len {
+        if self.index >= self.v.len() {
             None
         } else {
             unsafe {
@@ -658,7 +654,7 @@ impl<A: Array> ExactSizeIterator for IntoIter<A> { }
 impl<A: Array> Drop for IntoIter<A> {
     fn drop(&mut self) {
         // panic safety: Set length to 0 before dropping elements.
-        let index = self.index.to_usize();
+        let index = self.index;
         let len = self.v.len();
         unsafe {
             self.v.set_len(0);
