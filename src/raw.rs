@@ -277,7 +277,7 @@ impl<'a, A: Array> DoubleEndedIterator for Drain<'a, A>
 
 impl<'a, A: Array> ExactSizeIterator for Drain<'a, A> where A::Item: 'a {}
 
-impl<'a, A: Array> Drop for Drain<'a, A> 
+impl<'a, A: Array> Drop for Drain<'a, A>
     where A::Item: 'a
 {
     fn drop(&mut self) {

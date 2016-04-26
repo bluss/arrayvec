@@ -458,7 +458,7 @@ impl<A: Array> Drop for IntoIter<A> {
 }
 
 /// Extend the `ArrayVec` with an iterator.
-/// 
+///
 /// Does not extract more items than there is space for. No error
 /// occurs if there are more iterator elements.
 impl<A: Array> Extend<A::Item> for ArrayVec<A> {
@@ -468,7 +468,7 @@ impl<A: Array> Extend<A::Item> for ArrayVec<A> {
 }
 
 /// Create an `ArrayVec` from an iterator.
-/// 
+///
 /// Does not extract more items than there is space for. No error
 /// occurs if there are more iterator elements.
 impl<A: Array> iter::FromIterator<A::Item> for ArrayVec<A> {

@@ -1,4 +1,4 @@
-//! **arrayvec** provides the types `ArrayVec` and `ArrayString`: 
+//! **arrayvec** provides the types `ArrayVec` and `ArrayString`:
 //! array-backed vector and string types, which store their contents inline.
 //!
 //! The **arrayvec** crate has the following cargo feature flags:
@@ -28,15 +28,18 @@ use std::error::Error;
 use std::any::Any; // core but unused
 
 mod array;
+mod copy;
 mod string;
 mod vec;
 mod raw;
 
 pub use array::Array;
+pub use copy::ArrayVecCopy;
 pub use odds::IndexRange as RangeArgument;
 pub use raw::Drain;
 pub use string::ArrayString;
 pub use vec::ArrayVec;
+pub use vec::IntoIter;
 
 /// Error value indicating insufficient capacity
 #[derive(Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]
