@@ -7,10 +7,11 @@
     <meta name="description" content="API documentation for the Rust `odds` crate.">
     <meta name="keywords" content="rust, rustlang, rust-lang, odds">
 
-    <title>odds 0.2.12 - odds - Rust</title>
+    <title>odds 0.2.13 - odds - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../main.css">
+    
 
     
     
@@ -43,10 +44,10 @@
 
     <section id='main' class="content mod">
 <h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>odds</a></span><span class='out-of-band'><span id='render-detail'>
-            <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
-                [<span class='inner'>&#x2212;</span>]
-            </a>
-        </span><a id='src-0' class='srclink' href='../src/odds/lib.rs.html#1-174' title='goto source code'>[src]</a></span></h1>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-0' class='srclink' href='../src/odds/lib.rs.html#1-174' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'><p>Odds and ends — collection miscellania.</p>
 
 <ul>
@@ -75,124 +76,110 @@
 </ul>
 </div><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
 <table>
-                    <tr class=' module-item'>
-                        <td><a class='mod' href='string/index.html'
-                               title='odds::string'>string</a></td>
-                        <td class='docblock short'>
-                             <p>Extensions to <code>&amp;str</code> and <code>String</code></p>
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='mod' href='vec/index.html'
-                               title='odds::vec'>vec</a></td>
-                        <td class='docblock short'>
-                             <p>Extensions to <code>Vec</code></p>
-                        </td>
-                    </tr>
-                </table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='string/index.html'
+                                  title='odds::string'>string</a></td>
+                           <td class='docblock short'>
+                                <p>Extensions to <code>&amp;str</code> and <code>String</code></p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='mod' href='vec/index.html'
+                                  title='odds::vec'>vec</a></td>
+                           <td class='docblock short'>
+                                <p>Extensions to <code>Vec</code></p>
+                           </td>
+                       </tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
-                    <tr class=' module-item'>
-                        <td><a class='struct' href='struct.Fix.html'
-                               title='odds::Fix'>Fix</a></td>
-                        <td class='docblock short'>
-                             <p>Fixpoint combinator for rust closures, generalized over the return type.</p>
-                        </td>
-                    </tr>
-                </table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
+                       <tr class=' module-item'>
+                           <td><a class='struct' href='struct.Fix.html'
+                                  title='odds::Fix'>Fix</a></td>
+                           <td class='docblock short'>
+                                <p>Fixpoint combinator for rust closures, generalized over the return type.</p>
+                           </td>
+                       </tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
 <table>
-                    <tr class=' module-item'>
-                        <td><a class='trait' href='trait.IndexRange.html'
-                               title='odds::IndexRange'>IndexRange</a></td>
-                        <td class='docblock short'>
-                             <p><strong>IndexRange</strong> is implemented by Rust&#39;s built-in range types, produced
+                       <tr class=' module-item'>
+                           <td><a class='trait' href='trait.IndexRange.html'
+                                  title='odds::IndexRange'>IndexRange</a></td>
+                           <td class='docblock short'>
+                                <p><strong>IndexRange</strong> is implemented by Rust&#39;s built-in range types, produced
 by range syntax like <code>..</code>, <code>a..</code>, <code>..b</code> or <code>c..d</code>.</p>
-                        </td>
-                    </tr>
-                </table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
+                           </td>
+                       </tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
 <table>
-                    <tr class=' module-item'>
-                        <td><a class='fn' href='fn.debug_assert_unreachable.html'
-                               title='odds::debug_assert_unreachable'>debug_assert_unreachable</a></td>
-                        <td class='docblock short'>
-                             <p>Act as <code>debug_assert!</code> in debug mode, asserting that this point is not reached.</p>
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='fn' href='fn.get_unchecked.html'
-                               title='odds::get_unchecked'>get_unchecked</a></td>
-                        <td class='docblock short'>
-                             <p>Use <code>debug_assert!</code> to check indexing in debug mode. In release mode, no checks are done.</p>
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='fn' href='fn.get_unchecked_mut.html'
-                               title='odds::get_unchecked_mut'>get_unchecked_mut</a></td>
-                        <td class='docblock short'>
-                             <p>Use <code>debug_assert!</code> to check indexing in debug mode. In release mode, no checks are done.</p>
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='fn' href='fn.ptr_eq.html'
-                               title='odds::ptr_eq'>ptr_eq</a></td>
-                        <td class='docblock short'>
-                             <p>Compare if <strong>a</strong> and <strong>b</strong> are equal pointers.</p>
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='fn' href='fn.raw_byte_repr.html'
-                               title='odds::raw_byte_repr'>raw_byte_repr</a></td>
-                        <td class='docblock short'>
-                             <p>Safe to use with any wholly initialized memory <code>ptr</code></p>
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='fn' href='fn.ref_eq.html'
-                               title='odds::ref_eq'>ref_eq</a></td>
-                        <td class='docblock short'>
-                             <p>Compare if <strong>a</strong> and <strong>b</strong> are equal <em>as pointers</em>.</p>
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='fn' href='fn.ref_slice.html'
-                               title='odds::ref_slice'>ref_slice</a></td>
-                        <td class='docblock short'>
-                             <p>Create a length 1 slice out of a reference</p>
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='fn' href='fn.ref_slice_mut.html'
-                               title='odds::ref_slice_mut'>ref_slice_mut</a></td>
-                        <td class='docblock short'>
-                             <p>Create a length 1 mutable slice out of a reference</p>
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='fn' href='fn.slice_unchecked.html'
-                               title='odds::slice_unchecked'>slice_unchecked</a></td>
-                        <td class='docblock short'>
-                             <p>Check slicing bounds in debug mode, otherwise just act as an unchecked
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.debug_assert_unreachable.html'
+                                  title='odds::debug_assert_unreachable'>debug_assert_unreachable</a></td>
+                           <td class='docblock short'>
+                                <p>Act as <code>debug_assert!</code> in debug mode, asserting that this point is not reached.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.get_unchecked.html'
+                                  title='odds::get_unchecked'>get_unchecked</a></td>
+                           <td class='docblock short'>
+                                <p>Use <code>debug_assert!</code> to check indexing in debug mode. In release mode, no checks are done.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.get_unchecked_mut.html'
+                                  title='odds::get_unchecked_mut'>get_unchecked_mut</a></td>
+                           <td class='docblock short'>
+                                <p>Use <code>debug_assert!</code> to check indexing in debug mode. In release mode, no checks are done.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.ptr_eq.html'
+                                  title='odds::ptr_eq'>ptr_eq</a></td>
+                           <td class='docblock short'>
+                                <p>Compare if <strong>a</strong> and <strong>b</strong> are equal pointers.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.raw_byte_repr.html'
+                                  title='odds::raw_byte_repr'>raw_byte_repr</a></td>
+                           <td class='docblock short'>
+                                <p>Safe to use with any wholly initialized memory <code>ptr</code></p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.ref_eq.html'
+                                  title='odds::ref_eq'>ref_eq</a></td>
+                           <td class='docblock short'>
+                                <p>Compare if <strong>a</strong> and <strong>b</strong> are equal <em>as pointers</em>.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.ref_slice.html'
+                                  title='odds::ref_slice'>ref_slice</a></td>
+                           <td class='docblock short'>
+                                <p>Create a length 1 slice out of a reference</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.ref_slice_mut.html'
+                                  title='odds::ref_slice_mut'>ref_slice_mut</a></td>
+                           <td class='docblock short'>
+                                <p>Create a length 1 mutable slice out of a reference</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.slice_unchecked.html'
+                                  title='odds::slice_unchecked'>slice_unchecked</a></td>
+                           <td class='docblock short'>
+                                <p>Check slicing bounds in debug mode, otherwise just act as an unchecked
 slice call.</p>
-                        </td>
-                    </tr>
-                
-                    <tr class=' module-item'>
-                        <td><a class='fn' href='fn.slice_unchecked_mut.html'
-                               title='odds::slice_unchecked_mut'>slice_unchecked_mut</a></td>
-                        <td class='docblock short'>
-                             <p>Check slicing bounds in debug mode, otherwise just act as an unchecked
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class='fn' href='fn.slice_unchecked_mut.html'
+                                  title='odds::slice_unchecked_mut'>slice_unchecked_mut</a></td>
+                           <td class='docblock short'>
+                                <p>Check slicing bounds in debug mode, otherwise just act as an unchecked
 slice call.</p>
-                        </td>
-                    </tr>
-                </table></section>
+                           </td>
+                       </tr></table></section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>

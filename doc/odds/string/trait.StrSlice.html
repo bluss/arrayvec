@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="API documentation for the Rust `StringExt` trait in crate `odds`.">
-    <meta name="keywords" content="rust, rustlang, rust-lang, StringExt">
+    <meta name="description" content="API documentation for the Rust `StrSlice` trait in crate `odds`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, StrSlice">
 
-    <title>odds 0.2.13 - odds::string::StringExt - Rust</title>
+    <title>odds 0.2.13 - odds::string::StrSlice - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../main.css">
@@ -28,7 +28,7 @@
 
     <nav class="sidebar">
         
-        <p class='location'><a href='../index.html'>odds</a>::<wbr><a href='index.html'>string</a></p><script>window.sidebarCurrent = {name: 'StringExt', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+        <p class='location'><a href='../index.html'>odds</a>::<wbr><a href='index.html'>string</a></p><script>window.sidebarCurrent = {name: 'StrSlice', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script>
     </nav>
 
     <nav class="sub">
@@ -43,26 +43,25 @@
     </nav>
 
     <section id='main' class="content trait">
-<h1 class='fqn'><span class='in-band'>Trait <a href='../index.html'>odds</a>::<wbr><a href='index.html'>string</a>::<wbr><a class='trait' href=''>StringExt</a></span><span class='out-of-band'><span id='render-detail'>
+<h1 class='fqn'><span class='in-band'>Trait <a href='../index.html'>odds</a>::<wbr><a href='index.html'>string</a>::<wbr><a class='trait' href=''>StrSlice</a></span><span class='out-of-band'><span id='render-detail'>
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-180' class='srclink' href='../../src/odds/string.rs.html#155-158' title='goto source code'>[src]</a></span></h1>
-<pre class='rust trait'>pub trait StringExt {
-    fn <a href='#tymethod.insert_str' class='fnname'>insert_str</a>(&amp;mut self, index: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>, s: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>);
-}</pre><div class='docblock'><p>Extra methods for <code>String</code></p>
-
-<p>Requires <code>feature=&quot;std&quot;</code></p>
+               </span><a id='src-99' class='srclink' href='../../src/odds/string.rs.html#52-56' title='goto source code'>[src]</a></span></h1>
+<pre class='rust trait'>pub trait StrSlice {
+    fn <a href='#tymethod.get_slice' class='fnname'>get_slice</a>&lt;R&gt;(&amp;self, r: R) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>&gt; <span class='where'>where R: <a class='trait' href='../../odds/trait.IndexRange.html' title='odds::IndexRange'>IndexRange</a></span>;
+}</pre><div class='docblock'><p>Extension trait for <code>str</code> for string slicing without panicking</p>
 </div>
             <h2 id='required-methods'>Required Methods</h2>
             <div class='methods'>
-        <h3 id='tymethod.insert_str' class='method stab '><code>fn <a href='#tymethod.insert_str' class='fnname'>insert_str</a>(&amp;mut self, index: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>, s: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>)</code></h3><div class='docblock'><p><strong>Panics</strong> if <code>index</code> is out of bounds.</p>
+        <h3 id='tymethod.get_slice' class='method stab '><code>fn <a href='#tymethod.get_slice' class='fnname'>get_slice</a>&lt;R&gt;(&amp;self, r: R) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>&gt; <span class='where'>where R: <a class='trait' href='../../odds/trait.IndexRange.html' title='odds::IndexRange'>IndexRange</a></span></code></h3><div class='docblock'><p>Return a slice of the string, if it is in bounds /and on character boundaries/,
+otherwise return <code>None</code></p>
 </div></div>
         <h2 id='implementors'>Implementors</h2>
         <ul class='item-list' id='implementors-list'>
-    <li><code>impl StringExt for <a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a></code></li>
+    <li><code>impl StrSlice for <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a></code></li>
 </ul><script type="text/javascript" async
-                         src="../../implementors/odds/string/trait.StringExt.js">
+                         src="../../implementors/odds/string/trait.StrSlice.js">
                  </script></section>
     <section id='search' class="content hidden"></section>
 

@@ -4,13 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="Source to the Rust file `/home/ulrik/.cargo/registry/src/github.com-88ac128001ac3a9a/odds-0.2.12/src/lib.rs`.">
+    <meta name="description" content="Source to the Rust file `/home/ulrik/.cargo/registry/src/github.com-1ecc6299db9ec823/odds-0.2.13/src/lib.rs`.">
     <meta name="keywords" content="rust, rustlang, rust-lang">
 
     <title>lib.rs.html -- source</title>
 
     <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../main.css">
+    
 
     
     
@@ -299,7 +300,7 @@
 <span class='doccomment'>/// In release mode, no checks are done, and it acts like the `unreachable` intrinsic.</span>
 <span class='attribute'>#[<span class='ident'>inline</span>(<span class='ident'>always</span>)]</span>
 <span class='kw'>pub</span> <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>debug_assert_unreachable</span>() <span class='op'>-&gt;</span> <span class='op'>!</span> {
-    <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='boolval'>false</span>, <span class='string'>&quot;Entered unreachable section, this is a bug!&quot;</span>);
+    <span class='macro'>debug_assert</span><span class='macro'>!</span>(<span class='boolvalue'>false</span>, <span class='string'>&quot;Entered unreachable section, this is a bug!&quot;</span>);
     <span class='ident'>unreachable</span>()
 }
 
@@ -307,7 +308,7 @@
 <span class='doccomment'>/// slice call.</span>
 <span class='attribute'>#[<span class='ident'>inline</span>]</span>
 <span class='kw'>pub</span> <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>slice_unchecked</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>(<span class='ident'>data</span>: <span class='kw-2'>&amp;</span>[<span class='ident'>T</span>], <span class='ident'>from</span>: <span class='ident'>usize</span>, <span class='ident'>to</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span>[<span class='ident'>T</span>] {
-    <span class='macro'>debug_assert</span><span class='macro'>!</span>((<span class='kw-2'>&amp;</span><span class='ident'>data</span>[<span class='ident'>from</span>..<span class='ident'>to</span>], <span class='boolval'>true</span>).<span class='number'>1</span>);
+    <span class='macro'>debug_assert</span><span class='macro'>!</span>((<span class='kw-2'>&amp;</span><span class='ident'>data</span>[<span class='ident'>from</span>..<span class='ident'>to</span>], <span class='boolvalue'>true</span>).<span class='number'>1</span>);
     <span class='ident'>std</span>::<span class='ident'>slice</span>::<span class='ident'>from_raw_parts</span>(<span class='ident'>data</span>.<span class='ident'>as_ptr</span>().<span class='ident'>offset</span>(<span class='ident'>from</span> <span class='kw'>as</span> <span class='ident'>isize</span>), <span class='ident'>to</span> <span class='op'>-</span> <span class='ident'>from</span>)
 }
 
@@ -315,7 +316,7 @@
 <span class='doccomment'>/// slice call.</span>
 <span class='attribute'>#[<span class='ident'>inline</span>]</span>
 <span class='kw'>pub</span> <span class='kw'>unsafe</span> <span class='kw'>fn</span> <span class='ident'>slice_unchecked_mut</span><span class='op'>&lt;</span><span class='ident'>T</span><span class='op'>&gt;</span>(<span class='ident'>data</span>: <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>T</span>], <span class='ident'>from</span>: <span class='ident'>usize</span>, <span class='ident'>to</span>: <span class='ident'>usize</span>) <span class='op'>-&gt;</span> <span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> [<span class='ident'>T</span>] {
-    <span class='macro'>debug_assert</span><span class='macro'>!</span>((<span class='kw-2'>&amp;</span><span class='ident'>data</span>[<span class='ident'>from</span>..<span class='ident'>to</span>], <span class='boolval'>true</span>).<span class='number'>1</span>);
+    <span class='macro'>debug_assert</span><span class='macro'>!</span>((<span class='kw-2'>&amp;</span><span class='ident'>data</span>[<span class='ident'>from</span>..<span class='ident'>to</span>], <span class='boolvalue'>true</span>).<span class='number'>1</span>);
     <span class='ident'>std</span>::<span class='ident'>slice</span>::<span class='ident'>from_raw_parts_mut</span>(<span class='ident'>data</span>.<span class='ident'>as_mut_ptr</span>().<span class='ident'>offset</span>(<span class='ident'>from</span> <span class='kw'>as</span> <span class='ident'>isize</span>), <span class='ident'>to</span> <span class='op'>-</span> <span class='ident'>from</span>)
 }
 
