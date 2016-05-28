@@ -77,6 +77,18 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     #[inline]
     pub fn capacity(&self) -> usize { A::capacity() }
 
+    /// Return if the `ArrayString` is completely filled.
+    ///
+    /// ```
+    /// use arrayvec::ArrayString;
+    ///
+    /// let mut string = ArrayString::<[_; 1]>::new();
+    /// assert!(!string.is_full());
+    /// string.push_str("A");
+    /// assert!(string.is_full());
+    /// ```
+    pub fn is_full(&self) -> bool { self.len() == self.capacity() }
+
     /// Adds the given char to the end of the string.
     ///
     /// Returns `Ok` if the push succeeds.
