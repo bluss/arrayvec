@@ -47,8 +47,8 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-7' class='srclink' href='../odds/range/trait.RangeArgument.html?gotosrc=7' title='goto source code'>[src]</a></span></h1>
-<pre class='rust trait'>pub trait RangeArgument&lt;T = <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt; {
+               </span><a id='src-6' class='srclink' href='../odds/range/trait.IndexRange.html?gotosrc=6' title='goto source code'>[src]</a></span></h1>
+<pre class='rust trait'>pub trait RangeArgument&lt;T&nbsp;=&nbsp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>&gt; {
     fn <a href='#method.start' class='fnname'>start</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;T&gt; { ... }
     fn <a href='#method.end' class='fnname'>end</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;T&gt; { ... }
 }</pre><div class='docblock'><p><strong>IndexRange</strong> is implemented by Rust&#39;s built-in range types, produced
@@ -61,10 +61,10 @@ by range syntax like <code>..</code>, <code>a..</code>, <code>..b</code> or <cod
 </div></div>
         <h2 id='implementors'>Implementors</h2>
         <ul class='item-list' id='implementors-list'>
-    <li><code>impl&lt;T&gt; IndexRange for <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeFull.html' title='core::ops::RangeFull'>RangeFull</a></code></li>
-<li><code>impl&lt;T&gt; IndexRange for <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeFrom.html' title='core::ops::RangeFrom'>RangeFrom</a>&lt;T&gt; <span class='where'>where T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a></span></code></li>
-<li><code>impl&lt;T&gt; IndexRange for <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeTo.html' title='core::ops::RangeTo'>RangeTo</a>&lt;T&gt; <span class='where'>where T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a></span></code></li>
-<li><code>impl&lt;T&gt; IndexRange for <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.Range.html' title='core::ops::Range'>Range</a>&lt;T&gt; <span class='where'>where T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a></span></code></li>
+    <li><code>impl&lt;T&gt; IndexRange&lt;T&gt; for <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeFull.html' title='core::ops::RangeFull'>RangeFull</a></code></li>
+<li><code>impl&lt;T&gt; IndexRange&lt;T&gt; for <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeFrom.html' title='core::ops::RangeFrom'>RangeFrom</a>&lt;T&gt; <span class='where'>where T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a></span></code></li>
+<li><code>impl&lt;T&gt; IndexRange&lt;T&gt; for <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.RangeTo.html' title='core::ops::RangeTo'>RangeTo</a>&lt;T&gt; <span class='where'>where T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a></span></code></li>
+<li><code>impl&lt;T&gt; IndexRange&lt;T&gt; for <a class='struct' href='https://doc.rust-lang.org/nightly/core/ops/struct.Range.html' title='core::ops::Range'>Range</a>&lt;T&gt; <span class='where'>where T: <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a></span></code></li>
 </ul><script type="text/javascript" async
                          src="../implementors/odds/range/trait.RangeArgument.js">
                  </script></section>
@@ -90,6 +90,8 @@ by range syntax like <code>..</code>, <code>a..</code>, <code>..b</code> or <cod
                     <dd>Move down in search results</dd>
                     <dt>&#9166;</dt>
                     <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
                 </dl>
             </div>
 

@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["shared_prefix","Return the end index of the longest shared (equal) prefix of `a` and `b`."]]});

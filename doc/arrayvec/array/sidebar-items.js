@@ -1,1 +1,0 @@
-initSidebarItems({"trait":[["Array","Trait for fixed size arrays."]]});
