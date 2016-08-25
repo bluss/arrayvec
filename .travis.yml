@@ -12,7 +12,7 @@ matrix:
         - NODEFAULT=1
     - rust: nightly
       env:
-      - NODROP_FEATURES='no_drop_flag use_needs_drop'
+      - NODROP_FEATURES='use_needs_drop'
 branches:
   only:
     - master
