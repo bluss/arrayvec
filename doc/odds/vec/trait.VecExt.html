@@ -57,14 +57,14 @@
 </div>
             <h2 id='required-methods'>Required Methods</h2>
             <div class='methods'>
-        <h3 id='tymethod.splice' class='method stab '><code>fn <a href='#tymethod.splice' class='fnname'>splice</a>&lt;R,&nbsp;I&gt;(&amp;mut self, r: R, iter: I) <span class='where'>where I: <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/traits/trait.IntoIterator.html' title='core::iter::traits::IntoIterator'>IntoIterator</a>&lt;Item=T&gt;, I::IntoIter: <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/traits/trait.ExactSizeIterator.html' title='core::iter::traits::ExactSizeIterator'>ExactSizeIterator</a>, R: <a class='trait' href='../../odds/trait.IndexRange.html' title='odds::IndexRange'>IndexRange</a></span></code></h3><div class='docblock'><p>Remove elements in a range, and insert from an iterator in their place.</p>
+        <h3 id='tymethod.splice' class='method stab '><span id='splice.v' class='invisible'><code>fn <a href='#tymethod.splice' class='fnname'>splice</a>&lt;R,&nbsp;I&gt;(&amp;mut self, r: R, iter: I) <span class='where'>where I: <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/traits/trait.IntoIterator.html' title='core::iter::traits::IntoIterator'>IntoIterator</a>&lt;Item=T&gt;, I::IntoIter: <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/traits/trait.ExactSizeIterator.html' title='core::iter::traits::ExactSizeIterator'>ExactSizeIterator</a>, R: <a class='trait' href='../../odds/trait.IndexRange.html' title='odds::IndexRange'>IndexRange</a></span></code></span></h3><div class='docblock'><p>Remove elements in a range, and insert from an iterator in their place.</p>
 
 <p>The removed and inserted ranges don&#39;t have to match in length.</p>
 
 <p><strong>Panics</strong> if range <code>r</code> is out of bounds.</p>
 
 <p><strong>Panics</strong> if iterator <code>iter</code> is not of exact length.</p>
-</div><h3 id='tymethod.retain_mut' class='method stab '><code>fn <a href='#tymethod.retain_mut' class='fnname'>retain_mut</a>&lt;F&gt;(&amp;mut self, f: F) <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnMut.html' title='core::ops::FnMut'>FnMut</a>(&amp;mut T) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></span></code></h3><div class='docblock'><p>Retains only the elements specified by the predicate.</p>
+</div><h3 id='tymethod.retain_mut' class='method stab '><span id='retain_mut.v' class='invisible'><code>fn <a href='#tymethod.retain_mut' class='fnname'>retain_mut</a>&lt;F&gt;(&amp;mut self, f: F) <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnMut.html' title='core::ops::FnMut'>FnMut</a>(&amp;mut T) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></span></code></span></h3><div class='docblock'><p>Retains only the elements specified by the predicate.</p>
 
 <p>In other words, remove all elements <code>e</code> such that <code>f(&amp;mut e)</code> returns false.
 This method operates in place and preserves the order of the retained
