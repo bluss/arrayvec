@@ -19,10 +19,6 @@ default = ["std"]
 std = ["odds/std"]
 
 # Optional, nightly channel
-# Use no drop flag. See API doc for more info.
-no_drop_flag = []
-
-# Optional, nightly channel
 # Use `needs_drop` to skip overwriting if not necessary
 use_needs_drop = []
 
