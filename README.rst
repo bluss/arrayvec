@@ -69,6 +69,11 @@ Recent Changes (arrayvec)
 Recent Changes (nodrop)
 -----------------------
 
+- 0.1.7
+
+  - Remove crate feature ``no_drop_flag``, because it doesn't compile on nightly
+    anymore. Drop flags are gone anyway!
+
 - 0.1.6
 
   - Add feature std, which you can opt out of to use ``no_std``.

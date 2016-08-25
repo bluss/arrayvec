@@ -9,16 +9,8 @@
 //!   - Optional
 //!   - Requires nightly channel.
 //!   - Use `needs_drop` to skip overwriting if not necessary
-//! - `no_drop_flag`.
-//!   - Optional.
-//!   - Requires nightly channel.
-//!   - Use no drop flag on the **NoDrop** type,
-//!     which means less space overhead. Use with care and report a bug if anything
-//!     changes behavior with this feature.
-//!
 //!
 
-#![cfg_attr(feature="no_drop_flag", feature(unsafe_no_drop_flag))]
 #![cfg_attr(feature="use_needs_drop", feature(core_intrinsics))]
 
 #![cfg_attr(not(any(test, feature="std")), no_std)]
@@ -41,7 +33,6 @@ enum Flag<T> {
 }
 
 /// A type holding **T** that will not call its destructor on drop
-#[cfg_attr(feature="no_drop_flag", unsafe_no_drop_flag)]
 pub struct NoDrop<T>(Flag<T>);
 
 impl<T> NoDrop<T> {
@@ -82,7 +73,6 @@ fn needs_drop<T>() -> bool {
 impl<T> Drop for NoDrop<T> {
     fn drop(&mut self) {
         if needs_drop::<T>() {
-            // no drop flag info: writing repeatedly is idempotent
             // inhibit drop
             unsafe {
                 ptr::write(&mut self.0, Flag::Dropped);
