@@ -125,6 +125,18 @@ impl<A: Array> ArrayVec<A> {
     #[inline]
     pub fn capacity(&self) -> usize { A::capacity() }
 
+    /// Return if the `ArrayVec` is completely filled.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::<[_; 1]>::new();
+    /// assert!(!array.is_full());
+    /// array.push(1);
+    /// assert!(array.is_full());
+    /// ```
+    pub fn is_full(&self) -> bool { self.len() == self.capacity() }
+
     /// Push `element` to the end of the vector.
     ///
     /// Return `None` if the push succeeds, or and return `Some(` *element* `)`
