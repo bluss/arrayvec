@@ -126,6 +126,8 @@ fn test_is_send_sync() {
     &data as &Send;
     &data as &Sync;
 }
+/*
+*/
 
 #[test]
 fn test_compact_size() {
@@ -243,6 +245,15 @@ fn test_in_option() {
         *v.as_mut().unwrap().get_unchecked_mut(0) = mem::zeroed();
     }
     assert!(v.is_some());
+}
+
+#[cfg(feature = "specialization")]
+#[test]
+fn test_copy() {
+    let mut v = ArrayVec::from([1, 2, 3]);
+    let u = v;
+    v[0] = 0;
+    assert!(v != u);
 }
 
 #[test]

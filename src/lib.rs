@@ -8,6 +8,7 @@
 //!   - Requires Rust 1.6 *to disable*
 //!   - Use libstd
 #![cfg_attr(not(feature="std"), no_std)]
+#![cfg_attr(feature = "specialization", feature(specialization))]
 extern crate odds;
 extern crate nodrop;
 
@@ -40,6 +41,8 @@ use nodrop::NoDrop;
 
 mod array;
 mod array_string;
+#[cfg(feature = "specialization")]
+mod uninit;
 
 pub use array::Array;
 pub use odds::IndexRange as RangeArgument;
@@ -68,13 +71,176 @@ unsafe fn new_array<A: Array>() -> A {
 ///
 /// ArrayVec can be converted into a by value iterator.
 pub struct ArrayVec<A: Array> {
+    repr: <A as Repr>::Data,
+}
+
+trait Repr {
+    type Item;
+    type Array;
+    type Data: Default + DerefMut<Target=[Self::Item]> + Len + FromArray<Array=Self::Array>;
+}
+
+#[cfg(feature = "specialization")]
+impl<A: Copy + Repr + Array> Copy for ArrayVec<A>
+    where A::Data: Copy, <A as Array>::Item: Copy,
+    //where <A as Repr>::Data: Copy
+{ }
+
+trait Len {
+    fn len(&self) -> usize;
+    fn set_len(&mut self, l: usize);
+}
+
+trait FromArray {
+    type Array;
+    fn from_array(Self::Array) -> Self;
+    fn array_ref(&self) -> &Self::Array;
+}
+
+#[cfg(not(feature = "specialization"))]
+impl<A: Array> Repr for A {
+    type Item = A::Item;
+    type Array = A;
+    type Data = GeneralRepr<A>;
+}
+
+#[cfg(feature = "specialization")]
+impl<A: Array> Repr for A {
+    type Item = A::Item;
+    type Array = A;
+    default type Data = GeneralRepr<A>;
+}
+
+struct GeneralRepr<A: Array> {
     xs: NoDrop<A>,
     len: A::Index,
 }
 
-impl<A: Array> Drop for ArrayVec<A> {
+impl<A: Array> Len for GeneralRepr<A> {
+    #[inline(always)]
+    fn len(&self) -> usize { self.len.to_usize() }
+    fn set_len(&mut self, l: usize) {
+        self.len = Index::from(l);
+    }
+}
+
+impl<A: Array> Default for GeneralRepr<A> {
+    fn default() -> Self {
+        unsafe {
+            GeneralRepr {
+                xs: NoDrop::new(new_array()), len: Index::from(0)
+            }
+        }
+    }
+}
+
+impl<A: Array> FromArray for GeneralRepr<A> {
+    type Array = A;
+    fn from_array(xs: A) -> Self {
+        GeneralRepr {
+            xs: NoDrop::new(xs), len: Index::from(A::capacity())
+        }
+    }
+    fn array_ref(&self) -> &Self::Array {
+        &self.xs
+    }
+}
+
+impl<A: Array> Deref for GeneralRepr<A> {
+    type Target = [A::Item];
+    #[inline]
+    fn deref(&self) -> &[A::Item] {
+        unsafe {
+            slice::from_raw_parts(self.xs.as_ptr(), self.len())
+        }
+    }
+}
+
+impl<A: Array> DerefMut for GeneralRepr<A> {
+    #[inline]
+    fn deref_mut(&mut self) -> &mut [A::Item] {
+        let len = self.len();
+        unsafe {
+            slice::from_raw_parts_mut(self.xs.as_mut_ptr(), len)
+        }
+    }
+}
+
+#[cfg(feature = "specialization")]
+impl<A: Copy + Array> Repr for A {
+    type Data = CopyRepr<A>;
+}
+
+#[cfg(feature = "specialization")]
+#[derive(Copy, Clone)]
+struct CopyRepr<A: Array> {
+    xs: uninit::Uninit<A>,
+    len: A::Index,
+}
+
+#[cfg(feature = "specialization")]
+impl<A: Array> Default for CopyRepr<A> {
+    fn default() -> Self {
+        unsafe {
+            CopyRepr {
+                xs: uninit::new(new_array()), len: Index::from(0)
+            }
+        }
+    }
+}
+
+#[cfg(feature = "specialization")]
+impl<A: Array> Len for CopyRepr<A> {
+    #[inline(always)]
+    fn len(&self) -> usize { self.len.to_usize() }
+    fn set_len(&mut self, l: usize) {
+        self.len = Index::from(l);
+    }
+}
+
+#[cfg(feature = "specialization")]
+impl<A: Array> FromArray for CopyRepr<A> {
+    type Array = A;
+    fn from_array(xs: A) -> Self {
+        CopyRepr {
+            xs: uninit::new(xs), len: Index::from(A::capacity())
+        }
+    }
+    fn array_ref(&self) -> &Self::Array {
+        &self.xs
+    }
+}
+
+#[cfg(feature = "specialization")]
+impl<A: Array> Deref for CopyRepr<A> {
+    type Target = [A::Item];
+    #[inline]
+    fn deref(&self) -> &[A::Item] {
+        unsafe {
+            slice::from_raw_parts(self.xs.as_ptr(), self.len())
+        }
+    }
+}
+
+#[cfg(feature = "specialization")]
+impl<A: Array> DerefMut for CopyRepr<A> {
+    #[inline]
+    fn deref_mut(&mut self) -> &mut [A::Item] {
+        let len = self.len();
+        unsafe {
+            slice::from_raw_parts_mut(self.xs.as_mut_ptr(), len)
+        }
+    }
+}
+
+
+impl<A: Array> Drop for GeneralRepr<A> {
     fn drop(&mut self) {
-        self.clear();
+        let len = self.len.to_usize();
+        unsafe {
+            let data = slice::from_raw_parts_mut(self.xs.as_mut_ptr(), len);
+            ptr::drop_in_place(data)
+        }
 
         // NoDrop inhibits array's drop
         // panic safety: NoDrop::drop will trigger on panic, so the inner
@@ -97,8 +263,8 @@ impl<A: Array> ArrayVec<A> {
     /// assert_eq!(array.capacity(), 16);
     /// ```
     pub fn new() -> ArrayVec<A> {
-        unsafe {
-            ArrayVec { xs: NoDrop::new(new_array()), len: Index::from(0) }
+        ArrayVec { 
+            repr: <_>::default(),
         }
     }
 
@@ -112,7 +278,7 @@ impl<A: Array> ArrayVec<A> {
     /// assert_eq!(array.len(), 2);
     /// ```
     #[inline]
-    pub fn len(&self) -> usize { self.len.to_usize() }
+    pub fn len(&self) -> usize { self.repr.len() }
 
     /// Return the capacity of the `ArrayVec`.
     ///
@@ -332,7 +498,7 @@ impl<A: Array> ArrayVec<A> {
     #[inline]
     pub unsafe fn set_len(&mut self, length: usize) {
         debug_assert!(length <= self.capacity());
-        self.len = Index::from(length);
+        self.repr.set_len(length);
     }
 
 
@@ -395,7 +561,7 @@ impl<A: Array> ArrayVec<A> {
             Err(self)
         } else {
             unsafe {
-                let array = ptr::read(&*self.xs);
+                let array = ptr::read(self.repr.array_ref());
                 mem::forget(self);
                 Ok(array)
             }
@@ -423,19 +589,14 @@ impl<A: Array> Deref for ArrayVec<A> {
     type Target = [A::Item];
     #[inline]
     fn deref(&self) -> &[A::Item] {
-        unsafe {
-            slice::from_raw_parts(self.xs.as_ptr(), self.len())
-        }
+        &*self.repr
     }
 }
 
 impl<A: Array> DerefMut for ArrayVec<A> {
     #[inline]
     fn deref_mut(&mut self) -> &mut [A::Item] {
-        let len = self.len();
-        unsafe {
-            slice::from_raw_parts_mut(self.xs.as_mut_ptr(), len)
-        }
+        &mut *self.repr
     }
 }
 
@@ -450,7 +611,9 @@ impl<A: Array> DerefMut for ArrayVec<A> {
 /// ```
 impl<A: Array> From<A> for ArrayVec<A> {
     fn from(array: A) -> Self {
-        ArrayVec { xs: NoDrop::new(array), len: Index::from(A::capacity()) }
+        ArrayVec {
+            repr: <_>::from_array(array)
+        }
     }
 }
 
@@ -504,14 +667,14 @@ impl<A: Array> IntoIterator for ArrayVec<A> {
     type Item = A::Item;
     type IntoIter = IntoIter<A>;
     fn into_iter(self) -> IntoIter<A> {
-        IntoIter { index: Index::from(0), v: self, }
+        IntoIter { index: 0, v: self, }
     }
 }
 
 
 /// By-value iterator for `ArrayVec`.
 pub struct IntoIter<A: Array> {
-    index: A::Index,
+    index: usize,
     v: ArrayVec<A>,
 }
 
@@ -520,19 +683,19 @@ impl<A: Array> Iterator for IntoIter<A> {
 
     #[inline]
     fn next(&mut self) -> Option<A::Item> {
-        if self.index == self.v.len {
+        if self.index >= self.v.len() {
             None
         } else {
             unsafe {
-                let index = self.index.to_usize();
-                self.index = Index::from(index + 1);
+                let index = self.index;
+                self.index += 1;
                 Some(ptr::read(self.v.get_unchecked_mut(index)))
             }
         }
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let len = self.v.len() - self.index.to_usize();
+        let len = self.v.len() - self.index;
         (len, Some(len))
     }
 }
@@ -540,7 +703,7 @@ impl<A: Array> Iterator for IntoIter<A> {
 impl<A: Array> DoubleEndedIterator for IntoIter<A> {
     #[inline]
     fn next_back(&mut self) -> Option<A::Item> {
-        if self.index == self.v.len {
+        if self.index >= self.v.len() {
             None
         } else {
             unsafe {
@@ -557,7 +720,7 @@ impl<A: Array> ExactSizeIterator for IntoIter<A> { }
 impl<A: Array> Drop for IntoIter<A> {
     fn drop(&mut self) {
         // panic safety: Set length to 0 before dropping elements.
-        let index = self.index.to_usize();
+        let index = self.index;
         let len = self.v.len();
         unsafe {
             self.v.set_len(0);
@@ -584,6 +747,8 @@ pub struct Drain<'a, A>
     vec: *mut ArrayVec<A>,
 }
 
+unsafe impl<A: Array + Sync> Sync for ArrayVec<A> { }
+unsafe impl<A: Array + Send> Send for ArrayVec<A> { }
 unsafe impl<'a, A: Array + Sync> Sync for Drain<'a, A> {}
 unsafe impl<'a, A: Array + Send> Send for Drain<'a, A> {}
 
