@@ -1,0 +1,13 @@
+[package]
+name = "nodrop-union"
+version = "0.1.8"
+authors = ["bluss"]
+
+license = "MIT/Apache-2.0"
+
+description = "A wrapper type to inhibit drop (destructor). Implementation crate for nodrop, the untagged unions implementation (which is unstable / requires nightly) as of this writing."
+documentation = "http://bluss.github.io/arrayvec/doc/nodrop"
+repository = "https://github.com/bluss/arrayvec"
+
+keywords = ["container", "drop", "no_std"]
+
