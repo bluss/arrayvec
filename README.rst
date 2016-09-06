@@ -69,6 +69,13 @@ Recent Changes (arrayvec)
 Recent Changes (nodrop)
 -----------------------
 
+- 0.1.8
+  
+  - Add crate feature ``use_union`` that uses untagged unions to implement NoDrop.
+    Finally we have an implementation without hacks, without a runtime flag,
+    and without an actual ``Drop`` impl (which was needed to suppress drop).
+    The crate feature requires nightly and is unstable.
+
 - 0.1.7
 
   - Remove crate feature ``no_drop_flag``, because it doesn't compile on nightly
