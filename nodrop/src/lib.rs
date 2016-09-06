@@ -33,7 +33,6 @@ pub use imp::NoDrop;
 
 #[cfg(not(feature = "use_union"))]
 mod imp {
-    use std;
     use odds::debug_assert_unreachable;
     use std::ptr;
     use std::mem;
@@ -81,7 +80,7 @@ mod imp {
     #[inline]
     fn needs_drop<T>() -> bool {
         unsafe {
-            std::intrinsics::needs_drop::<T>()
+            ::std::intrinsics::needs_drop::<T>()
         }
     }
 
