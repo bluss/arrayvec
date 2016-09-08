@@ -1,19 +1,21 @@
 //!
-//! The **nodrop** crate has the following cargo feature flags:
+//! **nodrop-union** is the untagged unions (requires Rust nightly channel and
+//! unstable as of this writing) implementation for the **nodrop** crate.
 //!
-//! - `std`
-//!   - Optional, enabled by default
-//!   - Requires Rust 1.6 *to disable*
-//!   - Use libstd
-//! - `use_needs_drop`
-//!   - Optional
-//!   - Requires nightly channel.
-//!   - Use `needs_drop` to skip overwriting if not necessary
-//! - `use_union`
-//!   - Optional
-//!   - Requires nightly channel
-//!   - Using untagged union, finally we have an implementation of `NoDrop` without hacks,
-//!     for example the fact that `NoDrop<T>` never has a destructor anymore.
+//! It is intended you use this through the **nodrop** crate with the `use_union`
+//! crate feature enabled.
+//!
+//! This is the future implementation of nodrop, once it is stable.
+//!
+//! This implementation is a lot better:
+//!
+//! - Does not have a destructor at all
+//! - Can be Copy if T is Copy
+//! - No space overhead / no runtime flag
+//!
+//! This means that this implementation has extensions that the
+//! stable nodrop does not yet have, which is something to be aware of if
+//! you are switching.
 //!
 
 #![feature(untagged_unions)]
@@ -38,6 +40,10 @@ impl<T: Clone> Clone for UnionFlag<T> {
     }
 }
 
+/// A type holding **T** that will not call its destructor on drop
+///
+/// The untagged unions implementation of `NoDrop<T>` is Copy where T: Copy,
+/// which was not possible in the stable implementation.
 #[derive(Copy, Clone)]
 pub struct NoDrop<T>(UnionFlag<T>);
 
