@@ -7,6 +7,12 @@
 //!   - Optional, enabled by default
 //!   - Requires Rust 1.6 *to disable*
 //!   - Use libstd
+//!
+//! - `use_union`
+//!   - Optional
+//!   - Requires Rust nightly channel
+//!   - Use the unstable feature untagged unions for the internal implementation,
+//!     which has reduced space overhead
 #![cfg_attr(not(feature="std"), no_std)]
 extern crate odds;
 extern crate nodrop;

@@ -22,6 +22,11 @@ __ http://bluss.github.io/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.3.17
+
+  - Added crate feature ``use_union`` which forwards to the nodrop crate feature
+  - Added methods ``.is_full()`` to ``ArrayVec`` and ``ArrayString``.
+
 - 0.3.16
 
   - Added method ``.retain()`` to ``ArrayVec``.
