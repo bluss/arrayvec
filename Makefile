@@ -3,7 +3,7 @@ DOCCRATES = arrayvec nodrop nodrop_union odds
 # deps to delete the generated docs
 RMDOCS = 
 
-FEATURES = "odds/unstable nodrop/use_union"
+FEATURES = "odds/unstable"
 
 VERSIONS = $(patsubst %,target/VERS/%,$(DOCCRATES))
 
@@ -22,6 +22,7 @@ subst: $(DOCCRATES)
 
 mkdocs: Cargo.toml
 	cargo doc --features=$(FEATURES)
+	cargo doc --features=use_union -p nodrop-union
 	rm -rf ./doc
 	cp -r ./target/doc ./doc
 	-cat ./custom.css >> doc/main.css
