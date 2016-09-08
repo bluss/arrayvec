@@ -898,6 +898,12 @@
 <span id="854">854</span>
 <span id="855">855</span>
 <span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! **arrayvec** provides the types `ArrayVec` and `ArrayString`: </span>
 <span class='doccomment'>//! array-backed vector and string types, which store their contents inline.</span>
@@ -908,6 +914,12 @@
 <span class='doccomment'>//!   - Optional, enabled by default</span>
 <span class='doccomment'>//!   - Requires Rust 1.6 *to disable*</span>
 <span class='doccomment'>//!   - Use libstd</span>
+<span class='doccomment'>//!</span>
+<span class='doccomment'>//! - `use_union`</span>
+<span class='doccomment'>//!   - Optional</span>
+<span class='doccomment'>//!   - Requires Rust nightly channel</span>
+<span class='doccomment'>//!   - Use the unstable feature untagged unions for the internal implementation,</span>
+<span class='doccomment'>//!     which has reduced space overhead</span>
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>cfg_attr</span>(<span class='ident'>not</span>(<span class='ident'>feature</span><span class='op'>=</span><span class='string'>&quot;std&quot;</span>), <span class='ident'>no_std</span>)]</span>
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>odds</span>;
 <span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>nodrop</span>;

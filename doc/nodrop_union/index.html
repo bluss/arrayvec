@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="API documentation for the Rust `nodrop` crate.">
-    <meta name="keywords" content="rust, rustlang, rust-lang, nodrop">
+    <meta name="description" content="API documentation for the Rust `nodrop_union` crate.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, nodrop_union">
 
-    <title>nodrop 0.1.8 - nodrop - Rust</title>
+    <title>nodrop_union  - nodrop_union - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../main.css">
@@ -28,7 +28,7 @@
 
     <nav class="sidebar">
         
-        <p class='location'></p><script>window.sidebarCurrent = {name: 'nodrop', ty: 'mod', relpath: '../'};</script>
+        <p class='location'></p><script>window.sidebarCurrent = {name: 'nodrop_union', ty: 'mod', relpath: '../'};</script>
     </nav>
 
     <nav class="sub">
@@ -43,42 +43,35 @@
     </nav>
 
     <section id='main' class="content mod">
-<h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>nodrop</a></span><span class='out-of-band'><span id='render-detail'>
+<h1 class='fqn'><span class='in-band'>Crate <a class='mod' href=''>nodrop_union</a></span><span class='out-of-band'><span id='render-detail'>
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-0' class='srclink' href='../src/nodrop/nodrop/src/lib.rs.html#1-185' title='goto source code'>[src]</a></span></h1>
-<div class='docblock'><p>The <strong>nodrop</strong> crate has the following cargo feature flags:</p>
+               </span><a id='src-0' class='srclink' href='../src/nodrop_union/nodrop-union/src/lib.rs.html#1-151' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p><strong>nodrop-union</strong> is the untagged unions (requires Rust nightly channel and
+unstable as of this writing) implementation for the <strong>nodrop</strong> crate.</p>
+
+<p>It is intended you use this through the <strong>nodrop</strong> crate with the <code>use_union</code>
+crate feature enabled.</p>
+
+<p>This is the future implementation of nodrop, once it is stable.</p>
+
+<p>This implementation is a lot better:</p>
 
 <ul>
-<li><code>std</code>
-
-<ul>
-<li>Optional, enabled by default</li>
-<li>Requires Rust 1.6 <em>to disable</em></li>
-<li>Use libstd</li>
-</ul></li>
-<li><code>use_needs_drop</code>
-
-<ul>
-<li>Optional</li>
-<li>Requires nightly channel.</li>
-<li>Use <code>needs_drop</code> to skip overwriting if not necessary</li>
-</ul></li>
-<li><code>use_union</code>
-
-<ul>
-<li>Optional</li>
-<li>Requires nightly channel</li>
-<li>Using untagged union, finally we have an implementation of <code>NoDrop</code> without hacks,
-for example the fact that <code>NoDrop&lt;T&gt;</code> never has a destructor anymore.</li>
-</ul></li>
+<li>Does not have a destructor at all</li>
+<li>Can be Copy if T is Copy</li>
+<li>No space overhead / no runtime flag</li>
 </ul>
+
+<p>This means that this implementation has extensions that the
+stable nodrop does not yet have, which is something to be aware of if
+you are switching.</p>
 </div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
                        <tr class=' module-item'>
                            <td><a class='struct' href='struct.NoDrop.html'
-                                  title='nodrop::NoDrop'>NoDrop</a></td>
+                                  title='nodrop_union::NoDrop'>NoDrop</a></td>
                            <td class='docblock short'>
                                 <p>A type holding <strong>T</strong> that will not call its destructor on drop</p>
                            </td>
@@ -137,7 +130,7 @@ for example the fact that <code>NoDrop&lt;T&gt;</code> never has a destructor an
 
     <script>
         window.rootPath = "../";
-        window.currentCrate = "nodrop";
+        window.currentCrate = "nodrop_union";
         window.playgroundUrl = "";
     </script>
     <script src="../jquery.js"></script>
