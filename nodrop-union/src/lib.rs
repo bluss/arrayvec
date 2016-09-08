@@ -25,10 +25,20 @@ extern crate core as std;
 use std::ops::{Deref, DerefMut};
 
 #[allow(unions_with_drop_fields)]
+#[derive(Copy)]
 union UnionFlag<T> {
     value: T,
 }
 
+impl<T: Clone> Clone for UnionFlag<T> {
+    fn clone(&self) -> Self {
+        unsafe {
+            UnionFlag { value: self.value.clone() }
+        }
+    }
+}
+
+#[derive(Copy, Clone)]
 pub struct NoDrop<T>(UnionFlag<T>);
 
 impl<T> NoDrop<T> {
