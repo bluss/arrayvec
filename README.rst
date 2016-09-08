@@ -91,6 +91,17 @@ Recent Changes (nodrop)
     optimization, which skips overwriting if the inner value does not need
     drop.
 
+Recent Changes (nodrop-union)
+-----------------------
+
+- 0.1.9
+
+  - Add ``Copy, Clone`` implementations
+
+- 0.1.8
+
+  - Initial release
+
 
 License
 =======
