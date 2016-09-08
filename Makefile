@@ -1,9 +1,9 @@
-DOCCRATES = arrayvec nodrop odds
+DOCCRATES = arrayvec nodrop nodrop_union odds
 
 # deps to delete the generated docs
 RMDOCS = 
 
-FEATURES = odds/unstable
+FEATURES = "odds/unstable nodrop/use_union"
 
 VERSIONS = $(patsubst %,target/VERS/%,$(DOCCRATES))
 
