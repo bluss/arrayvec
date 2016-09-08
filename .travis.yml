@@ -15,6 +15,7 @@ matrix:
       - NODROP_FEATURES='use_needs_drop'
     - rust: nightly
       env:
+      - FEATURES='use_union'
       - NODROP_FEATURES='use_union'
 branches:
   only:
