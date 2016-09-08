@@ -7,7 +7,7 @@
     <meta name="description" content="API documentation for the Rust `VecExt` trait in crate `odds`.">
     <meta name="keywords" content="rust, rustlang, rust-lang, VecExt">
 
-    <title>odds 0.2.15 - odds::vec::VecExt - Rust</title>
+    <title>odds 0.2.16 - odds::vec::VecExt - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
     <link rel="stylesheet" type="text/css" href="../../main.css">
@@ -47,7 +47,7 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a id='src-285' class='srclink' href='../../src/odds/vec.rs.html#13-46' title='goto source code'>[src]</a></span></h1>
+               </span><a id='src-291' class='srclink' href='../../src/odds/vec.rs.html#13-46' title='goto source code'>[src]</a></span></h1>
 <pre class='rust trait'>pub trait VecExt&lt;T&gt; {
     fn <a href='#tymethod.splice' class='fnname'>splice</a>&lt;R,&nbsp;I&gt;(&amp;mut self, r: R, iter: I) <span class='where'>where I: <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/traits/trait.IntoIterator.html' title='core::iter::traits::IntoIterator'>IntoIterator</a>&lt;Item=T&gt;, I::IntoIter: <a class='trait' href='https://doc.rust-lang.org/nightly/core/iter/traits/trait.ExactSizeIterator.html' title='core::iter::traits::ExactSizeIterator'>ExactSizeIterator</a>, R: <a class='trait' href='../../odds/trait.IndexRange.html' title='odds::IndexRange'>IndexRange</a></span>;
     fn <a href='#tymethod.retain_mut' class='fnname'>retain_mut</a>&lt;F&gt;(&amp;mut self, f: F) <span class='where'>where F: <a class='trait' href='https://doc.rust-lang.org/nightly/core/ops/trait.FnMut.html' title='core::ops::FnMut'>FnMut</a>(&amp;mut T) -&gt; <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></span>;
