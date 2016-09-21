@@ -138,7 +138,7 @@ fn test_compact_size() {
     // 12 element size + 1 enum tag + 3 padding + 1 len + 3 padding
     type QuadArray = ArrayVec<[u32; 3]>;
     println!("{}", mem::size_of::<QuadArray>());
-    assert!(mem::size_of::<QuadArray>() <= 20);
+    assert!(mem::size_of::<QuadArray>() <= 24);
 }
 
 #[test]
