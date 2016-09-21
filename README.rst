@@ -22,6 +22,12 @@ __ http://bluss.github.io/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.3.18
+
+  - Fix bounds check in ``ArrayVec::insert``!
+    It would be buggy if ``self.len() < index < self.capacity()``. Take note of
+    the push out behavior specified in the docs.
+
 - 0.3.17
 
   - Added crate feature ``use_union`` which forwards to the nodrop crate feature
