@@ -355,3 +355,60 @@ fn test_string_clone() {
     s.clone_from(&t);
     assert_eq!(&t, &s);
 }
+
+
+#[test]
+fn test_insert_at_length() {
+    let mut v = ArrayVec::<[_; 8]>::new();
+    let result1 = v.insert(0, "a");
+    let result2 = v.insert(1, "b");
+    assert!(result1.is_none() && result2.is_none());
+    assert_eq!(&v[..], &["a", "b"]);
+}
+
+#[test]
+fn test_insert_out_of_bounds() {
+    let mut v = ArrayVec::<[_; 8]>::new();
+    let result = v.insert(1, "test");
+    assert_eq!(result, Some("test"));
+    assert_eq!(v.len(), 0);
+
+    let mut u = ArrayVec::from([1, 2, 3, 4]);
+    let ret = u.insert(3, 99);
+    assert_eq!(&u[..], &[1, 2, 3, 99]);
+    assert_eq!(ret, Some(4));
+    let ret = u.insert(4, 77);
+    assert_eq!(&u[..], &[1, 2, 3, 99]);
+    assert_eq!(ret, Some(77));
+}
+
+#[test]
+fn test_drop_in_insert() {
+    use std::cell::Cell;
+
+    let flag = &Cell::new(0);
+
+    struct Bump<'a>(&'a Cell<i32>);
+
+    impl<'a> Drop for Bump<'a> {
+        fn drop(&mut self) {
+            let n = self.0.get();
+            self.0.set(n + 1);
+        }
+    }
+
+    flag.set(0);
+
+    {
+        let mut array = ArrayVec::<[_; 2]>::new();
+        array.push(Bump(flag));
+        array.insert(0, Bump(flag));
+        assert_eq!(flag.get(), 0);
+        let ret = array.insert(1, Bump(flag));
+        assert_eq!(flag.get(), 0);
+        assert!(ret.is_some());
+        drop(ret);
+        assert_eq!(flag.get(), 1);
+    }
+    assert_eq!(flag.get(), 3);
+}
