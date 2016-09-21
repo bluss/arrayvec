@@ -67,6 +67,9 @@ impl<A: Array + Copy> ArrayVecCopy<A> {
         A::capacity()
     }
 
+    /// Return if the `ArrayVecCopy` is completely filled.
+    pub fn is_full(&self) -> bool { self.is_full_impl() }
+
     /// Push `element` to the end of the vector.
     ///
     /// Returns `Ok` if the push succeeds.

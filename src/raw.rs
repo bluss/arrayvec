@@ -1,13 +1,8 @@
 use CapacityError;
 use RangeArgument;
 use array::Array;
-use std::borrow::{Borrow, BorrowMut};
 use std::cmp;
-use std::fmt;
-use std::hash::{Hash, Hasher};
-use std::iter;
-use std::mem;
-use std::ops::{Deref, DerefMut};
+use std::ops::{DerefMut};
 use std::ptr;
 use std::slice;
 
@@ -19,7 +14,7 @@ use array::Index;
 pub trait RawArrayVec<A: Array> : DerefMut<Target=[A::Item]> {
     fn len(&self) -> usize;
     fn capacity(&self) -> usize;
-    #[inline] fn is_full(&self) -> bool { self.len() == self.capacity() }
+    fn is_full_impl(&self) -> bool { self.len() == self.capacity() }
     unsafe fn set_len(&mut self, length: usize);
     fn len_ref(&mut self) -> &mut A::Index;
 
@@ -322,136 +317,3 @@ impl<'a, A: Array> Drop for Drain<'a, A>
     }
 }
 
-/*
-
-impl<A: Array> Extend<A::Item> for RawArrayVec<A> {
-}
-
-impl<A: Array> iter::FromIterator<A::Item> for RawArrayVec<A> {
-    fn from_iter<T: IntoIterator<Item=A::Item>>(iter: T) -> Self {
-        let mut array = RawArrayVec::new();
-        array.extend(iter);
-        array
-    }
-}
-
-impl<A: Array + Copy> Copy for RawArrayVec<A> where A::Item: Clone { }
-
-impl<A: Array> Clone for RawArrayVec<A>
-    where A::Item: Clone
-{
-    fn clone(&self) -> Self {
-        self.iter().cloned().collect()
-    }
-
-    fn clone_from(&mut self, rhs: &Self) {
-        // recursive case for the common prefix
-        let prefix = cmp::min(self.len(), rhs.len());
-        {
-            let a = &mut self[..prefix];
-            let b = &rhs[..prefix];
-            for i in 0..prefix {
-                a[i].clone_from(&b[i]);
-            }
-        }
-        if prefix < self.len() {
-            // rhs was shorter
-            for _ in 0..self.len() - prefix {
-                self.pop();
-            }
-        } else {
-            for elt in &rhs[self.len()..] {
-                let _ = self.push(elt.clone());
-            }
-        }
-    }
-}
-
-impl<A: Array> Hash for RawArrayVec<A>
-    where A::Item: Hash
-{
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        Hash::hash(&**self, state)
-    }
-}
-
-impl<A: Array> PartialEq for RawArrayVec<A>
-    where A::Item: PartialEq
-{
-    fn eq(&self, other: &Self) -> bool {
-        **self == **other
-    }
-}
-
-impl<A: Array> PartialEq<[A::Item]> for RawArrayVec<A>
-    where A::Item: PartialEq
-{
-    fn eq(&self, other: &[A::Item]) -> bool {
-        **self == *other
-    }
-}
-
-impl<A: Array> Eq for RawArrayVec<A> where A::Item: Eq { }
-
-impl<A: Array> Borrow<[A::Item]> for RawArrayVec<A> {
-    fn borrow(&self) -> &[A::Item] { self }
-}
-
-impl<A: Array> BorrowMut<[A::Item]> for RawArrayVec<A> {
-    fn borrow_mut(&mut self) -> &mut [A::Item] { self }
-}
-
-impl<A: Array> AsRef<[A::Item]> for RawArrayVec<A> {
-    fn as_ref(&self) -> &[A::Item] { self }
-}
-
-impl<A: Array> AsMut<[A::Item]> for RawArrayVec<A> {
-    fn as_mut(&mut self) -> &mut [A::Item] { self }
-}
-
-impl<A: Array> fmt::Debug for RawArrayVec<A> where A::Item: fmt::Debug {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { (**self).fmt(f) }
-}
-
-impl<A: Array> Default for RawArrayVec<A> {
-    fn default() -> RawArrayVec<A> {
-        RawArrayVec::new()
-    }
-}
-
-impl<A: Array> PartialOrd for RawArrayVec<A> where A::Item: PartialOrd {
-    #[inline]
-    fn partial_cmp(&self, other: &RawArrayVec<A>) -> Option<cmp::Ordering> {
-        (**self).partial_cmp(other)
-    }
-
-    #[inline] fn lt(&self, other: &Self) -> bool { (**self).lt(other) }
-    #[inline] fn le(&self, other: &Self) -> bool { (**self).le(other) }
-    #[inline] fn ge(&self, other: &Self) -> bool { (**self).ge(other) }
-    #[inline] fn gt(&self, other: &Self) -> bool { (**self).gt(other) }
-}
-
-impl<A: Array> Ord for RawArrayVec<A> where A::Item: Ord {
-    fn cmp(&self, other: &RawArrayVec<A>) -> cmp::Ordering {
-        (**self).cmp(other)
-    }
-}
-
-#[cfg(feature="std")]
-impl<A: Array<Item=u8>> io::Write for RawArrayVec<A> {
-    fn write(&mut self, data: &[u8]) -> io::Result<usize> {
-        unsafe {
-            let len = self.len();
-            let mut tail = slice::from_raw_parts_mut(self.get_unchecked_mut(len),
-                                                     A::capacity() - len);
-            let result = tail.write(data);
-            if let Ok(written) = result {
-                self.set_len(len + written);
-            }
-            result
-        }
-    }
-    #[inline]
-    fn flush(&mut self) -> io::Result<()> { Ok(()) }
-}
-*/
