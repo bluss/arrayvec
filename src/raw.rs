@@ -16,27 +16,15 @@ use std::io;
 
 use array::Index;
 
-pub struct RawArrayVec<A: Array> {
-    xs: A,
-    len: A::Index,
-}
+pub trait RawArrayVec<A: Array> : DerefMut<Target=[A::Item]> {
+    fn len(&self) -> usize;
+    fn capacity(&self) -> usize;
+    #[inline] fn is_full(&self) -> bool { self.len() == self.capacity() }
+    unsafe fn set_len(&mut self, length: usize);
+    fn len_ref(&mut self) -> &mut A::Index;
 
-impl<A: Array> RawArrayVec<A> {
-    #[inline]
-    pub fn new() -> RawArrayVec<A> {
-        unsafe {
-            RawArrayVec {
-                xs: mem::uninitialized(),
-                len: Index::from(0),
-            }
-        }
-    }
 
-    #[inline] pub fn len(&self) -> usize { self.len.to_usize() }
-    #[inline] pub fn capacity(&self) -> usize { A::capacity() }
-    #[inline] pub fn is_full(&self) -> bool { self.len() == self.capacity() }
-
-    pub fn push(&mut self, element: A::Item) -> Result<(), CapacityError<A::Item>> {
+    fn push_impl(&mut self, element: A::Item) -> Result<(), CapacityError<A::Item>> {
         if self.len() < A::capacity() {
             let len = self.len();
             unsafe {
@@ -49,7 +37,7 @@ impl<A: Array> RawArrayVec<A> {
         }
     }
 
-    pub fn insert(&mut self, index: usize, element: A::Item)
+    fn insert_impl(&mut self, index: usize, element: A::Item)
         -> Result<(), CapacityError<A::Item>>
     {
         assert!(index <= self.len());
@@ -57,7 +45,7 @@ impl<A: Array> RawArrayVec<A> {
             return Err(CapacityError::new(element));
         }
         let ret = if self.len() == self.capacity() {
-            Err(CapacityError::new(self.pop().unwrap()))
+            Err(CapacityError::new(self.pop_impl().unwrap()))
         } else {
             Ok(())
         };
@@ -80,7 +68,7 @@ impl<A: Array> RawArrayVec<A> {
         ret
     }
 
-    pub fn pop(&mut self) -> Option<A::Item> {
+    fn pop_impl(&mut self) -> Option<A::Item> {
         if self.len() == 0 {
             return None
         }
@@ -91,28 +79,28 @@ impl<A: Array> RawArrayVec<A> {
         }
     }
 
-    pub fn swap_remove(&mut self, index: usize) -> Option<A::Item> {
+    fn swap_remove_impl(&mut self, index: usize) -> Option<A::Item> {
         let len = self.len();
         if index >= len {
             return None
         }
         self.swap(index, len - 1);
-        self.pop()
+        self.pop_impl()
     }
 
-    pub fn remove(&mut self, index: usize) -> Option<A::Item> {
+    fn remove_impl(&mut self, index: usize) -> Option<A::Item> {
         if index >= self.len() {
             None
         } else {
-            self.drain(index..index + 1).next()
+            self.drain_impl(index..index + 1).next()
         }
     }
 
-    pub fn clear(&mut self) {
-        while let Some(_) = self.pop() { }
+    fn clear_impl(&mut self) {
+        while let Some(_) = self.pop_impl() { }
     }
 
-    pub fn retain<F>(&mut self, mut f: F)
+    fn retain_impl<F>(&mut self, mut f: F)
         where F: FnMut(&mut A::Item) -> bool
     {
         let len = self.len();
@@ -129,16 +117,35 @@ impl<A: Array> RawArrayVec<A> {
             }
         }
         if del > 0 {
-            self.drain(len - del..);
+            self.drain_impl(len - del..);
         }
     }
 
-    pub unsafe fn set_len(&mut self, length: usize) {
-        debug_assert!(length <= self.capacity());
-        self.len = Index::from(length);
+    fn extend_impl<T: IntoIterator<Item=A::Item>>(&mut self, iter: T) {
+        let take = self.capacity() - self.len();
+        for elt in iter.into_iter().take(take) {
+            let _ = self.push_impl(elt);
+        }
     }
 
-    pub fn drain<R: RangeArgument>(&mut self, range: R) -> Drain<A> {
+    #[cfg(feature="std")]
+    fn write_impl(&mut self, data: &[u8]) -> io::Result<usize>
+        where A: Array<Item=u8>
+    {
+        use std::io::Write;
+        unsafe {
+            let len = self.len();
+            let mut tail = slice::from_raw_parts_mut(self.get_unchecked_mut(len),
+                                                     A::capacity() - len);
+            let result = tail.write(data);
+            if let Ok(written) = result {
+                self.set_len(len + written);
+            }
+            result
+        }
+    }
+
+    fn drain_impl<R: RangeArgument>(&mut self, range: R) -> Drain<A> {
         // Memory safety
         //
         // When the Drain is first created, it shortens the length of
@@ -162,28 +169,38 @@ impl<A: Array> RawArrayVec<A> {
                 tail_start: end,
                 tail_len: len - end,
                 iter: (*range_slice).iter(),
-                vec: self as *mut _,
+                source_ptr: self.as_mut_ptr(),
+                source_len: self.len_ref() as *mut _
             }
         }
     }
 
-    pub fn into_inner(self) -> Result<A, Self> {
-        if self.len() < self.capacity() {
-            Err(self)
+    fn clone_from_impl(&mut self, rhs: &Self)
+        where A::Item: Clone
+    {
+        // recursive case for the common prefix
+        let prefix = cmp::min(self.len(), rhs.len());
+        {
+            let a = &mut self[..prefix];
+            let b = &rhs[..prefix];
+            for i in 0..prefix {
+                a[i].clone_from(&b[i]);
+            }
+        }
+        if prefix < self.len() {
+            // rhs was shorter
+            for _ in 0..self.len() - prefix {
+                self.pop_impl();
+            }
         } else {
-            unsafe {
-                let array = ptr::read(&self.xs);
-                mem::forget(self);
-                Ok(array)
+            for elt in &rhs[self.len()..] {
+                let _ = self.push_impl(elt.clone());
             }
         }
     }
-
-    #[inline] pub fn dispose(self) { }
-    #[inline] pub fn as_slice(&self) -> &[A::Item] { self }
-    #[inline] pub fn as_mut_slice(&mut self) -> &mut [A::Item] { self }
 }
 
+/*
 impl<A: Array> Deref for RawArrayVec<A> {
     type Target = [A::Item];
     #[inline]
@@ -225,6 +242,8 @@ impl<'a, A: Array> IntoIterator for &'a mut RawArrayVec<A> {
     fn into_iter(self) -> Self::IntoIter { self.iter_mut() }
 }
 
+*/
+
 /// A draining iterator for `ArrayVec`.
 pub struct Drain<'a, A> 
     where A: Array,
@@ -236,7 +255,8 @@ pub struct Drain<'a, A>
     tail_len: usize,
     /// Current remaining range to remove
     iter: slice::Iter<'a, A::Item>,
-    vec: *mut RawArrayVec<A>,
+    source_ptr: *mut A::Item,
+    source_len: *mut A::Index,
 }
 
 unsafe impl<'a, A: Array + Sync> Sync for Drain<'a, A> {}
@@ -288,26 +308,23 @@ impl<'a, A: Array> Drop for Drain<'a, A>
 
         if self.tail_len > 0 {
             unsafe {
-                let source_vec = &mut *self.vec;
+                let ptr = self.source_ptr;
+                let source_len = &mut *self.source_len;
                 // memmove back untouched tail, update to new length
-                let start = source_vec.len();
+                let start = source_len.to_usize();
                 let tail = self.tail_start;
-                let src = source_vec.as_ptr().offset(tail as isize);
-                let dst = source_vec.as_mut_ptr().offset(start as isize);
+                let src = ptr.offset(tail as isize);
+                let dst = ptr.offset(start as isize);
                 ptr::copy(src, dst, self.tail_len);
-                source_vec.set_len(start + self.tail_len);
+                *source_len = Index::from(start + self.tail_len);
             }
         }
     }
 }
 
+/*
+
 impl<A: Array> Extend<A::Item> for RawArrayVec<A> {
-    fn extend<T: IntoIterator<Item=A::Item>>(&mut self, iter: T) {
-        let take = self.capacity() - self.len();
-        for elt in iter.into_iter().take(take) {
-            let _ = self.push(elt);
-        }
-    }
 }
 
 impl<A: Array> iter::FromIterator<A::Item> for RawArrayVec<A> {
@@ -437,3 +454,4 @@ impl<A: Array<Item=u8>> io::Write for RawArrayVec<A> {
     #[inline]
     fn flush(&mut self) -> io::Result<()> { Ok(()) }
 }
+*/

@@ -3,6 +3,7 @@ use std::iter;
 use std::ptr;
 use std::ops;
 use std::slice;
+use std::mem;
 
 // extra traits
 use std::borrow::{Borrow, BorrowMut};
@@ -21,7 +22,23 @@ use raw::RawArrayVec;
 
 /// A vector with a fixed capacity that implements `Copy`.
 pub struct ArrayVecCopy<A: Array + Copy> {
-    inner: RawArrayVec<A>,
+    xs: A,
+    len: A::Index,
+}
+
+impl<A: Array + Copy> RawArrayVec<A> for ArrayVecCopy<A> {
+    fn len(&self) -> usize {
+        self.len()
+    }
+    unsafe fn set_len(&mut self, len: usize) {
+        self.set_len(len)
+    }
+    fn capacity(&self) -> usize {
+        self.capacity()
+    }
+    fn len_ref(&mut self) -> &mut A::Index {
+        &mut self.len
+    }
 }
 
 impl<A: Array + Copy> ArrayVecCopy<A> {
@@ -30,18 +47,25 @@ impl<A: Array + Copy> ArrayVecCopy<A> {
     /// Capacity is inferred from the type parameter.
     #[inline]
     pub fn new() -> ArrayVecCopy<A> {
-        ArrayVecCopy {
-            inner: RawArrayVec::new(),
+        unsafe {
+            ArrayVecCopy {
+                xs: mem::uninitialized(),
+                len: Index::from(0),
+            }
         }
     }
 
     /// Return the number of elements in the `ArrayVecCopy`.
     #[inline]
-    pub fn len(&self) -> usize { self.inner.len() }
+    pub fn len(&self) -> usize {
+        self.len.to_usize()
+    }
 
     /// Return the capacity of the `ArrayVecCopy`.
     #[inline]
-    pub fn capacity(&self) -> usize { self.inner.capacity() }
+    pub fn capacity(&self) -> usize {
+        A::capacity()
+    }
 
     /// Push `element` to the end of the vector.
     ///
@@ -51,7 +75,7 @@ impl<A: Array + Copy> ArrayVecCopy<A> {
     /// additional element.
     #[inline]
     pub fn push(&mut self, element: A::Item) -> Result<(), CapacityError<A::Item>> {
-        self.inner.push(element)
+        self.push_impl(element)
     }
 
     /// Insert `element` in position `index`.
@@ -66,7 +90,7 @@ impl<A: Array + Copy> ArrayVecCopy<A> {
     pub fn insert(&mut self, index: usize, element: A::Item)
         -> Result<(), CapacityError<A::Item>>
     {
-        self.inner.insert(index, element)
+        self.insert_impl(index, element)
     }
 
     /// Remove the last element in the vector.
@@ -74,7 +98,7 @@ impl<A: Array + Copy> ArrayVecCopy<A> {
     /// Return `Some(` *element* `)` if the vector is non-empty, else `None`.
     #[inline]
     pub fn pop(&mut self) -> Option<A::Item> {
-        self.inner.pop()
+        self.pop_impl()
     }
 
     /// Remove the element at `index` and swap the last element into its place.
@@ -84,7 +108,7 @@ impl<A: Array + Copy> ArrayVecCopy<A> {
     /// Return `Some(` *element* `)` if the index is in bounds, else `None`.
     #[inline]
     pub fn swap_remove(&mut self, index: usize) -> Option<A::Item> {
-        self.inner.swap_remove(index)
+        self.swap_remove_impl(index)
     }
 
     /// Remove the element at `index` and shift down the following elements.
@@ -92,7 +116,7 @@ impl<A: Array + Copy> ArrayVecCopy<A> {
     /// Return `Some(` *element* `)` if the index is in bounds, else `None`.
     #[inline]
     pub fn remove(&mut self, index: usize) -> Option<A::Item> {
-        self.inner.remove(index)
+        self.remove_impl(index)
     }
 
     /// Remove all elements in the vector.
@@ -114,7 +138,7 @@ impl<A: Array + Copy> ArrayVecCopy<A> {
     pub fn retain<F>(&mut self, f: F)
         where F: FnMut(&mut A::Item) -> bool
     {
-        self.inner.retain(f)
+        self.retain_impl(f)
     }
 
     /// Set the vector's length without dropping or moving out elements
@@ -125,7 +149,7 @@ impl<A: Array + Copy> ArrayVecCopy<A> {
     /// number of “valid” elements in the vector. Use with care.
     #[inline]
     pub unsafe fn set_len(&mut self, length: usize) {
-        self.inner.set_len(length)
+        self.len = Index::from(length);
     }
 
 
@@ -139,7 +163,7 @@ impl<A: Array + Copy> ArrayVecCopy<A> {
     /// **Panics** if the starting point is greater than the end point or if
     /// the end point is greater than the length of the vector.
     pub fn drain<R: RangeArgument>(&mut self, range: R) -> Drain<A> {
-        self.inner.drain(range)
+        self.drain_impl(range)
     }
 
     /// Return the inner fixed size array, if it is full to its capacity.
@@ -150,7 +174,11 @@ impl<A: Array + Copy> ArrayVecCopy<A> {
     /// `Note:` This function may incur unproportionally large overhead
     /// to move the array out, its performance is not optimal.
     pub fn into_inner(self) -> Result<A, Self> {
-        self.inner.into_inner().map_err(|e| ArrayVecCopy { inner: e })
+        if self.is_full() {
+            Ok(self.xs)
+        } else {
+            Err(self)
+        }
     }
 
     /// Dispose of `self` without the overwriting that is needed in Drop.
@@ -158,12 +186,12 @@ impl<A: Array + Copy> ArrayVecCopy<A> {
 
     /// Return a slice containing all elements of the vector.
     pub fn as_slice(&self) -> &[A::Item] {
-        self.inner.as_slice()
+        self
     }
 
     /// Return a mutable slice containing all elements of the vector.
     pub fn as_mut_slice(&mut self) -> &mut [A::Item] {
-        self.inner.as_mut_slice()
+        self
     }
 }
 
@@ -171,21 +199,26 @@ impl<A: Array + Copy> ops::Deref for ArrayVecCopy<A> {
     type Target = [A::Item];
     #[inline]
     fn deref(&self) -> &[A::Item] {
-        self.inner.deref()
+        unsafe {
+            slice::from_raw_parts(self.xs.as_ptr(), self.len())
+        }
     }
 }
 
 impl<A: Array + Copy> ops::DerefMut for ArrayVecCopy<A> {
     #[inline]
     fn deref_mut(&mut self) -> &mut [A::Item] {
-        self.inner.deref_mut()
+        let len = self.len();
+        unsafe {
+            slice::from_raw_parts_mut(self.xs.as_mut_ptr(), len)
+        }
     }
 }
 
 /// Create an `ArrayVecCopy` from an array.
 impl<A: Array + Copy> From<A> for ArrayVecCopy<A> {
     fn from(array: A) -> Self {
-        ArrayVecCopy { inner: RawArrayVec::from(array) }
+        ArrayVecCopy { len: Index::from(A::capacity()), xs: array }
     }
 }
 
@@ -194,14 +227,18 @@ impl<A: Array + Copy> From<A> for ArrayVecCopy<A> {
 impl<'a, A: Array + Copy> IntoIterator for &'a ArrayVecCopy<A> {
     type Item = &'a A::Item;
     type IntoIter = slice::Iter<'a, A::Item>;
-    fn into_iter(self) -> Self::IntoIter { self.inner.iter() }
+    fn into_iter(self) -> Self::IntoIter {
+        (**self).into_iter()
+    }
 }
 
 /// Iterate the `ArrayVecCopy` with mutable references to each element.
 impl<'a, A: Array + Copy> IntoIterator for &'a mut ArrayVecCopy<A> {
     type Item = &'a mut A::Item;
     type IntoIter = slice::IterMut<'a, A::Item>;
-    fn into_iter(self) -> Self::IntoIter { self.inner.iter_mut() }
+    fn into_iter(self) -> Self::IntoIter {
+        (&mut **self).into_iter()
+    }
 }
 
 /// Iterate the `ArrayVecCopy` with each element by value.
@@ -268,7 +305,7 @@ impl<A: Array + Copy> ExactSizeIterator for IntoIter<A> { }
 /// occurs if there are more iterator elements.
 impl<A: Array + Copy> Extend<A::Item> for ArrayVecCopy<A> {
     fn extend<T: IntoIterator<Item=A::Item>>(&mut self, iter: T) {
-        self.inner.extend(iter)
+        self.extend_impl(iter)
     }
 }
 
@@ -278,21 +315,28 @@ impl<A: Array + Copy> Extend<A::Item> for ArrayVecCopy<A> {
 /// occurs if there are more iterator elements.
 impl<A: Array + Copy> iter::FromIterator<A::Item> for ArrayVecCopy<A> {
     fn from_iter<T: IntoIterator<Item=A::Item>>(iter: T) -> Self {
-        ArrayVecCopy { inner: RawArrayVec::from_iter(iter) }
+        let mut array = Self::new();
+        array.extend(iter);
+        array
     }
 }
 
 impl<A: Array + Copy> Clone for ArrayVecCopy<A>
-    where A::Item: Clone
+    where A::Item: Copy
 {
     #[inline]
     fn clone(&self) -> Self {
-        ArrayVecCopy { inner: self.inner.clone() }
+        let mut array = Self::new();
+        unsafe {
+            array.set_len(self.len());
+        }
+        array.copy_from_slice(self);
+        array
     }
 
     #[inline]
     fn clone_from(&mut self, rhs: &Self) {
-        self.inner.clone_from(&rhs.inner)
+        self.clone_from_impl(rhs);
     }
 }
 
@@ -300,7 +344,7 @@ impl<A: Array + Copy> Hash for ArrayVecCopy<A>
     where A::Item: Hash
 {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.inner.hash(state)
+        (**self).hash(state)
     }
 }
 
@@ -308,8 +352,7 @@ impl<A: Array + Copy> PartialEq for ArrayVecCopy<A>
     where A::Item: PartialEq
 {
     fn eq(&self, other: &Self) -> bool {
-        use std::ops::Deref;
-        self.inner.eq(other.inner.deref())
+        (**self) == **other
     }
 }
 
@@ -317,30 +360,30 @@ impl<A: Array + Copy> PartialEq<[A::Item]> for ArrayVecCopy<A>
     where A::Item: PartialEq
 {
     fn eq(&self, other: &[A::Item]) -> bool {
-        self.inner.eq(other)
+        (**self) == *other
     }
 }
 
 impl<A: Array + Copy> Eq for ArrayVecCopy<A> where A::Item: Eq { }
 
 impl<A: Array + Copy> Borrow<[A::Item]> for ArrayVecCopy<A> {
-    fn borrow(&self) -> &[A::Item] { self.inner.borrow() }
+    fn borrow(&self) -> &[A::Item] { self }
 }
 
 impl<A: Array + Copy> BorrowMut<[A::Item]> for ArrayVecCopy<A> {
-    fn borrow_mut(&mut self) -> &mut [A::Item] { self.inner.borrow_mut() }
+    fn borrow_mut(&mut self) -> &mut [A::Item] { self }
 }
 
 impl<A: Array + Copy> AsRef<[A::Item]> for ArrayVecCopy<A> {
-    fn as_ref(&self) -> &[A::Item] { self.inner.as_ref() }
+    fn as_ref(&self) -> &[A::Item] { self }
 }
 
 impl<A: Array + Copy> AsMut<[A::Item]> for ArrayVecCopy<A> {
-    fn as_mut(&mut self) -> &mut [A::Item] { self.inner.as_mut() }
+    fn as_mut(&mut self) -> &mut [A::Item] { self }
 }
 
 impl<A: Array + Copy> fmt::Debug for ArrayVecCopy<A> where A::Item: fmt::Debug {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { self.inner.fmt(f) }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { (**self).fmt(f) }
 }
 
 impl<A: Array + Copy> Default for ArrayVecCopy<A> {
@@ -352,18 +395,18 @@ impl<A: Array + Copy> Default for ArrayVecCopy<A> {
 impl<A: Array + Copy> PartialOrd for ArrayVecCopy<A> where A::Item: PartialOrd {
     #[inline]
     fn partial_cmp(&self, other: &ArrayVecCopy<A>) -> Option<cmp::Ordering> {
-        self.inner.partial_cmp(&other.inner)
+        (**self).partial_cmp(&**other)
     }
 
-    #[inline] fn lt(&self, other: &Self) -> bool { self.inner.lt(&other.inner) }
-    #[inline] fn le(&self, other: &Self) -> bool { self.inner.le(&other.inner) }
-    #[inline] fn ge(&self, other: &Self) -> bool { self.inner.ge(&other.inner) }
-    #[inline] fn gt(&self, other: &Self) -> bool { self.inner.gt(&other.inner) }
+    #[inline] fn lt(&self, other: &Self) -> bool { **self < **other }
+    #[inline] fn le(&self, other: &Self) -> bool { **self <= **other }
+    #[inline] fn ge(&self, other: &Self) -> bool { **self >= **other }
+    #[inline] fn gt(&self, other: &Self) -> bool { **self > **other }
 }
 
 impl<A: Array + Copy> Ord for ArrayVecCopy<A> where A::Item: Ord {
     fn cmp(&self, other: &ArrayVecCopy<A>) -> cmp::Ordering {
-        self.inner.cmp(&other.inner)
+        (**self).cmp(&**other)
     }
 }
 
@@ -373,7 +416,7 @@ impl<A: Array + Copy> Ord for ArrayVecCopy<A> where A::Item: Ord {
 /// Requires `features="std"`.
 impl<A: Array<Item=u8> + Copy> io::Write for ArrayVecCopy<A> {
     fn write(&mut self, data: &[u8]) -> io::Result<usize> {
-        self.inner.write(data)
+        self.write_impl(data)
     }
-    fn flush(&mut self) -> io::Result<()> { self.inner.flush() }
+    fn flush(&mut self) -> io::Result<()> { Ok(()) }
 }
