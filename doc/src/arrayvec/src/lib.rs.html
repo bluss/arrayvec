@@ -904,6 +904,10 @@
 <span id="860">860</span>
 <span id="861">861</span>
 <span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
 </pre><pre class='rust '>
 <span class='doccomment'>//! **arrayvec** provides the types `ArrayVec` and `ArrayString`: </span>
 <span class='doccomment'>//! array-backed vector and string types, which store their contents inline.</span>
@@ -1086,6 +1090,10 @@
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// Return `None` if no element is shifted out.</span>
     <span class='doccomment'>///</span>
+    <span class='doccomment'>/// `index` must be &lt;= `self.len()` and &lt; `self.capacity()`. Note that any</span>
+    <span class='doccomment'>/// out of bounds index insert results in the element being &quot;shifted out&quot;</span>
+    <span class='doccomment'>/// and returned directly.</span>
+    <span class='doccomment'>///</span>
     <span class='doccomment'>/// ```</span>
     <span class='doccomment'>/// use arrayvec::ArrayVec;</span>
     <span class='doccomment'>///</span>
@@ -1099,7 +1107,7 @@
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// ```</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>insert</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>index</span>: <span class='ident'>usize</span>, <span class='ident'>element</span>: <span class='ident'>A</span>::<span class='ident'>Item</span>) <span class='op'>-&gt;</span> <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>A</span>::<span class='ident'>Item</span><span class='op'>&gt;</span> {
-        <span class='kw'>if</span> <span class='ident'>index</span> <span class='op'>&gt;=</span> <span class='self'>self</span>.<span class='ident'>capacity</span>() {
+        <span class='kw'>if</span> <span class='ident'>index</span> <span class='op'>&gt;</span> <span class='self'>self</span>.<span class='ident'>len</span>() <span class='op'>||</span> <span class='ident'>index</span> <span class='op'>==</span> <span class='self'>self</span>.<span class='ident'>capacity</span>() {
             <span class='kw'>return</span> <span class='prelude-val'>Some</span>(<span class='ident'>element</span>);
         }
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>ret</span> <span class='op'>=</span> <span class='prelude-val'>None</span>;

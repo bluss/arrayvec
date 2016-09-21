@@ -70,7 +70,7 @@
  <span class='macro'>assert</span><span class='macro'>!</span>(<span class='op'>!</span><span class='ident'>fix</span>(<span class='kw-2'>&amp;</span><span class='ident'>data</span>[..], <span class='op'>|</span><span class='ident'>f</span>, <span class='ident'>x</span><span class='op'>|</span> {
      <span class='ident'>x</span>.<span class='ident'>len</span>() <span class='op'>==</span> <span class='number'>0</span> <span class='op'>||</span> <span class='ident'>x</span>[<span class='number'>0</span>] <span class='op'>&amp;&amp;</span> <span class='ident'>f</span>.<span class='ident'>call</span>(<span class='kw-2'>&amp;</span><span class='ident'>x</span>[<span class='number'>1</span>..])
  }));
-</pre>
+<a class='test-arrow' target='_blank' href=''>Run</a></pre>
 
 <pre class='rust rust-example-rendered'>
 <span class='comment'>// using feature `unstable`</span>
@@ -78,7 +78,7 @@
 
 <span class='kw'>let</span> <span class='ident'>c</span> <span class='op'>=</span> <span class='op'>|</span><span class='ident'>f</span>: <span class='ident'>Fix</span><span class='op'>&lt;</span><span class='ident'>i32</span><span class='op'>&gt;</span>, <span class='ident'>x</span><span class='op'>|</span> <span class='kw'>if</span> <span class='ident'>x</span> <span class='op'>==</span> <span class='number'>0</span> { <span class='number'>1</span> } <span class='kw'>else</span> { <span class='ident'>x</span> <span class='op'>*</span> <span class='ident'>f</span>(<span class='ident'>x</span> <span class='op'>-</span> <span class='number'>1</span>) };
 <span class='kw'>let</span> <span class='ident'>fact</span> <span class='op'>=</span> <span class='ident'>Fix</span>(<span class='kw-2'>&amp;</span><span class='ident'>c</span>);
-<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>fact</span>(<span class='number'>5</span>), <span class='number'>120</span>);</pre>
+<span class='macro'>assert_eq</span><span class='macro'>!</span>(<span class='ident'>fact</span>(<span class='number'>5</span>), <span class='number'>120</span>);<a class='test-arrow' target='_blank' href=''>Run</a></pre>
 </div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'a,&nbsp;T,&nbsp;R&gt; <a class='struct' href='../odds/struct.Fix.html' title='odds::Fix'>Fix</a>&lt;'a,&nbsp;T,&nbsp;R&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-41' class='srclink' href='../src/odds/fix.rs.html#79-84' title='goto source code'>[src]</a></span></h3>
 <div class='impl-items'><h4 id='method.call' class='method'><span id='call.v' class='invisible'><code>fn <a href='#method.call' class='fnname'>call</a>(&amp;self, arg: T) -&gt; R</code></span></h4>
 </div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'a,&nbsp;T,&nbsp;R&gt; <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a> for <a class='struct' href='../odds/struct.Fix.html' title='odds::Fix'>Fix</a>&lt;'a,&nbsp;T,&nbsp;R&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-49' class='srclink' href='../src/odds/fix.rs.html#86-88' title='goto source code'>[src]</a></span></h3>
