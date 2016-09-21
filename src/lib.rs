@@ -179,6 +179,10 @@ impl<A: Array> ArrayVec<A> {
     ///
     /// Return `None` if no element is shifted out.
     ///
+    /// `index` must be <= `self.len()` and < `self.capacity()`. Note that any
+    /// out of bounds index insert results in the element being "shifted out"
+    /// and returned directly.
+    ///
     /// ```
     /// use arrayvec::ArrayVec;
     ///
@@ -192,7 +196,7 @@ impl<A: Array> ArrayVec<A> {
     ///
     /// ```
     pub fn insert(&mut self, index: usize, element: A::Item) -> Option<A::Item> {
-        if index >= self.capacity() {
+        if index > self.len() || index == self.capacity() {
             return Some(element);
         }
         let mut ret = None;
