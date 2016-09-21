@@ -29,7 +29,7 @@ use std::any::Any; // core but unused
 
 mod array;
 mod copy;
-//mod string;
+mod string;
 //mod vec;
 mod raw;
 

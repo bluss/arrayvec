@@ -5,10 +5,11 @@ use std::mem;
 use std::ptr;
 use std::ops::{Deref, DerefMut};
 use std::str;
+use std::slice;
 
-use Array;
+use array::Array;
+use array::Index;
 use CapacityError;
-use raw::RawArrayVec;
 
 /// A string with a fixed capacity.
 ///
@@ -17,11 +18,11 @@ use raw::RawArrayVec;
 ///
 /// The string is a contiguous value that you can store directly on the stack
 /// if needed.
+#[derive(Copy)]
 pub struct ArrayString<A: Array<Item=u8>> {
-    inner: RawArrayVec<A>,
+    xs: A,
+    len: A::Index,
 }
-
-impl<A: Array<Item=u8> + Copy> Copy for ArrayString<A> where A::Item: Clone { }
 
 impl<A: Array<Item=u8>> ArrayString<A> {
     /// Create a new empty `ArrayString`.
@@ -37,8 +38,11 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     /// assert_eq!(string.capacity(), 16);
     /// ```
     pub fn new() -> ArrayString<A> {
-        ArrayString {
-            inner: RawArrayVec::new(),
+        unsafe {
+            ArrayString {
+                xs: mem::uninitialized(),
+                len: Index::from(0),
+            }
         }
     }
 
@@ -71,7 +75,7 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     /// assert_eq!(string.capacity(), 3);
     /// ```
     #[inline]
-    pub fn capacity(&self) -> usize { self.inner.capacity() }
+    pub fn capacity(&self) -> usize { A::capacity() }
 
     /// Return if the `ArrayString` is completely filled.
     ///
@@ -133,7 +137,7 @@ impl<A: Array<Item=u8>> ArrayString<A> {
             return Err(CapacityError::new(s));
         }
         unsafe {
-            let dst = self.inner.as_mut_ptr().offset(self.len() as isize);
+            let dst = self.xs.as_mut_ptr().offset(self.len() as isize);
             let src = s.as_ptr();
             ptr::copy_nonoverlapping(src, dst, s.len());
             let newl = self.len() + s.len();
@@ -157,7 +161,8 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     /// number of “valid” bytes in the string. Use with care.
     #[inline]
     pub unsafe fn set_len(&mut self, length: usize) {
-        self.inner.set_len(length)
+        debug_assert!(length <= self.capacity());
+        self.len = Index::from(length);
     }
 
     /// Return a string slice of the whole `ArrayString`.
@@ -171,7 +176,8 @@ impl<A: Array<Item=u8>> Deref for ArrayString<A> {
     #[inline]
     fn deref(&self) -> &str {
         unsafe {
-            str::from_utf8_unchecked(&self.inner)
+            let sl = slice::from_raw_parts(self.xs.as_ptr(), self.len.to_usize());
+            str::from_utf8_unchecked(sl)
         }
     }
 }
@@ -180,8 +186,9 @@ impl<A: Array<Item=u8>> DerefMut for ArrayString<A> {
     #[inline]
     fn deref_mut(&mut self) -> &mut str {
         unsafe {
-            let bytes: &mut [u8] = &mut self.inner;
-            mem::transmute(bytes)
+            let sl = slice::from_raw_parts_mut(self.xs.as_mut_ptr(), self.len.to_usize());
+            // FIXME: Nothing but transmute to do this right now
+            mem::transmute(sl)
         }
     }
 }
@@ -239,9 +246,10 @@ impl<A: Array<Item=u8> + Copy> Clone for ArrayString<A> {
     fn clone(&self) -> ArrayString<A> {
         *self
     }
+
     fn clone_from(&mut self, rhs: &Self) {
         // guaranteed to fit due to types matching.
         self.clear();
-        let _ = self.push_str(rhs);
+        self.push_str(rhs).ok();
     }
 }
