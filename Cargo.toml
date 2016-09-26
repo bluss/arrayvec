@@ -19,7 +19,12 @@ version = "0.1.8"
 path = "nodrop"
 default-features = false
 
+[dependencies.generic-array]
+version = "0.5.1"
+optional = true
+
 [features]
 default = ["std"]
 std = ["odds/std", "nodrop/std"]
 use_union = ["nodrop/use_union"]
+use_generic_array = ["generic-array"]
