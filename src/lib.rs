@@ -16,6 +16,7 @@
 //!
 //! - `use_generic_array`
 //!   - Optional
+//!   - Requires Rust stable channel
 //!   - Depend on generic-array and allow using it just like a fixed
 //!     size array for ArrayVec storage.
 #![cfg_attr(not(feature="std"), no_std)]

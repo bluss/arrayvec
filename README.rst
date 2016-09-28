@@ -6,7 +6,7 @@ A vector with fixed capacity.  Requires Rust 1.2+.
 
 Please read the `API documentation here`__
 
-__ http://bluss.github.io/arrayvec
+__ https://bluss.github.io/arrayvec
 
 |build_status|_ |crates|_ |crates2|_
 
@@ -21,6 +21,12 @@ __ http://bluss.github.io/arrayvec
 
 Recent Changes (arrayvec)
 -------------------------
+
+- 0.3.19
+
+  - Add new crate feature ``use_generic_array`` which allows using their
+    ``GenericArray`` just like a regular fixed size array for the storage
+    of an ``ArrayVec``.
 
 - 0.3.18
 
