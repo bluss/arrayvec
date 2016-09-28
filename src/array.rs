@@ -19,6 +19,24 @@ pub trait Index : PartialEq + Copy {
     fn from(usize) -> Self;
 }
 
+#[cfg(feature = "use_generic_array")]
+unsafe impl<T, U> Array for ::generic_array::GenericArray<T, U>
+    where U: ::generic_array::ArrayLength<T>
+{
+    type Item = T;
+    type Index = usize;
+    fn as_ptr(&self) -> *const Self::Item {
+        (**self).as_ptr()
+    }
+    fn as_mut_ptr(&mut self) -> *mut Self::Item {
+        (**self).as_mut_ptr()
+    }
+    fn capacity() -> usize {
+        U::to_usize()
+    }
+
+}
+
 impl Index for u8 {
     #[inline(always)]
     fn to_usize(self) -> usize { self as usize }
@@ -31,6 +49,13 @@ impl Index for u16 {
     fn to_usize(self) -> usize { self as usize }
     #[inline(always)]
     fn from(ix: usize) ->  Self { ix as u16 }
+}
+
+impl Index for usize {
+    #[inline(always)]
+    fn to_usize(self) -> usize { self }
+    #[inline(always)]
+    fn from(ix: usize) ->  Self { ix }
 }
 
 macro_rules! fix_array_impl {
