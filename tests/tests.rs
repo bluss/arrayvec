@@ -130,12 +130,12 @@ fn test_is_send_sync() {
 #[test]
 fn test_compact_size() {
     // Future rust will kill these drop flags!
-    // 4 elements size + 1 len + 1 enum tag + [1 drop flag]
+    // 4 elements size + 1 len + 1 enum tag
     type ByteArray = ArrayVec<[u8; 4]>;
     println!("{}", mem::size_of::<ByteArray>());
     assert!(mem::size_of::<ByteArray>() <= 8);
 
-    // 12 element size + 1 enum tag + 3 padding + 1 len + 1 drop flag + 2 padding
+    // 12 element size + 1 enum tag + 3 padding + 1 len + 3 padding
     type QuadArray = ArrayVec<[u32; 3]>;
     println!("{}", mem::size_of::<QuadArray>());
     assert!(mem::size_of::<QuadArray>() <= 24);

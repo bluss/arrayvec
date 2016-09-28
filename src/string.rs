@@ -40,7 +40,7 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     pub fn new() -> ArrayString<A> {
         unsafe {
             ArrayString {
-                xs: ::new_array(),
+                xs: mem::uninitialized(),
                 len: Index::from(0),
             }
         }
