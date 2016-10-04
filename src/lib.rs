@@ -19,6 +19,7 @@
 //!   - Requires Rust stable channel
 //!   - Depend on generic-array and allow using it just like a fixed
 //!     size array for ArrayVec storage.
+#![doc(html_root_url="https://docs.rs/arrayvec/0.3/")]
 #![cfg_attr(not(feature="std"), no_std)]
 extern crate odds;
 extern crate nodrop;

@@ -22,6 +22,10 @@ __ https://bluss.github.io/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.3.20
+
+  - Simplify and speed up ``ArrayString``’s ``.push(char)``-
+
 - 0.3.19
 
   - Add new crate feature ``use_generic_array`` which allows using their
