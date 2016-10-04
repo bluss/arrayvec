@@ -356,6 +356,21 @@ fn test_string_clone() {
     assert_eq!(&t, &s);
 }
 
+#[test]
+fn test_string_push() {
+    let text = "abcαβγ";
+    let mut s = ArrayString::<[_; 8]>::new();
+    for c in text.chars() {
+        if let Err(_) = s.push(c) {
+            break;
+        }
+    }
+    assert_eq!("abcαβ", &s[..]);
+    s.push('x').ok();
+    assert_eq!("abcαβx", &s[..]);
+    assert!(s.push('x').is_err());
+}
+
 
 #[test]
 fn test_insert_at_length() {

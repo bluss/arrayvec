@@ -10,6 +10,7 @@ use std::slice;
 use array::Array;
 use array::Index;
 use CapacityError;
+use char_ext::encode_utf8;
 
 /// A string with a fixed capacity.
 ///
@@ -108,8 +109,16 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     /// assert_eq!(overflow.unwrap_err().element(), 'c');
     /// ```
     pub fn push(&mut self, c: char) -> Result<(), CapacityError<char>> {
-        use std::fmt::Write;
-        self.write_char(c).map_err(|_| CapacityError::new(c))
+        let len = self.len();
+        unsafe {
+            match encode_utf8(c, &mut self.raw_mut_bytes()[len..]) {
+                Ok(n) => {
+                    self.set_len(len + n);
+                    Ok(())
+                }
+                Err(_) => Err(CapacityError::new(c)),
+            }
+        }
     }
 
     /// Adds the given string slice to the end of the string.
@@ -168,6 +177,11 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     /// Return a string slice of the whole `ArrayString`.
     pub fn as_str(&self) -> &str {
         self
+    }
+
+    /// Return a mutable slice of the whole string's buffer
+    unsafe fn raw_mut_bytes(&mut self) -> &mut [u8] {
+        slice::from_raw_parts_mut(self.xs.as_mut_ptr(), self.capacity())
     }
 }
 
@@ -237,6 +251,9 @@ impl<A: Array<Item=u8>> fmt::Display for ArrayString<A> {
 
 /// `Write` appends written data to the end of the string.
 impl<A: Array<Item=u8>> fmt::Write for ArrayString<A> {
+    fn write_char(&mut self, c: char) -> fmt::Result {
+        self.push(c).map_err(|_| fmt::Error)
+    }
     fn write_str(&mut self, s: &str) -> fmt::Result {
         self.push_str(s).map_err(|_| fmt::Error)
     }
