@@ -10,7 +10,7 @@ use std::slice;
 use array::Array;
 use array::Index;
 use CapacityError;
-use char_ext::encode_utf8;
+use odds::char::encode_utf8;
 
 /// A string with a fixed capacity.
 ///

@@ -56,7 +56,6 @@ use nodrop::NoDrop;
 
 mod array;
 mod array_string;
-mod char_ext;
 
 pub use array::Array;
 pub use odds::IndexRange as RangeArgument;

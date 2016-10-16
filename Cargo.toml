@@ -11,7 +11,7 @@ repository = "https://github.com/bluss/arrayvec"
 keywords = ["stack", "vector", "array", "data-structure", "no_std"]
 
 [dependencies.odds]
-version = "0.2.12"
+version = "0.2.23"
 default-features = false
 
 [dependencies.nodrop]
