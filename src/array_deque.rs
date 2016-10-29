@@ -656,7 +656,7 @@ impl<A: Array> ArrayDeque<A> {
     /// assert_eq!(vector.contains(&10), false);
     /// ```
     pub fn contains(&self, x: &A::Item) -> bool
-        where A::Item: PartialEq<A::Item>
+        where A::Item: PartialEq
     {
         let (a, b) = self.as_slices();
         a.contains(x) || b.contains(x)
@@ -1549,7 +1549,21 @@ impl<A: Array> PartialOrd for ArrayDeque<A>
     where A::Item: PartialOrd
 {
     fn partial_cmp(&self, other: &ArrayDeque<A>) -> Option<Ordering> {
-        self.iter().partial_cmp(other.iter())
+        let mut self_iter = self.iter();
+        let mut other_iter = other.iter();
+        loop {
+            match (self_iter.next(), other_iter.next()) {
+                (None, None) => return Some(Ordering::Equal),
+                (None, _) => return Some(Ordering::Less),
+                (_, None) => return Some(Ordering::Greater),
+                (Some(x), Some(y)) => {
+                    match x.partial_cmp(&y) {
+                        Some(Ordering::Equal) => (),
+                        non_eq => return non_eq,
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -1558,7 +1572,21 @@ impl<A: Array> Ord for ArrayDeque<A>
 {
     #[inline]
     fn cmp(&self, other: &ArrayDeque<A>) -> Ordering {
-        self.iter().cmp(other.iter())
+        let mut self_iter = self.iter();
+        let mut other_iter = other.iter();
+        loop {
+            match (self_iter.next(), other_iter.next()) {
+                (None, None) => return Ordering::Equal,
+                (None, _) => return Ordering::Less,
+                (_, None) => return Ordering::Greater,
+                (Some(x), Some(y)) => {
+                    match x.cmp(&y) {
+                        Ordering::Equal => (),
+                        non_eq => return non_eq,
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -1568,8 +1596,8 @@ impl<A: Array> Hash for ArrayDeque<A>
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.len().hash(state);
         let (a, b) = self.as_slices();
-        Hash::hash_slice(a, state);
-        Hash::hash_slice(b, state);
+        Hash::hash(a, state);
+        Hash::hash(b, state);
     }
 }
 
@@ -2098,8 +2126,12 @@ mod tests {
                     tester.extend(0..CAP);
 
                     let mut expected = vec![0, 1, 2, 3, 4, 5, 6];
+                    let mut expected_drains = vec![];
+                    for _ in 0..(drain_end - drain_start) {
+                        expected_drains.push(expected.remove(drain_start));
+                    }
+
                     let drains: Vec<_> = tester.drain(drain_start..drain_end).collect();
-                    let expected_drains: Vec<_> = expected.drain(drain_start..drain_end).collect();
                     assert_eq!(drains, expected_drains);
                     assert_eq!(tester.len(), expected.len());
                 }
