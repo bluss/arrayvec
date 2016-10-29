@@ -55,6 +55,7 @@ use std::any::Any; // core but unused
 use nodrop::NoDrop;
 
 mod array;
+pub mod array_deque;
 mod array_string;
 mod char_ext;
 
