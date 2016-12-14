@@ -5,9 +5,10 @@ use std::mem;
 use std::ptr;
 use std::ops::{Deref, DerefMut};
 use std::str;
+use std::str::Utf8Error;
 use std::slice;
 
-use array::Array;
+use array::{Array, ArrayExt};
 use array::Index;
 use CapacityError;
 use odds::char::encode_utf8;
@@ -64,6 +65,23 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     pub fn from(s: &str) -> Result<Self, CapacityError<&str>> {
         let mut arraystr = Self::new();
         try!(arraystr.push_str(s));
+        Ok(arraystr)
+    }
+
+    /// Create a new `ArrayString` from a byte string literal.
+    ///
+    /// **Errors** if the byte string literal is not valid UTF-8.
+    ///
+    /// ```
+    /// use arrayvec::ArrayString;
+    ///
+    /// let string = ArrayString::from_byte_string(b"hello world").unwrap();
+    /// ```
+    pub fn from_byte_string(b: &A) -> Result<Self, Utf8Error> {
+        let mut arraystr = Self::new();
+        let s = try!(str::from_utf8(b.as_slice()));
+        let _result = arraystr.push_str(s);
+        debug_assert!(_result.is_ok());
         Ok(arraystr)
     }
 

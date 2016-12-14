@@ -19,6 +19,19 @@ pub trait Index : PartialEq + Copy {
     fn from(usize) -> Self;
 }
 
+use std::slice::{from_raw_parts};
+
+pub trait ArrayExt : Array {
+    #[inline(always)]
+    fn as_slice(&self) -> &[Self::Item] {
+        unsafe {
+            from_raw_parts(self.as_ptr(), Self::capacity())
+        }
+    }
+}
+
+impl<A> ArrayExt for A where A: Array { }
+
 #[cfg(feature = "use_generic_array")]
 unsafe impl<T, U> Array for ::generic_array::GenericArray<T, U>
     where U: ::generic_array::ArrayLength<T>

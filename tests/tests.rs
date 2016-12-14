@@ -347,6 +347,14 @@ fn test_string_from() {
 }
 
 #[test]
+fn test_string_from_bytes() {
+    let text = "hello world";
+    let u = ArrayString::from_byte_string(b"hello world").unwrap();
+    assert_eq!(&u, text);
+    assert_eq!(u.len(), text.len());
+}
+
+#[test]
 fn test_string_clone() {
     let text = "hi";
     let mut s = ArrayString::<[_; 4]>::new();
