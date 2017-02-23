@@ -90,6 +90,11 @@ Recent Changes (arrayvec)
 Recent Changes (nodrop)
 -----------------------
 
+- 0.1.9
+
+  - Fix issue in recent nightly where ``repr(u8)`` did not work. Use
+    a better way to get rid of the enum layout optimization.
+
 - 0.1.8
   
   - Add crate feature ``use_union`` that uses untagged unions to implement NoDrop.
