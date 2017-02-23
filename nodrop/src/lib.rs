@@ -42,7 +42,8 @@ mod imp {
     #[repr(u8)]
     enum Flag<T> {
         Alive(T),
-        Dropped,
+        // Dummy u8 field below, again to beat the enum layout opt
+        Dropped(u8),
     }
 
 
@@ -89,7 +90,7 @@ mod imp {
             if needs_drop::<T>() {
                 // inhibit drop
                 unsafe {
-                    ptr::write(&mut self.0, Flag::Dropped);
+                    ptr::write(&mut self.0, Flag::Dropped(0));
                 }
             }
         }
