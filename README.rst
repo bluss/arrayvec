@@ -22,6 +22,11 @@ __ https://bluss.github.io/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.3.21
+
+  - Use ``encode_utf8`` from crate odds
+  - Add constructor ``ArrayString::from_byte_string``
+
 - 0.3.20
 
   - Simplify and speed up ``ArrayString``’s ``.push(char)``-
