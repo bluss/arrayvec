@@ -32,24 +32,6 @@ pub trait ArrayExt : Array {
 
 impl<A> ArrayExt for A where A: Array { }
 
-#[cfg(feature = "use_generic_array")]
-unsafe impl<T, U> Array for ::generic_array::GenericArray<T, U>
-    where U: ::generic_array::ArrayLength<T>
-{
-    type Item = T;
-    type Index = usize;
-    fn as_ptr(&self) -> *const Self::Item {
-        (**self).as_ptr()
-    }
-    fn as_mut_ptr(&mut self) -> *mut Self::Item {
-        (**self).as_mut_ptr()
-    }
-    fn capacity() -> usize {
-        U::to_usize()
-    }
-
-}
-
 impl Index for u8 {
     #[inline(always)]
     fn to_usize(self) -> usize { self as usize }

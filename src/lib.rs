@@ -14,18 +14,10 @@
 //!   - Use the unstable feature untagged unions for the internal implementation,
 //!     which has reduced space overhead
 //!
-//! - `use_generic_array`
-//!   - Optional
-//!   - Requires Rust stable channel
-//!   - Depend on generic-array and allow using it just like a fixed
-//!     size array for ArrayVec storage.
 #![doc(html_root_url="https://docs.rs/arrayvec/0.3/")]
 #![cfg_attr(not(feature="std"), no_std)]
 extern crate odds;
 extern crate nodrop;
-
-#[cfg(feature = "use_generic_array")]
-extern crate generic_array;
 
 #[cfg(not(feature="std"))]
 extern crate core as std;
