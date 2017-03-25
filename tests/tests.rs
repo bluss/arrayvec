@@ -435,3 +435,9 @@ fn test_drop_in_insert() {
     }
     assert_eq!(flag.get(), 3);
 }
+
+#[test]
+fn test_sizes() {
+    let v = ArrayVec::from([0u8; 1 << 16]);
+    assert_eq!(vec![0u8; v.len()], &v[..]);
+}
