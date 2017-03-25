@@ -22,6 +22,10 @@ __ https://bluss.github.io/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.3.22
+
+  - Implement ``Array`` for the 65536 size
+
 - 0.3.21
 
   - Use ``encode_utf8`` from crate odds
