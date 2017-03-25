@@ -20,6 +20,7 @@ matrix:
 branches:
   only:
     - master
+    - 0.3
 script:
   - |
       ([ ! -z "$NODROP_FEATURES" ] || cargo build --verbose --features "$FEATURES") &&
