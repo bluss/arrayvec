@@ -450,3 +450,9 @@ fn test_pop_at() {
     assert_eq!(v.pop_at(2), None);
     assert_eq!(&v[..], &["a", "d"]);
 }
+
+#[test]
+fn test_sizes() {
+    let v = ArrayVec::from([0u8; 1 << 16]);
+    assert_eq!(vec![0u8; v.len()], &v[..]);
+}
