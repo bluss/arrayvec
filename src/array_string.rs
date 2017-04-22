@@ -1,4 +1,5 @@
 use std::borrow::Borrow;
+use std::cmp;
 use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::mem;
@@ -281,10 +282,45 @@ impl<A: Array<Item=u8> + Copy> Clone for ArrayString<A> {
     fn clone(&self) -> ArrayString<A> {
         *self
     }
-
     fn clone_from(&mut self, rhs: &Self) {
         // guaranteed to fit due to types matching.
         self.clear();
         self.push_str(rhs).ok();
+    }
+}
+
+impl<A: Array<Item=u8>> PartialOrd for ArrayString<A> {
+    fn partial_cmp(&self, rhs: &Self) -> Option<cmp::Ordering> {
+        (**self).partial_cmp(&**rhs)
+    }
+    fn lt(&self, rhs: &Self) -> bool { **self < **rhs }
+    fn le(&self, rhs: &Self) -> bool { **self <= **rhs }
+    fn gt(&self, rhs: &Self) -> bool { **self > **rhs }
+    fn ge(&self, rhs: &Self) -> bool { **self >= **rhs }
+}
+
+impl<A: Array<Item=u8>> PartialOrd<str> for ArrayString<A> {
+    fn partial_cmp(&self, rhs: &str) -> Option<cmp::Ordering> {
+        (**self).partial_cmp(rhs)
+    }
+    fn lt(&self, rhs: &str) -> bool { &**self < rhs }
+    fn le(&self, rhs: &str) -> bool { &**self <= rhs }
+    fn gt(&self, rhs: &str) -> bool { &**self > rhs }
+    fn ge(&self, rhs: &str) -> bool { &**self >= rhs }
+}
+
+impl<A: Array<Item=u8>> PartialOrd<ArrayString<A>> for str {
+    fn partial_cmp(&self, rhs: &ArrayString<A>) -> Option<cmp::Ordering> {
+        self.partial_cmp(&**rhs)
+    }
+    fn lt(&self, rhs: &ArrayString<A>) -> bool { self < &**rhs }
+    fn le(&self, rhs: &ArrayString<A>) -> bool { self <= &**rhs }
+    fn gt(&self, rhs: &ArrayString<A>) -> bool { self > &**rhs }
+    fn ge(&self, rhs: &ArrayString<A>) -> bool { self >= &**rhs }
+}
+
+impl<A: Array<Item=u8>> Ord for ArrayString<A> {
+    fn cmp(&self, rhs: &Self) -> cmp::Ordering {
+        (**self).cmp(&**rhs)
     }
 }
