@@ -47,6 +47,7 @@ use std::any::Any; // core but unused
 use nodrop::NoDrop;
 
 mod array;
+pub mod array_deque;
 mod array_string;
 
 pub use array::Array;
