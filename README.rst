@@ -22,6 +22,11 @@ __ https://bluss.github.io/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.3.23
+
+  - Implement ``PartialOrd, Ord`` as well as ``PartialOrd<str>`` for
+    ``ArrayString``.
+
 - 0.3.22
 
   - Implement ``Array`` for the 65536 size
