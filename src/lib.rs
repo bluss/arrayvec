@@ -164,15 +164,41 @@ impl<A: Array> ArrayVec<A> {
     /// ```
     pub fn push(&mut self, element: A::Item) -> Option<A::Item> {
         if self.len() < A::capacity() {
-            let len = self.len();
             unsafe {
-                ptr::write(self.get_unchecked_mut(len), element);
-                self.set_len(len + 1);
+                self.push_unchecked(element);
             }
             None
         } else {
             Some(element)
         }
+    }
+
+    /// Push `element` to the end of the vector without checking the capacity.
+    ///
+    /// It is up to the caller to ensure the capacity of the vector is
+    /// sufficiently large.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::<[_; 2]>::new();
+    ///
+    /// if array.len() + 2 <= array.capacity() {
+    ///     unsafe {
+    ///         array.push_unchecked(1);
+    ///         array.push_unchecked(2);
+    ///     }
+    /// }
+    ///
+    /// assert_eq!(&array[..], &[1, 2]);
+    /// ```
+    #[inline]
+    pub unsafe fn push_unchecked(&mut self, element: A::Item) {
+        let len = self.len();
+        ptr::write(self.get_unchecked_mut(len), element);
+        self.set_len(len + 1);
     }
 
     /// Insert `element` in position `index`.
