@@ -695,7 +695,9 @@ impl<A: Array> Extend<A::Item> for ArrayVec<A> {
     fn extend<T: IntoIterator<Item=A::Item>>(&mut self, iter: T) {
         let take = self.capacity() - self.len();
         for elt in iter.into_iter().take(take) {
-            self.push(elt);
+            unsafe {
+                self.push_unchecked(elt);
+            }
         }
     }
 }
