@@ -197,6 +197,7 @@ impl<A: Array> ArrayVec<A> {
     #[inline]
     pub unsafe fn push_unchecked(&mut self, element: A::Item) {
         let len = self.len();
+        debug_assert!(len < A::capacity());
         ptr::write(self.get_unchecked_mut(len), element);
         self.set_len(len + 1);
     }
