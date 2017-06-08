@@ -18,6 +18,8 @@
 #![cfg_attr(not(feature="std"), no_std)]
 extern crate odds;
 extern crate nodrop;
+#[cfg(feature="serde")]
+extern crate serde;
 
 #[cfg(not(feature="std"))]
 extern crate core as std;
@@ -45,6 +47,9 @@ use std::error::Error;
 use std::any::Any; // core but unused
 
 use nodrop::NoDrop;
+
+#[cfg(feature="serde")]
+use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
 mod array;
 mod array_string;
@@ -819,6 +824,51 @@ impl<A: Array<Item=u8>> io::Write for ArrayVec<A> {
         }
     }
     fn flush(&mut self) -> io::Result<()> { Ok(()) }
+}
+
+#[cfg(feature="serde")]
+impl<T: Serialize, A: Array<Item=T>> Serialize for ArrayVec<A> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        serializer.collect_seq(self)
+    }
+}
+
+#[cfg(feature="serde")]
+impl<'de, T: Deserialize<'de>, A: Array<Item=T>> Deserialize<'de> for ArrayVec<A> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de>
+    {
+        use serde::de::{Visitor, SeqAccess, Error};
+        use std::marker::PhantomData;
+
+        struct ArrayVecVisitor<'de, T: Deserialize<'de>, A: Array<Item=T>>(PhantomData<(&'de (), T, A)>);
+
+        impl<'de, T: Deserialize<'de>, A: Array<Item=T>> Visitor<'de> for ArrayVecVisitor<'de, T, A> {
+            type Value = ArrayVec<A>;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                write!(formatter, "an array with no more than {} elements", A::capacity())
+            }
+
+            fn visit_seq<SA>(self, mut seq: SA) -> Result<Self::Value, SA::Error>
+                where SA: SeqAccess<'de>,
+            {
+                let mut values = ArrayVec::<A>::new();
+
+                while let Some(value) = try!(seq.next_element()) {
+                    if let Some(_) = values.push(value) {
+                        return Err(SA::Error::invalid_length(A::capacity() + 1, &self));
+                    }
+                }
+
+                Ok(values)
+            }
+        }
+
+        deserializer.deserialize_seq(ArrayVecVisitor::<T, A>(PhantomData))
+    }
 }
 
 /// Error value indicating insufficient capacity
