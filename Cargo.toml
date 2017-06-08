@@ -31,3 +31,4 @@ version = "1.0"
 default = ["std"]
 std = ["odds/std", "nodrop/std"]
 use_union = ["nodrop/use_union"]
+serde-1 = ["serde"]

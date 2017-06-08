@@ -1,7 +1,7 @@
 language: rust
 sudo: false
 env:
-  - FEATURES='serde'
+  - FEATURES='serde-1'
 matrix:
   include:
     - rust: 1.12.0

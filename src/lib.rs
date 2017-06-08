@@ -18,7 +18,7 @@
 #![cfg_attr(not(feature="std"), no_std)]
 extern crate odds;
 extern crate nodrop;
-#[cfg(feature="serde")]
+#[cfg(feature="serde-1")]
 extern crate serde;
 
 #[cfg(not(feature="std"))]
@@ -48,7 +48,7 @@ use std::any::Any; // core but unused
 
 use nodrop::NoDrop;
 
-#[cfg(feature="serde")]
+#[cfg(feature="serde-1")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
 mod array;
@@ -826,7 +826,7 @@ impl<A: Array<Item=u8>> io::Write for ArrayVec<A> {
     fn flush(&mut self) -> io::Result<()> { Ok(()) }
 }
 
-#[cfg(feature="serde")]
+#[cfg(feature="serde-1")]
 impl<T: Serialize, A: Array<Item=T>> Serialize for ArrayVec<A> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer
@@ -835,7 +835,7 @@ impl<T: Serialize, A: Array<Item=T>> Serialize for ArrayVec<A> {
     }
 }
 
-#[cfg(feature="serde")]
+#[cfg(feature="serde-1")]
 impl<'de, T: Deserialize<'de>, A: Array<Item=T>> Deserialize<'de> for ArrayVec<A> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where D: Deserializer<'de>
