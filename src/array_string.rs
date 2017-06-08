@@ -14,6 +14,9 @@ use array::Index;
 use CapacityError;
 use odds::char::encode_utf8;
 
+#[cfg(feature="serde")]
+use serde::{Serialize, Deserialize, Serializer, Deserializer};
+
 /// A string with a fixed capacity.
 ///
 /// The `ArrayString` is a string backed by a fixed size array. It keeps track
@@ -322,5 +325,50 @@ impl<A: Array<Item=u8>> PartialOrd<ArrayString<A>> for str {
 impl<A: Array<Item=u8>> Ord for ArrayString<A> {
     fn cmp(&self, rhs: &Self) -> cmp::Ordering {
         (**self).cmp(&**rhs)
+    }
+}
+
+#[cfg(feature="serde")]
+impl<A: Array<Item=u8>> Serialize for ArrayString<A> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer
+    {
+        serializer.serialize_str(&*self)
+    }
+}
+
+#[cfg(feature="serde")]
+impl<'de, A: Array<Item=u8>> Deserialize<'de> for ArrayString<A> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de>
+    {
+        use serde::de::{self, Visitor};
+        use std::marker::PhantomData;
+
+        struct ArrayStringVisitor<A: Array<Item=u8>>(PhantomData<A>);
+
+        impl<'de, A: Array<Item=u8>> Visitor<'de> for ArrayStringVisitor<A> {
+            type Value = ArrayString<A>;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                write!(formatter, "a string with no more than {} elements", A::capacity())
+            }
+
+            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+                where E: de::Error,
+            {
+                ArrayString::from(v).map_err(|_| E::invalid_length(v.len(), &self))
+            }
+
+            fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
+                where E: de::Error,
+            {
+                let s = try!(str::from_utf8(v).map_err(|_| E::invalid_value(de::Unexpected::Bytes(v), &self)));
+
+                ArrayString::from(s).map_err(|_| E::invalid_length(s.len(), &self))
+            }
+        }
+
+        deserializer.deserialize_str(ArrayStringVisitor::<A>(PhantomData))
     }
 }
