@@ -5,7 +5,7 @@ matrix:
     - rust: 1.2.0
     - rust: stable
       env:
-        - FEATURES="use_generic_array"
+        - FEATURES="use_generic_array serde"
         - NODEFAULT=1
     - rust: beta
     - rust: nightly
@@ -16,7 +16,7 @@ matrix:
       - NODROP_FEATURES='use_needs_drop'
     - rust: nightly
       env:
-      - FEATURES='use_union use_generic_array'
+      - FEATURES='use_union use_generic_array serde'
       - NODROP_FEATURES='use_union'
 branches:
   only:
