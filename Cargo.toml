@@ -19,7 +19,16 @@ version = "0.1.8"
 path = "nodrop"
 default-features = false
 
+[dependencies.serde]
+version = "1.0"
+default-features = false
+optional = true
+
 [features]
-default = ["std"]
-std = ["odds/std", "nodrop/std"]
+default = ["std", "use_serde"]
+std = ["odds/std", "nodrop/std", "serde/std"]
 use_union = ["nodrop/use_union"]
+use_serde = ["serde"]
+
+[dev-dependencies]
+serde_test = "1.0"

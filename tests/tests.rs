@@ -1,4 +1,7 @@
 extern crate arrayvec;
+extern crate serde;
+extern crate serde_test;
+
 
 use arrayvec::ArrayVec;
 use arrayvec::ArrayString;
@@ -434,4 +437,76 @@ fn test_drop_in_insert() {
         assert_eq!(flag.get(), 1);
     }
     assert_eq!(flag.get(), 3);
+}
+
+#[test]
+fn test_serde_arrayvec_empty() {
+    use serde_test::{Token, assert_tokens};
+    let v = ArrayVec::<[u64; 5]>::new();
+    assert_tokens(&v, &[
+        Token::Seq { len: Some(0) },
+        Token::SeqEnd,
+    ]);
+}
+
+#[test]
+fn test_serde_arrayvec() {
+    use serde_test::{Token, assert_tokens};
+    let mut v = ArrayVec::<[u64; 5]>::new();
+    v.push(1);
+    v.push(2);
+    v.push(3);
+    v.push(4);
+    v.push(5);
+    assert_tokens(&v, &[
+        Token::Seq { len: Some(5) },
+        Token::U64(1),
+        Token::U64(2),
+        Token::U64(3),
+        Token::U64(4),
+        Token::U64(5),
+        Token::SeqEnd,
+    ]);
+}
+
+#[test]
+fn test_serde_arrayvec_fail() {
+    use serde_test::{Token, assert_de_tokens_error};
+        assert_de_tokens_error::<ArrayVec<[u64; 4]>>(&[
+        Token::Seq { len: Some(5) },
+        Token::U64(1),
+        Token::U64(2),
+        Token::U64(3),
+        Token::U64(4),
+        Token::U64(5),
+        Token::SeqEnd,
+    ], "Too many elements");
+}
+
+#[test]
+fn test_serde_arraystring_empty() {
+    use serde_test::{Token, assert_tokens};
+    let s = "";
+    let v = ArrayString::<[u8; 16]>::from(s).unwrap();
+    assert_tokens(&v, &[
+        Token::Str(s),
+    ]);
+}
+
+#[test]
+fn test_serde_arraystring() {
+    use serde_test::{Token, assert_tokens};
+    let s = "hello";
+    let v = ArrayString::<[u8; 16]>::from(s).unwrap();
+    assert_tokens(&v, &[
+        Token::Str(s),
+    ]);
+}
+
+#[test]
+fn test_serde_arraystring_fail() {
+    use serde_test::{Token, assert_de_tokens_error};
+    assert_de_tokens_error::<ArrayString<[u8; 3]>>(&[
+        Token::Str("hello world"),
+    ], "String too large");
 }
