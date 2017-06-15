@@ -849,7 +849,7 @@ impl<'de, T: Deserialize<'de>, A: Array<Item=T>> Deserialize<'de> for ArrayVec<A
             type Value = ArrayVec<A>;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                write!(formatter, "an array with no more than {} elements", A::capacity())
+                write!(formatter, "an array with no more than {} items", A::capacity())
             }
 
             fn visit_seq<SA>(self, mut seq: SA) -> Result<Self::Value, SA::Error>
