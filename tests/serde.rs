@@ -5,7 +5,7 @@ extern crate serde_test;
 mod array_vec {
     use arrayvec::ArrayVec;
 
-    use serde_test::{Token, assert_tokens};
+    use serde_test::{Token, assert_tokens, assert_de_tokens_error};
 
     #[test]
     fn test_ser_de_empty() {
@@ -33,12 +33,22 @@ mod array_vec {
             Token::SeqEnd,
         ]);
     }
+
+    #[test]
+    fn test_de_too_large() {
+        assert_de_tokens_error::<ArrayVec<[u32; 2]>>(&[
+            Token::Seq { len: Some(3) },
+            Token::U32(13),
+            Token::U32(42),
+            Token::U32(68),
+        ], "invalid length 3, expected an array with no more than 2 items");
+    }
 }
 
 mod array_string {
     use arrayvec::ArrayString;
 
-    use serde_test::{Token, assert_tokens};
+    use serde_test::{Token, assert_tokens, assert_de_tokens_error};
 
     #[test]
     fn test_ser_de_empty() {
@@ -58,5 +68,12 @@ mod array_string {
         assert_tokens(&string, &[
             Token::Str("1234 abcd"),
         ]);
+    }
+
+    #[test]
+    fn test_de_too_large() {
+        assert_de_tokens_error::<ArrayString<[u8; 2]>>(&[
+            Token::Str("afd")
+        ], "invalid length 3, expected a string no more than 2 bytes long");
     }
 }
