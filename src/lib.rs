@@ -53,9 +53,10 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
 mod array;
 mod array_string;
+mod range;
 
 pub use array::Array;
-pub use odds::IndexRange as RangeArgument;
+pub use range::RangeArgument;
 use array::Index;
 pub use array_string::ArrayString;
 
