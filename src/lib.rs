@@ -277,10 +277,10 @@ impl<A: Array> ArrayVec<A> {
     /// ```
     pub fn try_insert(&mut self, index: usize, element: A::Item) -> Result<(), InsertError<A::Item>> {
         if self.len() == self.capacity() {
-            return Err(InsertError::Full(element));
+            return Err(InsertError::Capacity(CapacityError::new(element)));
         }
         if index > self.len() {
-            return Err(InsertError::OutOfBounds);
+            return Err(InsertError::OutOfBounds(OutOfBoundsError::new()));
         }
         let len = self.len();
 
@@ -365,10 +365,10 @@ impl<A: Array> ArrayVec<A> {
     ///
     /// assert!(array.try_swap_remove(10).is_err());
     /// ```
-    pub fn try_swap_remove(&mut self, index: usize) -> Result<A::Item, RemoveError> {
+    pub fn try_swap_remove(&mut self, index: usize) -> Result<A::Item, OutOfBoundsError> {
         let len = self.len();
         if index >= len {
-            return Err(RemoveError::new())
+            return Err(OutOfBoundsError::new())
         }
         self.swap(index, len - 1);
         self.pop().ok_or_else(|| panic!())
@@ -411,9 +411,9 @@ impl<A: Array> ArrayVec<A> {
     /// assert!(array.try_remove(2).is_err());
     /// assert!(array.try_remove(10).is_err());
     /// ```
-    pub fn try_remove(&mut self, index: usize) -> Result<A::Item, RemoveError> {
+    pub fn try_remove(&mut self, index: usize) -> Result<A::Item, OutOfBoundsError> {
         if index >= self.len() {
-            Err(RemoveError::new())
+            Err(OutOfBoundsError::new())
         } else {
             self.drain(index..index + 1).next().ok_or_else(|| panic!())
         }

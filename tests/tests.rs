@@ -4,6 +4,7 @@ extern crate arrayvec;
 use arrayvec::ArrayVec;
 use arrayvec::ArrayString;
 use std::mem;
+use arrayvec::errors::InsertError;
 
 use std::collections::HashMap;
 
@@ -226,18 +227,19 @@ fn test_insert() {
     let mut v = ArrayVec::<[_; 3]>::new();
     v.insert(0, 0);
     v.insert(1, 1);
-    v.insert(2, 2);
     let ret1 = v.try_insert(3, 3);
+    assert_matches!(ret1, Err(InsertError::OutOfBounds(_)));
+    assert_eq!(&v[..], &[0, 1]);
+    v.insert(2, 2);
     assert_eq!(&v[..], &[0, 1, 2]);
-    assert_matches!(ret1, Err(_));
 
     let ret2 = v.try_insert(1, 9);
     assert_eq!(&v[..], &[0, 1, 2]);
     assert_matches!(ret2, Err(_));
 
     let mut v = ArrayVec::from([2]);
-    assert_matches!(v.try_insert(1, 1), Err(_));
-    assert_matches!(v.try_insert(2, 1), Err(_));
+    assert_matches!(v.try_insert(1, 1), Err(InsertError::Capacity(_)));
+    assert_matches!(v.try_insert(2, 1), Err(InsertError::Capacity(_)));
 }
 
 #[test]

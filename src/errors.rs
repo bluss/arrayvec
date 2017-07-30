@@ -51,15 +51,15 @@ impl<T> fmt::Debug for CapacityError<T> {
 }
 
 pub enum InsertError<T> {
-    Full(T),
-    OutOfBounds,
+    Capacity(CapacityError<T>),
+    OutOfBounds(OutOfBoundsError),
 }
 
 impl<T> InsertError<T> {
     fn description(&self) -> &'static str {
         match *self {
-            InsertError::Full(_) => "ArrayVec is already at full capacity",
-            InsertError::OutOfBounds => "index is out of bounds",
+            InsertError::Capacity(_) => "ArrayVec is already at full capacity",
+            InsertError::OutOfBounds(_) => "index is out of bounds",
         }
     }
 }
@@ -69,6 +69,12 @@ impl<T> InsertError<T> {
 impl<T: Any> Error for InsertError<T> {
     fn description(&self) -> &str {
         self.description()
+    }
+    fn cause(&self) -> Option<&Error> {
+        match *self {
+            InsertError::Capacity(ref e) => Some(e as &Error),
+            InsertError::OutOfBounds(ref e) => Some(e as &Error),
+        }
     }
 }
 
@@ -81,20 +87,20 @@ impl<T> fmt::Display for InsertError<T> {
 impl<T> fmt::Debug for InsertError<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            InsertError::Full(_) => write!(f, "InsertError::Full: ")?,
-            InsertError::OutOfBounds => write!(f, "InsertError::OutOfBounds: ")?,
+            InsertError::Capacity(_) => write!(f, "InsertError::Capacity: ")?,
+            InsertError::OutOfBounds(_) => write!(f, "InsertError::OutOfBounds: ")?,
         }
         write!(f, "{}", self.description())
     }
 }
 
-pub struct RemoveError {
+pub struct OutOfBoundsError {
     _priv: ()
 }
 
-impl RemoveError {
+impl OutOfBoundsError {
     pub(crate) fn new() -> Self {
-        RemoveError { _priv: () }
+        OutOfBoundsError { _priv: () }
     }
 
     fn description(&self) -> &'static str {
@@ -104,20 +110,20 @@ impl RemoveError {
 
 #[cfg(feature="std")]
 /// Requires `features="std"`.
-impl Error for RemoveError {
+impl Error for OutOfBoundsError {
     fn description(&self) -> &str {
         self.description()
     }
 }
 
-impl fmt::Display for RemoveError {
+impl fmt::Display for OutOfBoundsError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.description())
     }
 }
 
-impl fmt::Debug for RemoveError {
+impl fmt::Debug for OutOfBoundsError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "RemoveError: {}", self.description())
+        write!(f, "OutOfBoundsError: {}", self.description())
     }
 }
