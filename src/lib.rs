@@ -14,6 +14,9 @@
 //!   - Use the unstable feature untagged unions for the internal implementation,
 //!     which has reduced space overhead
 //!
+//! - `use_serde`
+//! - Optional
+//! - Support Serde serialization and deserialization.
 #![doc(html_root_url="https://docs.rs/arrayvec/0.3/")]
 #![cfg_attr(not(feature="std"), no_std)]
 extern crate odds;
@@ -21,6 +24,9 @@ extern crate nodrop;
 
 #[cfg(not(feature="std"))]
 extern crate core as std;
+
+#[cfg(feature="use_serde")]
+extern crate serde;
 
 use std::cmp;
 use std::iter;
@@ -895,3 +901,8 @@ impl<T> fmt::Debug for CapacityError<T> {
         write!(f, "{}: {}", "CapacityError", CAPERROR)
     }
 }
+
+#[cfg(feature="use_serde")]
+mod serde_impls;
+#[cfg(feature="use_serde")]
+pub use serde_impls::*;
