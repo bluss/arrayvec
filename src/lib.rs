@@ -329,25 +329,48 @@ impl<A: Array> ArrayVec<A> {
     ///
     /// This operation is O(1).
     ///
-    /// Return `Some(` *element* `)` if the index is in bounds, else `None`.
+    /// Return *element* if the index is in bound, else panic.
+    ///
+    /// ***Panics*** if the `index` is out of bounds.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
     ///
     /// let mut array = ArrayVec::from([1, 2, 3]);
     ///
-    /// assert_eq!(array.swap_remove(0), Some(1));
+    /// assert_eq!(array.swap_remove(0), 1);
     /// assert_eq!(&array[..], &[3, 2]);
     ///
-    /// assert_eq!(array.swap_remove(10), None);
+    /// assert_eq!(array.swap_remove(1), 2);
+    /// assert_eq!(&array[..], &[3]);
     /// ```
-    pub fn swap_remove(&mut self, index: usize) -> Option<A::Item> {
+    pub fn swap_remove(&mut self, index: usize) -> A::Item {
+        self.try_swap_remove(index).unwrap()
+    }
+
+    /// Remove the element at `index` and swap the last element into its place.
+    ///
+    /// This operation is O(1).
+    ///
+    /// Return `Ok(` *element* `)` if the index is in bounds, else an error.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::from([1, 2, 3]);
+    ///
+    /// assert!(array.try_swap_remove(0).is_ok());
+    /// assert_eq!(&array[..], &[3, 2]);
+    ///
+    /// assert!(array.try_swap_remove(10).is_err());
+    /// ```
+    pub fn try_swap_remove(&mut self, index: usize) -> Result<A::Item, RemoveError> {
         let len = self.len();
         if index >= len {
-            return None
+            return Err(RemoveError::new())
         }
         self.swap(index, len - 1);
-        self.pop()
+        self.pop().ok_or_else(|| panic!())
     }
 
     /// Remove the element at `index` and shift down the following elements.
