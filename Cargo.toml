@@ -35,3 +35,6 @@ default = ["std"]
 std = ["odds/std", "nodrop/std"]
 use_union = ["nodrop/use_union"]
 serde-1 = ["serde"]
+
+[package.metadata.docs.rs]
+features = ["serde-1"]
