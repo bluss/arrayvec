@@ -170,8 +170,8 @@ impl<A: Array> ArrayVec<A> {
 
     /// Push `element` to the end of the vector.
     ///
-    /// Return `None` if the push succeeds, or and return `Some(` *element* `)`
-    /// if the vector is full.
+    /// Return `Ok` if the push succeeds, or and return an error if the vector
+    /// is full.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
@@ -207,7 +207,7 @@ impl<A: Array> ArrayVec<A> {
     /// It is up to the caller to ensure the capacity of the vector is
     /// sufficiently large.
     ///
-    /// # Examples
+    /// May use debug assertions to check that the arrayvec is not full.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
@@ -460,7 +460,8 @@ impl<A: Array> ArrayVec<A> {
 
     /// Set the vector's length without dropping or moving out elements
     ///
-    /// May panic if `length` is greater than the capacity.
+    /// May use debug assertions to check that `length` is not greater than the
+    /// capacity.
     ///
     /// This function is `unsafe` because it changes the notion of the
     /// number of “valid” elements in the vector. Use with care.
