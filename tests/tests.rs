@@ -1,4 +1,5 @@
 extern crate arrayvec;
+#[macro_use] extern crate matches;
 
 use arrayvec::ArrayVec;
 use arrayvec::ArrayString;
@@ -218,20 +219,23 @@ fn test_drop_panic_into_iter() {
 fn test_insert() {
     let mut v = ArrayVec::from([]);
     assert_eq!(v.push(1), Some(1));
-    assert_eq!(v.insert(0, 1), Some(1));
+    assert_matches!(v.try_insert(0, 1), Err(_));
 
     let mut v = ArrayVec::<[_; 3]>::new();
     v.insert(0, 0);
     v.insert(1, 1);
     v.insert(2, 2);
-    v.insert(3, 3);
+    let ret1 = v.try_insert(3, 3);
     assert_eq!(&v[..], &[0, 1, 2]);
-    v.insert(1, 9);
-    assert_eq!(&v[..], &[0, 9, 1]);
+    assert_matches!(ret1, Err(_));
+
+    let ret2 = v.try_insert(1, 9);
+    assert_eq!(&v[..], &[0, 1, 2]);
+    assert_matches!(ret2, Err(_));
 
     let mut v = ArrayVec::from([2]);
-    assert_eq!(v.insert(1, 1), Some(1));
-    assert_eq!(v.insert(2, 1), Some(1));
+    assert_matches!(v.try_insert(1, 1), Err(_));
+    assert_matches!(v.try_insert(2, 1), Err(_));
 }
 
 #[test]
@@ -372,27 +376,31 @@ fn test_string_push() {
 #[test]
 fn test_insert_at_length() {
     let mut v = ArrayVec::<[_; 8]>::new();
-    let result1 = v.insert(0, "a");
-    let result2 = v.insert(1, "b");
-    assert!(result1.is_none() && result2.is_none());
+    let result1 = v.try_insert(0, "a");
+    let result2 = v.try_insert(1, "b");
+    assert!(result1.is_ok() && result2.is_ok());
     assert_eq!(&v[..], &["a", "b"]);
 }
 
 #[test]
 fn test_insert_out_of_bounds() {
     let mut v = ArrayVec::<[_; 8]>::new();
-    let result = v.insert(1, "test");
-    assert_eq!(result, Some("test"));
+    let result = v.try_insert(1, "test");
+    assert_matches!(result, Err(_));
     assert_eq!(v.len(), 0);
 
-    let mut u = ArrayVec::from([1, 2, 3, 4]);
-    let ret = u.insert(3, 99);
-    assert_eq!(&u[..], &[1, 2, 3, 99]);
-    assert_eq!(ret, Some(4));
-    let ret = u.insert(4, 77);
-    assert_eq!(&u[..], &[1, 2, 3, 99]);
-    assert_eq!(ret, Some(77));
 }
+
+/*
+ * insert that pushes out the last
+    let mut u = ArrayVec::from([1, 2, 3, 4]);
+    let ret = u.try_insert(3, 99);
+    assert_eq!(&u[..], &[1, 2, 3, 99]);
+    assert_matches!(ret, Err(_));
+    let ret = u.try_insert(4, 77);
+    assert_eq!(&u[..], &[1, 2, 3, 99]);
+    assert_matches!(ret, Err(_));
+*/
 
 #[test]
 fn test_drop_in_insert() {
@@ -416,9 +424,9 @@ fn test_drop_in_insert() {
         array.push(Bump(flag));
         array.insert(0, Bump(flag));
         assert_eq!(flag.get(), 0);
-        let ret = array.insert(1, Bump(flag));
+        let ret = array.try_insert(1, Bump(flag));
         assert_eq!(flag.get(), 0);
-        assert!(ret.is_some());
+        assert_matches!(ret, Err(_));
         drop(ret);
         assert_eq!(flag.get(), 1);
     }
