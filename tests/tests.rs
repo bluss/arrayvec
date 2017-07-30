@@ -31,9 +31,9 @@ fn test_u16_index() {
     const N: usize = 4096;
     let mut vec: ArrayVec<[_; N]> = ArrayVec::new();
     for _ in 0..N {
-        assert!(vec.push(1u8).is_none());
+        assert!(vec.try_push(1u8).is_ok());
     }
-    assert!(vec.push(0).is_some());
+    assert!(vec.try_push(0).is_err());
     assert_eq!(vec.len(), N);
 }
 
@@ -78,7 +78,9 @@ fn test_drop() {
         array.push(vec![Bump(flag)]);
         array.push(vec![Bump(flag), Bump(flag)]);
         array.push(vec![]);
-        array.push(vec![Bump(flag)]);
+        let push4 = array.try_push(vec![Bump(flag)]);
+        assert_eq!(flag.get(), 0);
+        drop(push4);
         assert_eq!(flag.get(), 1);
         drop(array.pop());
         assert_eq!(flag.get(), 1);
@@ -218,7 +220,7 @@ fn test_drop_panic_into_iter() {
 #[test]
 fn test_insert() {
     let mut v = ArrayVec::from([]);
-    assert_eq!(v.push(1), Some(1));
+    assert_matches!(v.try_push(1), Err(_));
     assert_matches!(v.try_insert(0, 1), Err(_));
 
     let mut v = ArrayVec::<[_; 3]>::new();

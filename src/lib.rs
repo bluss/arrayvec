@@ -151,8 +151,7 @@ impl<A: Array> ArrayVec<A> {
 
     /// Push `element` to the end of the vector.
     ///
-    /// Return `None` if the push succeeds, or and return `Some(` *element* `)`
-    /// if the vector is full.
+    /// ***Panics*** if the array is already full.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
@@ -161,21 +160,46 @@ impl<A: Array> ArrayVec<A> {
     ///
     /// array.push(1);
     /// array.push(2);
-    /// let overflow = array.push(3);
     ///
     /// assert_eq!(&array[..], &[1, 2]);
-    /// assert_eq!(overflow, Some(3));
     /// ```
-    pub fn push(&mut self, element: A::Item) -> Option<A::Item> {
+    pub fn push(&mut self, element: A::Item) {
+        self.try_push(element).unwrap()
+    }
+
+    /// Push `element` to the end of the vector.
+    ///
+    /// Return `None` if the push succeeds, or and return `Some(` *element* `)`
+    /// if the vector is full.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::<[_; 2]>::new();
+    ///
+    /// let push1 = array.try_push(1);
+    /// let push2 = array.try_push(2);
+    ///
+    /// assert!(push1.is_ok());
+    /// assert!(push2.is_ok());
+    ///
+    /// let overflow = array.try_push(3);
+    ///
+    /// assert_eq!(&array[..], &[1, 2]);
+    ///
+    /// assert!(overflow.is_err());
+    /// ```
+    pub fn try_push(&mut self, element: A::Item) -> Result<(), CapacityError<A::Item>> {
         if self.len() < A::capacity() {
             unsafe {
                 self.push_unchecked(element);
             }
-            None
+            Ok(())
         } else {
-            Some(element)
+            Err(CapacityError::new(element))
         }
     }
+
 
     /// Push `element` to the end of the vector without checking the capacity.
     ///
