@@ -5,7 +5,6 @@
 //!
 //! - `std`
 //!   - Optional, enabled by default
-//!   - Requires Rust 1.6 *to disable*
 //!   - Use libstd
 //!
 //! - `use_union`
@@ -13,6 +12,8 @@
 //!   - Requires Rust nightly channel
 //!   - Use the unstable feature untagged unions for the internal implementation,
 //!     which has reduced space overhead
+//!
+//! **arrayvec Requires Rust 1.18**
 //!
 #![doc(html_root_url="https://docs.rs/arrayvec/0.3/")]
 #![cfg_attr(not(feature="std"), no_std)]
