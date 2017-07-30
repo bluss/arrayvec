@@ -307,7 +307,7 @@ fn test_string() {
 
     let text = "hello world";
     let mut s = ArrayString::<[_; 16]>::new();
-    s.push_str(text).unwrap();
+    s.try_push_str(text).unwrap();
     assert_eq!(&s, text);
     assert_eq!(text, &s);
 
@@ -317,10 +317,10 @@ fn test_string() {
     assert_eq!(map[text], 1);
 
     let mut t = ArrayString::<[_; 2]>::new();
-    assert!(t.push_str(text).is_err());
+    assert!(t.try_push_str(text).is_err());
     assert_eq!(&t, "");
 
-    t.push_str("ab").unwrap();
+    t.push_str("ab");
     // DerefMut
     let tmut: &mut str = &mut t;
     assert_eq!(tmut, "ab");
@@ -328,7 +328,7 @@ fn test_string() {
     // Test Error trait / try
     let t = || -> Result<(), Box<Error>> {
         let mut t = ArrayString::<[_; 2]>::new();
-        try!(t.push_str(text));
+        try!(t.try_push_str(text));
         Ok(())
     }();
     assert!(t.is_err());
@@ -355,7 +355,7 @@ fn test_string_from_bytes() {
 fn test_string_clone() {
     let text = "hi";
     let mut s = ArrayString::<[_; 4]>::new();
-    s.push_str("abcd").unwrap();
+    s.push_str("abcd");
     let t = ArrayString::<[_; 4]>::from(text).unwrap();
     s.clone_from(&t);
     assert_eq!(&t, &s);
@@ -366,14 +366,14 @@ fn test_string_push() {
     let text = "abcαβγ";
     let mut s = ArrayString::<[_; 8]>::new();
     for c in text.chars() {
-        if let Err(_) = s.push(c) {
+        if let Err(_) = s.try_push(c) {
             break;
         }
     }
     assert_eq!("abcαβ", &s[..]);
-    s.push('x').ok();
+    s.push('x');
     assert_eq!("abcαβx", &s[..]);
-    assert!(s.push('x').is_err());
+    assert!(s.try_push('x').is_err());
 }
 
 
