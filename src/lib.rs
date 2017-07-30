@@ -41,10 +41,6 @@ use std::fmt;
 
 #[cfg(feature="std")]
 use std::io;
-#[cfg(feature="std")]
-use std::error::Error;
-#[cfg(feature="std")]
-use std::any::Any; // core but unused
 
 use nodrop::NoDrop;
 
@@ -54,11 +50,13 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 mod array;
 mod array_string;
 mod range;
+pub mod errors;
 
 pub use array::Array;
 pub use range::RangeArgument;
 use array::Index;
 pub use array_string::ArrayString;
+use errors::*;
 
 
 unsafe fn new_array<A: Array>() -> A {
@@ -942,85 +940,5 @@ impl<'de, T: Deserialize<'de>, A: Array<Item=T>> Deserialize<'de> for ArrayVec<A
         }
 
         deserializer.deserialize_seq(ArrayVecVisitor::<T, A>(PhantomData))
-    }
-}
-
-/// Error value indicating insufficient capacity
-#[derive(Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]
-pub struct CapacityError<T = ()> {
-    element: T,
-}
-
-impl<T> CapacityError<T> {
-    fn new(element: T) -> CapacityError<T> {
-        CapacityError {
-            element: element,
-        }
-    }
-
-    /// Extract the overflowing element
-    pub fn element(self) -> T {
-        self.element
-    }
-
-    /// Convert into a `CapacityError` that does not carry an element.
-    pub fn simplify(self) -> CapacityError {
-        CapacityError { element: () }
-    }
-}
-
-const CAPERROR: &'static str = "insufficient capacity";
-
-#[cfg(feature="std")]
-/// Requires `features="std"`.
-impl<T: Any> Error for CapacityError<T> {
-    fn description(&self) -> &str {
-        CAPERROR
-    }
-}
-
-impl<T> fmt::Display for CapacityError<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", CAPERROR)
-    }
-}
-
-impl<T> fmt::Debug for CapacityError<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}: {}", "CapacityError", CAPERROR)
-    }
-}
-
-pub enum InsertError<T> {
-    Full(T),
-    OutOfBounds,
-}
-
-impl<T> InsertError<T> {
-    fn description(&self) -> &'static str {
-        match *self {
-            InsertError::Full(_) => "ArrayVec is already at full capacity",
-            InsertError::OutOfBounds => "index is out of bounds",
-        }
-    }
-}
-
-impl<T> fmt::Debug for InsertError<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            InsertError::Full(_) => write!(f, "InsertError::Full: ")?,
-            InsertError::OutOfBounds => write!(f, "InsertError::OutOfBounds: ")?,
-        }
-        write!(f, "{}", self.description())
-    }
-}
-
-#[derive(Debug)]
-pub struct RemoveError {
-}
-
-impl RemoveError {
-    pub fn new() -> Self {
-        RemoveError { }
     }
 }
