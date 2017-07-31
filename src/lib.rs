@@ -367,6 +367,31 @@ impl<A: Array> ArrayVec<A> {
         }
     }
 
+    /// Retains only the elements specified by the predicate.
+    ///
+    /// It is faster than `array.retain()` but does not preserve the order
+    /// of the retained elements.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::from([2, 5, 7, 12]);
+    /// array.swap_retain(|x| *x % 3 == 0);
+    /// assert_eq!(&array[..], &[12]);
+    /// ```
+    pub fn swap_retain<F>(&mut self, mut f: F)
+        where F: FnMut(&mut A::Item) -> bool
+    {
+        let mut i = 0;
+        while i < self.len() {
+            if f(&mut self[i]) {
+                i += 1;
+            } else {
+                self.swap_remove(i);
+            }
+        }
+    }
+
     /// Set the vector's length without dropping or moving out elements
     ///
     /// May panic if `length` is greater than the capacity.
