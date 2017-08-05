@@ -5,7 +5,6 @@
 //!
 //! - `std`
 //!   - Optional, enabled by default
-//!   - Requires Rust 1.6 *to disable*
 //!   - Use libstd
 //!
 //! - `use_union`
@@ -13,6 +12,10 @@
 //!   - Requires Rust nightly channel
 //!   - Use the unstable feature untagged unions for the internal implementation,
 //!     which has reduced space overhead
+//!
+//! ## Rust Version
+//!
+//! This version of arrayvec requires Rust 1.15 or later.
 //!
 #![doc(html_root_url="https://docs.rs/arrayvec/0.3/")]
 #![cfg_attr(not(feature="std"), no_std)]
@@ -41,10 +44,6 @@ use std::fmt;
 
 #[cfg(feature="std")]
 use std::io;
-#[cfg(feature="std")]
-use std::error::Error;
-#[cfg(feature="std")]
-use std::any::Any; // core but unused
 
 use nodrop::NoDrop;
 
@@ -53,11 +52,15 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
 mod array;
 mod array_string;
+mod range;
+mod errors;
 
 pub use array::Array;
-pub use odds::IndexRange as RangeArgument;
+pub use range::RangeArgument;
 use array::Index;
 pub use array_string::ArrayString;
+use errors::PubCrateNew;
+pub use errors::CapacityError;
 
 
 unsafe fn new_array<A: Array>() -> A {
@@ -92,6 +95,13 @@ impl<A: Array> Drop for ArrayVec<A> {
         // NoDrop inhibits array's drop
         // panic safety: NoDrop::drop will trigger on panic, so the inner
         // array will not drop even after panic.
+    }
+}
+
+macro_rules! panic_oob {
+    ($method_name:expr, $index:expr, $len:expr) => {
+        panic!(concat!("ArrayVec::", $method_name, ": index {} is out of bounds in vector of length {}"),
+               $index, $len)
     }
 }
 
@@ -152,8 +162,7 @@ impl<A: Array> ArrayVec<A> {
 
     /// Push `element` to the end of the vector.
     ///
-    /// Return `None` if the push succeeds, or and return `Some(` *element* `)`
-    /// if the vector is full.
+    /// ***Panics*** if the vector is already full.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
@@ -162,28 +171,53 @@ impl<A: Array> ArrayVec<A> {
     ///
     /// array.push(1);
     /// array.push(2);
-    /// let overflow = array.push(3);
     ///
     /// assert_eq!(&array[..], &[1, 2]);
-    /// assert_eq!(overflow, Some(3));
     /// ```
-    pub fn push(&mut self, element: A::Item) -> Option<A::Item> {
+    pub fn push(&mut self, element: A::Item) {
+        self.try_push(element).unwrap()
+    }
+
+    /// Push `element` to the end of the vector.
+    ///
+    /// Return `Ok` if the push succeeds, or return an error if the vector
+    /// is already full.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::<[_; 2]>::new();
+    ///
+    /// let push1 = array.try_push(1);
+    /// let push2 = array.try_push(2);
+    ///
+    /// assert!(push1.is_ok());
+    /// assert!(push2.is_ok());
+    ///
+    /// assert_eq!(&array[..], &[1, 2]);
+    ///
+    /// let overflow = array.try_push(3);
+    ///
+    /// assert!(overflow.is_err());
+    /// ```
+    pub fn try_push(&mut self, element: A::Item) -> Result<(), CapacityError<A::Item>> {
         if self.len() < A::capacity() {
             unsafe {
                 self.push_unchecked(element);
             }
-            None
+            Ok(())
         } else {
-            Some(element)
+            Err(CapacityError::new(element))
         }
     }
+
 
     /// Push `element` to the end of the vector without checking the capacity.
     ///
     /// It is up to the caller to ensure the capacity of the vector is
     /// sufficiently large.
     ///
-    /// # Examples
+    /// This method *may* use debug assertions to check that the arrayvec is not full.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
@@ -207,35 +241,55 @@ impl<A: Array> ArrayVec<A> {
         self.set_len(len + 1);
     }
 
-    /// Insert `element` in position `index`.
+    /// Insert `element` at position `index`.
     ///
-    /// Shift up all elements after `index`. If any is pushed out, it is returned.
+    /// Shift up all elements after `index`.
     ///
-    /// Return `None` if no element is shifted out.
+    /// It is an error if the index is greater than the length or if the
+    /// arrayvec is full.
     ///
-    /// `index` must be <= `self.len()` and < `self.capacity()`. Note that any
-    /// out of bounds index insert results in the element being "shifted out"
-    /// and returned directly.
+    /// ***Panics*** on errors. See `try_result` for fallible version.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
     ///
     /// let mut array = ArrayVec::<[_; 2]>::new();
     ///
-    /// assert_eq!(array.insert(0, "x"), None);
-    /// assert_eq!(array.insert(0, "y"), None);
-    /// assert_eq!(array.insert(0, "z"), Some("x"));
-    /// assert_eq!(array.insert(1, "w"), Some("y"));
-    /// assert_eq!(&array[..], &["z", "w"]);
+    /// array.insert(0, "x");
+    /// array.insert(0, "y");
+    /// assert_eq!(&array[..], &["y", "x"]);
     ///
     /// ```
-    pub fn insert(&mut self, index: usize, element: A::Item) -> Option<A::Item> {
-        if index > self.len() || index == self.capacity() {
-            return Some(element);
+    pub fn insert(&mut self, index: usize, element: A::Item) {
+        self.try_insert(index, element).unwrap()
+    }
+
+    /// Insert `element` at position `index`.
+    ///
+    /// Shift up all elements after `index`; the `index` must be less than
+    /// or equal to the length.
+    ///
+    /// Returns an error if vector is already at full capacity.
+    ///
+    /// ***Panics*** `index` is out of bounds.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::<[_; 2]>::new();
+    ///
+    /// assert!(array.try_insert(0, "x").is_ok());
+    /// assert!(array.try_insert(0, "y").is_ok());
+    /// assert!(array.try_insert(0, "z").is_err());
+    /// assert_eq!(&array[..], &["y", "x"]);
+    ///
+    /// ```
+    pub fn try_insert(&mut self, index: usize, element: A::Item) -> Result<(), CapacityError<A::Item>> {
+        if index > self.len() {
+            panic_oob!("try_insert", index, self.len())
         }
-        let mut ret = None;
         if self.len() == self.capacity() {
-            ret = self.pop();
+            return Err(CapacityError::new(element));
         }
         let len = self.len();
 
@@ -253,10 +307,10 @@ impl<A: Array> ArrayVec<A> {
             }
             self.set_len(len + 1);
         }
-        ret
+        Ok(())
     }
 
-    /// Remove the last element in the vector.
+    /// Remove the last element in the vector and return it.
     ///
     /// Return `Some(` *element* `)` if the vector is non-empty, else `None`.
     ///
@@ -285,6 +339,33 @@ impl<A: Array> ArrayVec<A> {
     ///
     /// This operation is O(1).
     ///
+    /// Return the *element* if the index is in bounds, else panic.
+    ///
+    /// ***Panics*** if the `index` is out of bounds.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::from([1, 2, 3]);
+    ///
+    /// assert_eq!(array.swap_remove(0), 1);
+    /// assert_eq!(&array[..], &[3, 2]);
+    ///
+    /// assert_eq!(array.swap_remove(1), 2);
+    /// assert_eq!(&array[..], &[3]);
+    /// ```
+    pub fn swap_remove(&mut self, index: usize) -> A::Item {
+        self.swap_pop(index)
+            .unwrap_or_else(|| {
+                panic_oob!("swap_remove", index, self.len())
+            })
+    }
+
+    /// Remove the element at `index` and swap the last element into its place.
+    ///
+    /// This is a checked version of `.swap_remove`.  
+    /// This operation is O(1).
+    ///
     /// Return `Some(` *element* `)` if the index is in bounds, else `None`.
     ///
     /// ```
@@ -292,15 +373,15 @@ impl<A: Array> ArrayVec<A> {
     ///
     /// let mut array = ArrayVec::from([1, 2, 3]);
     ///
-    /// assert_eq!(array.swap_remove(0), Some(1));
+    /// assert_eq!(array.swap_pop(0), Some(1));
     /// assert_eq!(&array[..], &[3, 2]);
     ///
-    /// assert_eq!(array.swap_remove(10), None);
+    /// assert_eq!(array.swap_pop(10), None);
     /// ```
-    pub fn swap_remove(&mut self, index: usize) -> Option<A::Item> {
+    pub fn swap_pop(&mut self, index: usize) -> Option<A::Item> {
         let len = self.len();
         if index >= len {
-            return None
+            return None;
         }
         self.swap(index, len - 1);
         self.pop()
@@ -308,19 +389,43 @@ impl<A: Array> ArrayVec<A> {
 
     /// Remove the element at `index` and shift down the following elements.
     ///
-    /// Return `Some(` *element* `)` if the index is in bounds, else `None`.
+    /// The `index` must be strictly less than the length of the vector.
+    ///
+    /// ***Panics*** if the `index` is out of bounds.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
     ///
     /// let mut array = ArrayVec::from([1, 2, 3]);
     ///
-    /// assert_eq!(array.remove(0), Some(1));
+    /// let removed_elt = array.remove(0);
+    /// assert_eq!(removed_elt, 1);
+    /// assert_eq!(&array[..], &[2, 3]);
+    /// ```
+    pub fn remove(&mut self, index: usize) -> A::Item {
+        self.pop_at(index)
+            .unwrap_or_else(|| {
+                panic_oob!("remove", index, self.len())
+            })
+    }
+
+    /// Remove the element at `index` and shift down the following elements.
+    ///
+    /// This is a checked version of `.remove(index)`. Returns `None` if there
+    /// is no element at `index`. Otherwise, return the element inside `Some`.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::from([1, 2, 3]);
+    ///
+    /// assert!(array.pop_at(0).is_some());
     /// assert_eq!(&array[..], &[2, 3]);
     ///
-    /// assert_eq!(array.remove(10), None);
+    /// assert!(array.pop_at(2).is_none());
+    /// assert!(array.pop_at(10).is_none());
     /// ```
-    pub fn remove(&mut self, index: usize) -> Option<A::Item> {
+    pub fn pop_at(&mut self, index: usize) -> Option<A::Item> {
         if index >= self.len() {
             None
         } else {
@@ -369,7 +474,8 @@ impl<A: Array> ArrayVec<A> {
 
     /// Set the vector's length without dropping or moving out elements
     ///
-    /// May panic if `length` is greater than the capacity.
+    /// May use debug assertions to check that `length` is not greater than the
+    /// capacity.
     ///
     /// This function is `unsafe` because it changes the notion of the
     /// number of “valid” elements in the vector. Use with care.
@@ -394,7 +500,7 @@ impl<A: Array> ArrayVec<A> {
     /// use arrayvec::ArrayVec;
     ///
     /// let mut v = ArrayVec::from([1, 2, 3]);
-    /// let u: Vec<_> = v.drain(0..2).collect();
+    /// let u: ArrayVec<[_; 3]> = v.drain(0..2).collect();
     /// assert_eq!(&v[..], &[3]);
     /// assert_eq!(&u[..], &[1, 2]);
     /// ```
@@ -887,7 +993,7 @@ impl<'de, T: Deserialize<'de>, A: Array<Item=T>> Deserialize<'de> for ArrayVec<A
                 let mut values = ArrayVec::<A>::new();
 
                 while let Some(value) = try!(seq.next_element()) {
-                    if let Some(_) = values.push(value) {
+                    if let Err(_) = values.try_push(value) {
                         return Err(SA::Error::invalid_length(A::capacity() + 1, &self));
                     }
                 }
@@ -897,51 +1003,5 @@ impl<'de, T: Deserialize<'de>, A: Array<Item=T>> Deserialize<'de> for ArrayVec<A
         }
 
         deserializer.deserialize_seq(ArrayVecVisitor::<T, A>(PhantomData))
-    }
-}
-
-/// Error value indicating insufficient capacity
-#[derive(Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]
-pub struct CapacityError<T = ()> {
-    element: T,
-}
-
-impl<T> CapacityError<T> {
-    fn new(element: T) -> CapacityError<T> {
-        CapacityError {
-            element: element,
-        }
-    }
-
-    /// Extract the overflowing element
-    pub fn element(self) -> T {
-        self.element
-    }
-
-    /// Convert into a `CapacityError` that does not carry an element.
-    pub fn simplify(self) -> CapacityError {
-        CapacityError { element: () }
-    }
-}
-
-const CAPERROR: &'static str = "insufficient capacity";
-
-#[cfg(feature="std")]
-/// Requires `features="std"`.
-impl<T: Any> Error for CapacityError<T> {
-    fn description(&self) -> &str {
-        CAPERROR
-    }
-}
-
-impl<T> fmt::Display for CapacityError<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", CAPERROR)
-    }
-}
-
-impl<T> fmt::Debug for CapacityError<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}: {}", "CapacityError", CAPERROR)
     }
 }

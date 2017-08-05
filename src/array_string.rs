@@ -12,6 +12,7 @@ use std::slice;
 use array::{Array, ArrayExt};
 use array::Index;
 use CapacityError;
+use errors::PubCrateNew;
 use odds::char::encode_utf8;
 
 #[cfg(feature="serde-1")]
@@ -68,7 +69,7 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     /// ```
     pub fn from(s: &str) -> Result<Self, CapacityError<&str>> {
         let mut arraystr = Self::new();
-        try!(arraystr.push_str(s));
+        arraystr.try_push_str(s)?;
         Ok(arraystr)
     }
 
@@ -84,7 +85,7 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     pub fn from_byte_string(b: &A) -> Result<Self, Utf8Error> {
         let mut arraystr = Self::new();
         let s = try!(str::from_utf8(b.as_slice()));
-        let _result = arraystr.push_str(s);
+        let _result = arraystr.try_push_str(s);
         debug_assert!(_result.is_ok());
         Ok(arraystr)
     }
@@ -123,14 +124,34 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     ///
     /// let mut string = ArrayString::<[_; 2]>::new();
     ///
-    /// string.push('a').unwrap();
-    /// string.push('b').unwrap();
-    /// let overflow = string.push('c');
+    /// string.push('a');
+    /// string.push('b');
+    ///
+    /// assert_eq!(&string[..], "ab");
+    /// ```
+    pub fn push(&mut self, c: char) {
+        self.try_push(c).unwrap();
+    }
+
+    /// Adds the given char to the end of the string.
+    ///
+    /// Returns `Ok` if the push succeeds.
+    ///
+    /// **Errors** if the backing array is not large enough to fit the additional char.
+    ///
+    /// ```
+    /// use arrayvec::ArrayString;
+    ///
+    /// let mut string = ArrayString::<[_; 2]>::new();
+    ///
+    /// string.try_push('a').unwrap();
+    /// string.try_push('b').unwrap();
+    /// let overflow = string.try_push('c');
     ///
     /// assert_eq!(&string[..], "ab");
     /// assert_eq!(overflow.unwrap_err().element(), 'c');
     /// ```
-    pub fn push(&mut self, c: char) -> Result<(), CapacityError<char>> {
+    pub fn try_push(&mut self, c: char) -> Result<(), CapacityError<char>> {
         let len = self.len();
         unsafe {
             match encode_utf8(c, &mut self.raw_mut_bytes()[len..]) {
@@ -154,16 +175,36 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     ///
     /// let mut string = ArrayString::<[_; 2]>::new();
     ///
-    /// string.push_str("a").unwrap();
-    /// let overflow1 = string.push_str("bc");
-    /// string.push_str("d").unwrap();
-    /// let overflow2 = string.push_str("ef");
+    /// string.push_str("a");
+    /// string.push_str("d");
+    ///
+    /// assert_eq!(&string[..], "ad");
+    /// ```
+    pub fn push_str(&mut self, s: &str) {
+        self.try_push_str(s).unwrap()
+    }
+
+    /// Adds the given string slice to the end of the string.
+    ///
+    /// Returns `Ok` if the push succeeds.
+    ///
+    /// **Errors** if the backing array is not large enough to fit the string.
+    ///
+    /// ```
+    /// use arrayvec::ArrayString;
+    ///
+    /// let mut string = ArrayString::<[_; 2]>::new();
+    ///
+    /// string.try_push_str("a").unwrap();
+    /// let overflow1 = string.try_push_str("bc");
+    /// string.try_push_str("d").unwrap();
+    /// let overflow2 = string.try_push_str("ef");
     ///
     /// assert_eq!(&string[..], "ad");
     /// assert_eq!(overflow1.unwrap_err().element(), "bc");
     /// assert_eq!(overflow2.unwrap_err().element(), "ef");
     /// ```
-    pub fn push_str<'a>(&mut self, s: &'a str) -> Result<(), CapacityError<&'a str>> {
+    pub fn try_push_str<'a>(&mut self, s: &'a str) -> Result<(), CapacityError<&'a str>> {
         if s.len() > self.capacity() - self.len() {
             return Err(CapacityError::new(s));
         }
@@ -274,10 +315,11 @@ impl<A: Array<Item=u8>> fmt::Display for ArrayString<A> {
 /// `Write` appends written data to the end of the string.
 impl<A: Array<Item=u8>> fmt::Write for ArrayString<A> {
     fn write_char(&mut self, c: char) -> fmt::Result {
-        self.push(c).map_err(|_| fmt::Error)
+        self.try_push(c).map_err(|_| fmt::Error)
     }
+
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        self.push_str(s).map_err(|_| fmt::Error)
+        self.try_push_str(s).map_err(|_| fmt::Error)
     }
 }
 
@@ -288,7 +330,7 @@ impl<A: Array<Item=u8> + Copy> Clone for ArrayString<A> {
     fn clone_from(&mut self, rhs: &Self) {
         // guaranteed to fit due to types matching.
         self.clear();
-        self.push_str(rhs).ok();
+        self.try_push_str(rhs).ok();
     }
 }
 
