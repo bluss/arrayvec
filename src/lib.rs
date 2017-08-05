@@ -403,7 +403,7 @@ impl<A: Array> ArrayVec<A> {
     /// assert_eq!(&array[..], &[2, 3]);
     /// ```
     pub fn remove(&mut self, index: usize) -> A::Item {
-        self.remove_opt(index)
+        self.pop_at(index)
             .unwrap_or_else(|| {
                 panic_oob!("remove", index, self.len())
             })
@@ -411,22 +411,21 @@ impl<A: Array> ArrayVec<A> {
 
     /// Remove the element at `index` and shift down the following elements.
     ///
-    /// This is a checked version of `.remove(index)`. Returns `None` if the
-    /// index is greater or equal to the length of the vector. Otherwise, return
-    /// the element inside `Some`.
+    /// This is a checked version of `.remove(index)`. Returns `None` if there
+    /// is no element at `index`. Otherwise, return the element inside `Some`.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
     ///
     /// let mut array = ArrayVec::from([1, 2, 3]);
     ///
-    /// assert!(array.remove_opt(0).is_some());
+    /// assert!(array.pop_at(0).is_some());
     /// assert_eq!(&array[..], &[2, 3]);
     ///
-    /// assert!(array.remove_opt(2).is_none());
-    /// assert!(array.remove_opt(10).is_none());
+    /// assert!(array.pop_at(2).is_none());
+    /// assert!(array.pop_at(10).is_none());
     /// ```
-    pub fn remove_opt(&mut self, index: usize) -> Option<A::Item> {
+    pub fn pop_at(&mut self, index: usize) -> Option<A::Item> {
         if index >= self.len() {
             None
         } else {

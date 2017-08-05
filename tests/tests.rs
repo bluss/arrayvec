@@ -434,3 +434,19 @@ fn test_drop_in_insert() {
     }
     assert_eq!(flag.get(), 3);
 }
+
+#[test]
+fn test_pop_at() {
+    let mut v = ArrayVec::<[String; 4]>::new();
+    let s = String::from;
+    v.push(s("a"));
+    v.push(s("b"));
+    v.push(s("c"));
+    v.push(s("d"));
+
+    assert_eq!(v.pop_at(4), None);
+    assert_eq!(v.pop_at(1), Some(s("b")));
+    assert_eq!(v.pop_at(1), Some(s("c")));
+    assert_eq!(v.pop_at(2), None);
+    assert_eq!(&v[..], &["a", "d"]);
+}
