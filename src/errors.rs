@@ -56,39 +56,3 @@ impl<T> fmt::Debug for CapacityError<T> {
     }
 }
 
-pub struct OutOfBoundsError {
-    _priv: ()
-}
-
-impl PubCrateNew<()> for OutOfBoundsError {
-    fn new(_: ()) -> Self {
-        OutOfBoundsError { _priv: () }
-    }
-}
-
-
-impl OutOfBoundsError {
-    fn description(&self) -> &'static str {
-        "remove index is out of bounds"
-    }
-}
-
-#[cfg(feature="std")]
-/// Requires `features="std"`.
-impl Error for OutOfBoundsError {
-    fn description(&self) -> &str {
-        self.description()
-    }
-}
-
-impl fmt::Display for OutOfBoundsError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.description())
-    }
-}
-
-impl fmt::Debug for OutOfBoundsError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "OutOfBoundsError: {}", self.description())
-    }
-}

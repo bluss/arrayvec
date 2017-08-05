@@ -95,6 +95,13 @@ impl<A: Array> Drop for ArrayVec<A> {
     }
 }
 
+macro_rules! panic_oob {
+    ($method_name:expr, $index:expr, $len:expr) => {
+        panic!(concat!("ArrayVec::", $method_name, ": index {} is out of bounds in vector of length {}"),
+               $index, $len)
+    }
+}
+
 impl<A: Array> ArrayVec<A> {
     /// Create a new empty `ArrayVec`.
     ///
@@ -278,7 +285,7 @@ impl<A: Array> ArrayVec<A> {
     /// ```
     pub fn try_insert(&mut self, index: usize, element: A::Item) -> Result<(), CapacityError<A::Item>> {
         if index > self.len() {
-            panic!("ArrayVec::try_insert: {} is out of bounds (length is {})", index, self.len());
+            panic_oob!("try_insert", index, self.len())
         }
         if self.len() == self.capacity() {
             return Err(CapacityError::new(element));
@@ -347,32 +354,35 @@ impl<A: Array> ArrayVec<A> {
     /// assert_eq!(&array[..], &[3]);
     /// ```
     pub fn swap_remove(&mut self, index: usize) -> A::Item {
-        self.try_swap_remove(index).unwrap()
+        self.swap_pop(index)
+            .unwrap_or_else(|| {
+                panic_oob!("swap_remove", index, self.len())
+            })
     }
 
     /// Remove the element at `index` and swap the last element into its place.
     ///
-    /// This operation is O(1).
+    /// Checked version of `.swap_remove`. This operation is O(1).
     ///
-    /// Return `Ok(` *element* `)` if the index is in bounds, else an error.
+    /// Return `Some(` *element* `)` if the index is in bounds, else `None`.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
     ///
     /// let mut array = ArrayVec::from([1, 2, 3]);
     ///
-    /// assert!(array.try_swap_remove(0).is_ok());
+    /// assert_eq!(array.swap_pop(0), Some(1));
     /// assert_eq!(&array[..], &[3, 2]);
     ///
-    /// assert!(array.try_swap_remove(10).is_err());
+    /// assert_eq!(array.swap_pop(10), None);
     /// ```
-    pub fn try_swap_remove(&mut self, index: usize) -> Result<A::Item, OutOfBoundsError> {
+    pub fn swap_pop(&mut self, index: usize) -> Option<A::Item> {
         let len = self.len();
         if index >= len {
-            return Err(OutOfBoundsError::new(()))
+            return None;
         }
         self.swap(index, len - 1);
-        self.pop().ok_or_else(|| unreachable!())
+        self.pop()
     }
 
     /// Remove the element at `index` and shift down the following elements.
@@ -390,33 +400,34 @@ impl<A: Array> ArrayVec<A> {
     /// assert_eq!(&array[..], &[2, 3]);
     /// ```
     pub fn remove(&mut self, index: usize) -> A::Item {
-        self.try_remove(index).unwrap()
+        self.remove_opt(index)
+            .unwrap_or_else(|| {
+                panic_oob!("remove", index, self.len())
+            })
     }
 
     /// Remove the element at `index` and shift down the following elements.
     ///
-    /// Returns an error if:
-    ///
-    /// - The index is greater or equal to the length of the vector
-    ///
-    /// Else return the element inside `Ok`.
+    /// This is a checked version of `.remove(index)`. Returns `None` if the
+    /// index is greater or equal to the length of the vector. Otherwise, return
+    /// the element inside `Some`.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
     ///
     /// let mut array = ArrayVec::from([1, 2, 3]);
     ///
-    /// assert!(array.try_remove(0).is_ok());
+    /// assert!(array.remove_opt(0).is_some());
     /// assert_eq!(&array[..], &[2, 3]);
     ///
-    /// assert!(array.try_remove(2).is_err());
-    /// assert!(array.try_remove(10).is_err());
+    /// assert!(array.remove_opt(2).is_none());
+    /// assert!(array.remove_opt(10).is_none());
     /// ```
-    pub fn try_remove(&mut self, index: usize) -> Result<A::Item, OutOfBoundsError> {
+    pub fn remove_opt(&mut self, index: usize) -> Option<A::Item> {
         if index >= self.len() {
-            Err(OutOfBoundsError::new(()))
+            None
         } else {
-            self.drain(index..index + 1).next().ok_or_else(|| unreachable!())
+            self.drain(index..index + 1).next()
         }
     }
 
