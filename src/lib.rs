@@ -501,7 +501,7 @@ impl<A: Array> ArrayVec<A> {
     /// use arrayvec::ArrayVec;
     ///
     /// let mut v = ArrayVec::from([1, 2, 3]);
-    /// let u: Vec<_> = v.drain(0..2).collect();
+    /// let u: ArrayVec<[_; 3]> = v.drain(0..2).collect();
     /// assert_eq!(&v[..], &[3]);
     /// assert_eq!(&u[..], &[1, 2]);
     /// ```
