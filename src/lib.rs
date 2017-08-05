@@ -392,7 +392,6 @@ impl<A: Array> ArrayVec<A> {
     /// The `index` must be strictly less than the length of the vector.
     ///
     /// ***Panics*** if the `index` is out of bounds.
-    /// vector.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
