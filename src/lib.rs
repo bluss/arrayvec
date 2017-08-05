@@ -53,13 +53,14 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 mod array;
 mod array_string;
 mod range;
-pub mod errors;
+mod errors;
 
 pub use array::Array;
 pub use range::RangeArgument;
 use array::Index;
 pub use array_string::ArrayString;
-use errors::*;
+use errors::PubCrateNew;
+pub use errors::CapacityError;
 
 
 unsafe fn new_array<A: Array>() -> A {
