@@ -162,7 +162,7 @@ impl<A: Array> ArrayVec<A> {
 
     /// Push `element` to the end of the vector.
     ///
-    /// ***Panics*** if the array is already full.
+    /// ***Panics*** if the vector is already full.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
@@ -180,8 +180,8 @@ impl<A: Array> ArrayVec<A> {
 
     /// Push `element` to the end of the vector.
     ///
-    /// Return `Ok` if the push succeeds, or and return an error if the vector
-    /// is full.
+    /// Return `Ok` if the push succeeds, or return an error if the vector
+    /// is already full.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
@@ -194,9 +194,9 @@ impl<A: Array> ArrayVec<A> {
     /// assert!(push1.is_ok());
     /// assert!(push2.is_ok());
     ///
-    /// let overflow = array.try_push(3);
-    ///
     /// assert_eq!(&array[..], &[1, 2]);
+    ///
+    /// let overflow = array.try_push(3);
     ///
     /// assert!(overflow.is_err());
     /// ```
@@ -217,7 +217,7 @@ impl<A: Array> ArrayVec<A> {
     /// It is up to the caller to ensure the capacity of the vector is
     /// sufficiently large.
     ///
-    /// May use debug assertions to check that the arrayvec is not full.
+    /// This method *may* use debug assertions to check that the arrayvec is not full.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
@@ -241,7 +241,7 @@ impl<A: Array> ArrayVec<A> {
         self.set_len(len + 1);
     }
 
-    /// Insert `element` in position `index`.
+    /// Insert `element` at position `index`.
     ///
     /// Shift up all elements after `index`.
     ///
@@ -264,14 +264,12 @@ impl<A: Array> ArrayVec<A> {
         self.try_insert(index, element).unwrap()
     }
 
-    /// Insert `element` in position `index`.
+    /// Insert `element` at position `index`.
     ///
     /// Shift up all elements after `index`; the `index` must be less than
     /// or equal to the length.
     ///
-    /// Returns an error if:
-    ///
-    /// - The vector is at full capacity
+    /// Returns an error if vector is already at full capacity.
     ///
     /// ***Panics*** `index` is out of bounds.
     ///
@@ -312,7 +310,7 @@ impl<A: Array> ArrayVec<A> {
         Ok(())
     }
 
-    /// Remove the last element in the vector.
+    /// Remove the last element in the vector and return it.
     ///
     /// Return `Some(` *element* `)` if the vector is non-empty, else `None`.
     ///
@@ -341,7 +339,7 @@ impl<A: Array> ArrayVec<A> {
     ///
     /// This operation is O(1).
     ///
-    /// Return *element* if the index is in bound, else panic.
+    /// Return the *element* if the index is in bounds, else panic.
     ///
     /// ***Panics*** if the `index` is out of bounds.
     ///
@@ -365,7 +363,8 @@ impl<A: Array> ArrayVec<A> {
 
     /// Remove the element at `index` and swap the last element into its place.
     ///
-    /// Checked version of `.swap_remove`. This operation is O(1).
+    /// This is a checked version of `.swap_remove`.  
+    /// This operation is O(1).
     ///
     /// Return `Some(` *element* `)` if the index is in bounds, else `None`.
     ///
@@ -390,7 +389,9 @@ impl<A: Array> ArrayVec<A> {
 
     /// Remove the element at `index` and shift down the following elements.
     ///
-    /// ***Panics*** if the `index` is greater or equal to the length of the
+    /// The `index` must be strictly less than the length of the vector.
+    ///
+    /// ***Panics*** if the `index` is out of bounds.
     /// vector.
     ///
     /// ```
