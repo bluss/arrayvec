@@ -4,7 +4,7 @@ extern crate arrayvec;
 use arrayvec::ArrayVec;
 use arrayvec::ArrayString;
 use std::mem;
-use arrayvec::errors::CapacityError;
+use arrayvec::CapacityError;
 
 use std::collections::HashMap;
 
