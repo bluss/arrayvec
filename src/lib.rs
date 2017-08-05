@@ -256,12 +256,14 @@ impl<A: Array> ArrayVec<A> {
 
     /// Insert `element` in position `index`.
     ///
-    /// Shift up all elements after `index`.
+    /// Shift up all elements after `index`; the `index` must be less than
+    /// or equal to the length.
     ///
-    /// Returns an error if
+    /// Returns an error if:
     ///
     /// - The vector is at full capacity
-    /// - The index is out of bounds
+    ///
+    /// ***Panics*** `index` is out of bounds.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
@@ -269,18 +271,17 @@ impl<A: Array> ArrayVec<A> {
     /// let mut array = ArrayVec::<[_; 2]>::new();
     ///
     /// assert!(array.try_insert(0, "x").is_ok());
-    /// assert!(array.try_insert(3, "w").is_err());
     /// assert!(array.try_insert(0, "y").is_ok());
     /// assert!(array.try_insert(0, "z").is_err());
     /// assert_eq!(&array[..], &["y", "x"]);
     ///
     /// ```
-    pub fn try_insert(&mut self, index: usize, element: A::Item) -> Result<(), InsertError<A::Item>> {
-        if self.len() == self.capacity() {
-            return Err(InsertError::Capacity(CapacityError::new(element)));
-        }
+    pub fn try_insert(&mut self, index: usize, element: A::Item) -> Result<(), CapacityError<A::Item>> {
         if index > self.len() {
-            return Err(InsertError::OutOfBounds(OutOfBoundsError::new()));
+            panic!("ArrayVec::try_insert: {} is out of bounds (length is {})", index, self.len());
+        }
+        if self.len() == self.capacity() {
+            return Err(CapacityError::new(element));
         }
         let len = self.len();
 
@@ -368,10 +369,10 @@ impl<A: Array> ArrayVec<A> {
     pub fn try_swap_remove(&mut self, index: usize) -> Result<A::Item, OutOfBoundsError> {
         let len = self.len();
         if index >= len {
-            return Err(OutOfBoundsError::new())
+            return Err(OutOfBoundsError::new(()))
         }
         self.swap(index, len - 1);
-        self.pop().ok_or_else(|| panic!())
+        self.pop().ok_or_else(|| unreachable!())
     }
 
     /// Remove the element at `index` and shift down the following elements.
@@ -413,9 +414,9 @@ impl<A: Array> ArrayVec<A> {
     /// ```
     pub fn try_remove(&mut self, index: usize) -> Result<A::Item, OutOfBoundsError> {
         if index >= self.len() {
-            Err(OutOfBoundsError::new())
+            Err(OutOfBoundsError::new(()))
         } else {
-            self.drain(index..index + 1).next().ok_or_else(|| panic!())
+            self.drain(index..index + 1).next().ok_or_else(|| unreachable!())
         }
     }
 

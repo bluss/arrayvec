@@ -10,13 +10,19 @@ pub struct CapacityError<T = ()> {
     element: T,
 }
 
-impl<T> CapacityError<T> {
-    pub(crate) fn new(element: T) -> CapacityError<T> {
+pub trait PubCrateNew<T> {
+    fn new(elt: T) -> Self;
+}
+
+impl<T> PubCrateNew<T> for CapacityError<T> {
+    fn new(element: T) -> CapacityError<T> {
         CapacityError {
             element: element,
         }
     }
+}
 
+impl<T> CapacityError<T> {
     /// Extract the overflowing element
     pub fn element(self) -> T {
         self.element
@@ -50,59 +56,18 @@ impl<T> fmt::Debug for CapacityError<T> {
     }
 }
 
-pub enum InsertError<T> {
-    Capacity(CapacityError<T>),
-    OutOfBounds(OutOfBoundsError),
-}
-
-impl<T> InsertError<T> {
-    fn description(&self) -> &'static str {
-        match *self {
-            InsertError::Capacity(_) => "ArrayVec is already at full capacity",
-            InsertError::OutOfBounds(_) => "index is out of bounds",
-        }
-    }
-}
-
-#[cfg(feature="std")]
-/// Requires `features="std"`.
-impl<T: Any> Error for InsertError<T> {
-    fn description(&self) -> &str {
-        self.description()
-    }
-    fn cause(&self) -> Option<&Error> {
-        match *self {
-            InsertError::Capacity(ref e) => Some(e as &Error),
-            InsertError::OutOfBounds(ref e) => Some(e as &Error),
-        }
-    }
-}
-
-impl<T> fmt::Display for InsertError<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.description())
-    }
-}
-
-impl<T> fmt::Debug for InsertError<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            InsertError::Capacity(_) => write!(f, "InsertError::Capacity: ")?,
-            InsertError::OutOfBounds(_) => write!(f, "InsertError::OutOfBounds: ")?,
-        }
-        write!(f, "{}", self.description())
-    }
-}
-
 pub struct OutOfBoundsError {
     _priv: ()
 }
 
-impl OutOfBoundsError {
-    pub(crate) fn new() -> Self {
+impl PubCrateNew<()> for OutOfBoundsError {
+    fn new(_: ()) -> Self {
         OutOfBoundsError { _priv: () }
     }
+}
 
+
+impl OutOfBoundsError {
     fn description(&self) -> &'static str {
         "remove index is out of bounds"
     }

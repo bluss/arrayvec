@@ -4,7 +4,7 @@ extern crate arrayvec;
 use arrayvec::ArrayVec;
 use arrayvec::ArrayString;
 use std::mem;
-use arrayvec::errors::InsertError;
+use arrayvec::errors::CapacityError;
 
 use std::collections::HashMap;
 
@@ -222,13 +222,12 @@ fn test_drop_panic_into_iter() {
 fn test_insert() {
     let mut v = ArrayVec::from([]);
     assert_matches!(v.try_push(1), Err(_));
-    assert_matches!(v.try_insert(0, 1), Err(_));
 
     let mut v = ArrayVec::<[_; 3]>::new();
     v.insert(0, 0);
     v.insert(1, 1);
-    let ret1 = v.try_insert(3, 3);
-    assert_matches!(ret1, Err(InsertError::OutOfBounds(_)));
+    //let ret1 = v.try_insert(3, 3);
+    //assert_matches!(ret1, Err(InsertError::OutOfBounds(_)));
     assert_eq!(&v[..], &[0, 1]);
     v.insert(2, 2);
     assert_eq!(&v[..], &[0, 1, 2]);
@@ -238,8 +237,9 @@ fn test_insert() {
     assert_matches!(ret2, Err(_));
 
     let mut v = ArrayVec::from([2]);
-    assert_matches!(v.try_insert(1, 1), Err(InsertError::Capacity(_)));
-    assert_matches!(v.try_insert(2, 1), Err(InsertError::Capacity(_)));
+    assert_matches!(v.try_insert(0, 1), Err(CapacityError { .. }));
+    assert_matches!(v.try_insert(1, 1), Err(CapacityError { .. }));
+    //assert_matches!(v.try_insert(2, 1), Err(CapacityError { .. }));
 }
 
 #[test]
@@ -386,13 +386,11 @@ fn test_insert_at_length() {
     assert_eq!(&v[..], &["a", "b"]);
 }
 
+#[should_panic]
 #[test]
 fn test_insert_out_of_bounds() {
     let mut v = ArrayVec::<[_; 8]>::new();
-    let result = v.try_insert(1, "test");
-    assert_matches!(result, Err(_));
-    assert_eq!(v.len(), 0);
-
+    let _ = v.try_insert(1, "test");
 }
 
 /*
