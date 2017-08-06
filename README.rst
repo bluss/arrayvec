@@ -22,6 +22,23 @@ __ https://bluss.github.io/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.4.0
+
+  - Reformed signatures and error handling by @bluss and @tbu-:
+
+    - ``ArrayVec``'s ``push, insert, remove, swap_remove`` now match ``Vec``'s
+      corresponding signature and panic on capacity errors where applicable.
+    - Add fallible methods ``try_push, insert`` and checked methods
+      ``pop_at, swap_pop``.
+    - Similar changes to ``ArrayString``'s push methods.
+
+  - Use internal version of ``RangeArgument`` trait
+  - Add array sizes 50, 150, 200 by @daboross
+  - Support serde 1.0 by @daboross
+  - New method ``.push_unchecked()`` by @niklasf
+  - ``ArrayString`` implements ``PartialOrd, Ord`` by @tbu-
+  - Require Rust 1.15
+
 - 0.3.21
 
   - Use ``encode_utf8`` from crate odds
