@@ -5,13 +5,16 @@
 //!
 //! - `std`
 //!   - Optional, enabled by default
-//!   - Use libstd
+//!   - Use libstd; disable to use `no_std` instead.
 //!
 //! - `use_union`
 //!   - Optional
 //!   - Requires Rust nightly channel
+//!   - Experimental: This flag uses nightly so it may break unexpectedly
+//!     at some point; since it doesn't change API this flag may also change
+//!     to do nothing in the future.
 //!   - Use the unstable feature untagged unions for the internal implementation,
-//!     which has reduced space overhead
+//!     which may have reduced space overhead
 //!
 //! ## Rust Version
 //!
