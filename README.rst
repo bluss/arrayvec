@@ -39,6 +39,15 @@ Recent Changes (arrayvec)
   - ``ArrayString`` implements ``PartialOrd, Ord`` by @tbu-
   - Require Rust 1.15
 
+- 0.3.23
+
+  - Implement ``PartialOrd, Ord`` as well as ``PartialOrd<str>`` for
+    ``ArrayString``.
+
+- 0.3.22
+
+  - Implement ``Array`` for the 65536 size
+
 - 0.3.21
 
   - Use ``encode_utf8`` from crate odds
