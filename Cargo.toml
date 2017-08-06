@@ -9,6 +9,7 @@ documentation = "https://docs.rs/arrayvec/"
 repository = "https://github.com/bluss/arrayvec"
 
 keywords = ["stack", "vector", "array", "data-structure", "no_std"]
+categories = ["data-structures", "no-std"]
 
 [dependencies.odds]
 version = "0.2.23"
