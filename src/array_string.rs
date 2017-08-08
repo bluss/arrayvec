@@ -117,7 +117,7 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     ///
     /// Returns `Ok` if the push succeeds.
     ///
-    /// **Errors** if the backing array is not large enough to fit the additional char.
+    /// ***Panics*** if the backing array is not large enough to fit the additional char.
     ///
     /// ```
     /// use arrayvec::ArrayString;
@@ -168,7 +168,7 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     ///
     /// Returns `Ok` if the push succeeds.
     ///
-    /// **Errors** if the backing array is not large enough to fit the string.
+    /// ***Panics*** if the backing array is not large enough to fit the string.
     ///
     /// ```
     /// use arrayvec::ArrayString;
