@@ -4,7 +4,7 @@ env:
   - FEATURES='serde-1'
 matrix:
   include:
-    - rust: 1.15.0
+    - rust: 1.14.0
     - rust: stable
       env:
         - NODEFAULT=1

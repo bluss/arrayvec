@@ -5,19 +5,22 @@
 //!
 //! - `std`
 //!   - Optional, enabled by default
-//!   - Use libstd
+//!   - Use libstd; disable to use `no_std` instead.
 //!
 //! - `use_union`
 //!   - Optional
 //!   - Requires Rust nightly channel
+//!   - Experimental: This flag uses nightly so it may break unexpectedly
+//!     at some point; since it doesn't change API this flag may also change
+//!     to do nothing in the future.
 //!   - Use the unstable feature untagged unions for the internal implementation,
-//!     which has reduced space overhead
+//!     which may have reduced space overhead
 //!
 //! ## Rust Version
 //!
-//! This version of arrayvec requires Rust 1.15 or later.
+//! This version of arrayvec requires Rust 1.14 or later.
 //!
-#![doc(html_root_url="https://docs.rs/arrayvec/0.3/")]
+#![doc(html_root_url="https://docs.rs/arrayvec/0.4/")]
 #![cfg_attr(not(feature="std"), no_std)]
 extern crate odds;
 extern crate nodrop;
