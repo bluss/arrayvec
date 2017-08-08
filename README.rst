@@ -32,12 +32,12 @@ Recent Changes (arrayvec)
       ``pop_at, swap_pop``.
     - Similar changes to ``ArrayString``'s push methods.
 
-  - Use internal version of ``RangeArgument`` trait
+  - Use a local version of the ``RangeArgument`` trait
   - Add array sizes 50, 150, 200 by @daboross
   - Support serde 1.0 by @daboross
   - New method ``.push_unchecked()`` by @niklasf
   - ``ArrayString`` implements ``PartialOrd, Ord`` by @tbu-
-  - Require Rust 1.15
+  - Require Rust 1.14
 
 - 0.3.23
 

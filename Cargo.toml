@@ -1,10 +1,10 @@
 [package]
 name = "arrayvec"
-version = "0.3.21"
+version = "0.4.0"
 authors = ["bluss"]
 license = "MIT/Apache-2.0"
 
-description = "A vector with a fixed capacity, it can be stored on the stack too. Implements fixed capacity ArrayVec and ArrayString."
+description = "A vector with fixed capacity, backed by an array (it can be stored on the stack too). Implements fixed capacity ArrayVec and ArrayString."
 documentation = "https://docs.rs/arrayvec/"
 repository = "https://github.com/bluss/arrayvec"
 
@@ -39,3 +39,6 @@ serde-1 = ["serde"]
 
 [package.metadata.docs.rs]
 features = ["serde-1"]
+
+[package.metadata.release]
+no-dev-version = true

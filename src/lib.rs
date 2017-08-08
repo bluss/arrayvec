@@ -1,7 +1,7 @@
 //! **arrayvec** provides the types `ArrayVec` and `ArrayString`: 
 //! array-backed vector and string types, which store their contents inline.
 //!
-//! The **arrayvec** crate has the following cargo feature flags:
+//! The arrayvec package has the following cargo features:
 //!
 //! - `std`
 //!   - Optional, enabled by default
@@ -10,7 +10,7 @@
 //! - `use_union`
 //!   - Optional
 //!   - Requires Rust nightly channel
-//!   - Experimental: This flag uses nightly so it may break unexpectedly
+//!   - Experimental: This flag uses nightly so it *may break* unexpectedly
 //!     at some point; since it doesn't change API this flag may also change
 //!     to do nothing in the future.
 //!   - Use the unstable feature untagged unions for the internal implementation,
