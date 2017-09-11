@@ -34,7 +34,7 @@ matches = { version = "0.1" }
 [features]
 default = ["std"]
 std = ["odds/std", "nodrop/std"]
-use_union = ["nodrop/use_union"]
+use_union = []
 serde-1 = ["serde"]
 
 [package.metadata.docs.rs]

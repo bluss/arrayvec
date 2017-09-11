@@ -15,6 +15,9 @@
 //!     to do nothing in the future.
 //!   - Use the unstable feature untagged unions for the internal implementation,
 //!     which may have reduced space overhead
+//! - `serde-1`
+//!   - Optional
+//!   - Enable serialization for ArrayVec and ArrayString using serde 1.0
 //!
 //! ## Rust Version
 //!
@@ -48,7 +51,11 @@ use std::fmt;
 #[cfg(feature="std")]
 use std::io;
 
+#[cfg(not(feature="use_union"))]
 use nodrop::NoDrop;
+
+#[cfg(feature="use_union")]
+use std::mem::ManuallyDrop as NoDrop;
 
 #[cfg(feature="serde-1")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
@@ -965,6 +972,7 @@ impl<A: Array<Item=u8>> io::Write for ArrayVec<A> {
 }
 
 #[cfg(feature="serde-1")]
+/// Requires crate feature `"serde-1"`
 impl<T: Serialize, A: Array<Item=T>> Serialize for ArrayVec<A> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer
@@ -974,6 +982,7 @@ impl<T: Serialize, A: Array<Item=T>> Serialize for ArrayVec<A> {
 }
 
 #[cfg(feature="serde-1")]
+/// Requires crate feature `"serde-1"`
 impl<'de, T: Deserialize<'de>, A: Array<Item=T>> Deserialize<'de> for ArrayVec<A> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where D: Deserializer<'de>

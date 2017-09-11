@@ -371,6 +371,7 @@ impl<A: Array<Item=u8>> Ord for ArrayString<A> {
 }
 
 #[cfg(feature="serde-1")]
+/// Requires crate feature `"serde-1"`
 impl<A: Array<Item=u8>> Serialize for ArrayString<A> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer
@@ -380,6 +381,7 @@ impl<A: Array<Item=u8>> Serialize for ArrayString<A> {
 }
 
 #[cfg(feature="serde-1")]
+/// Requires crate feature `"serde-1"`
 impl<'de, A: Array<Item=u8>> Deserialize<'de> for ArrayString<A> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where D: Deserializer<'de>
