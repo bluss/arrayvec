@@ -22,6 +22,10 @@ __ https://bluss.github.io/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.4.1
+
+  - Add ``Default`` impl to ``ArrayString`` by @tbu-
+
 - 0.4.0
 
   - Reformed signatures and error handling by @bluss and @tbu-:
