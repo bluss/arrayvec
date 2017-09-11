@@ -456,3 +456,13 @@ fn test_sizes() {
     let v = ArrayVec::from([0u8; 1 << 16]);
     assert_eq!(vec![0u8; v.len()], &v[..]);
 }
+
+#[test]
+fn test_default() {
+    use std::net;
+    let s: ArrayString<[u8; 4]> = Default::default();
+    // Something without `Default` implementation.
+    let v: ArrayVec<[net::TcpStream; 4]> = Default::default();
+    assert_eq!(s.len(), 0);
+    assert_eq!(v.len(), 0);
+}
