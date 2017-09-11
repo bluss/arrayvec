@@ -115,8 +115,6 @@ impl<A: Array<Item=u8>> ArrayString<A> {
 
     /// Adds the given char to the end of the string.
     ///
-    /// Returns `Ok` if the push succeeds.
-    ///
     /// ***Panics*** if the backing array is not large enough to fit the additional char.
     ///
     /// ```
@@ -165,8 +163,6 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     }
 
     /// Adds the given string slice to the end of the string.
-    ///
-    /// Returns `Ok` if the push succeeds.
     ///
     /// ***Panics*** if the backing array is not large enough to fit the string.
     ///
