@@ -38,6 +38,7 @@ Recent Changes (arrayvec)
   - New method ``.push_unchecked()`` by @niklasf
   - ``ArrayString`` implements ``PartialOrd, Ord`` by @tbu-
   - Require Rust 1.14
+  - crate feature ``use_generic_array`` was dropped.
 
 - 0.3.23
 
