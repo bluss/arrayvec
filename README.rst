@@ -6,7 +6,7 @@ A vector with fixed capacity.
 
 Please read the `API documentation here`__
 
-__ https://bluss.github.io/arrayvec
+__ https://docs.rs/arrayvec
 
 |build_status|_ |crates|_ |crates2|_
 
