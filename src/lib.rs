@@ -69,7 +69,6 @@ pub use array::Array;
 pub use range::RangeArgument;
 use array::Index;
 pub use array_string::ArrayString;
-use errors::PubCrateNew;
 pub use errors::CapacityError;
 
 

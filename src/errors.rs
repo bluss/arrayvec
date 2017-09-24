@@ -10,19 +10,14 @@ pub struct CapacityError<T = ()> {
     element: T,
 }
 
-pub trait PubCrateNew<T> {
-    fn new(elt: T) -> Self;
-}
-
-impl<T> PubCrateNew<T> for CapacityError<T> {
-    fn new(element: T) -> CapacityError<T> {
+impl<T> CapacityError<T> {
+    /// Create a new `CapacityError` from `element`.
+    pub fn new(element: T) -> CapacityError<T> {
         CapacityError {
             element: element,
         }
     }
-}
 
-impl<T> CapacityError<T> {
     /// Extract the overflowing element
     pub fn element(self) -> T {
         self.element
