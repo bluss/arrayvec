@@ -22,6 +22,10 @@ __ https://bluss.github.io/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.4.2
+
+  - Add constructor method ``new`` to ``CapacityError``.
+
 - 0.4.1
 
   - Add ``Default`` impl to ``ArrayString`` by @tbu-
