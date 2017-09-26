@@ -139,6 +139,11 @@ fn test_compact_size() {
     println!("{}", mem::size_of::<ByteArray>());
     assert!(mem::size_of::<ByteArray>() <= 8);
 
+    // 1 enum tag + 1 drop flag
+    type EmptyArray = ArrayVec<[u8; 0]>;
+    println!("{}", mem::size_of::<EmptyArray>());
+    assert!(mem::size_of::<EmptyArray>() <= 2);
+
     // 12 element size + 1 enum tag + 3 padding + 1 len + 1 drop flag + 2 padding
     type QuadArray = ArrayVec<[u32; 3]>;
     println!("{}", mem::size_of::<QuadArray>());

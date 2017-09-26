@@ -32,6 +32,20 @@ pub trait ArrayExt : Array {
 
 impl<A> ArrayExt for A where A: Array { }
 
+impl Index for () {
+    #[inline(always)]
+    fn to_usize(self) -> usize { 0 }
+    #[inline(always)]
+    fn from(ix: usize) ->  Self { () }
+}
+
+impl Index for bool {
+    #[inline(always)]
+    fn to_usize(self) -> usize { self as usize }
+    #[inline(always)]
+    fn from(ix: usize) ->  Self { ix != 0 }
+}
+
 impl Index for u8 {
     #[inline(always)]
     fn to_usize(self) -> usize { self as usize }
@@ -83,9 +97,11 @@ macro_rules! fix_array_impl_recursive {
     );
 }
 
-fix_array_impl_recursive!(u8, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                          16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-                          32, 40, 48, 50, 56, 64, 72, 96, 100, 128, 160, 192, 200, 224,);
+fix_array_impl_recursive!((), 0,);
+fix_array_impl_recursive!(bool, 1,);
+fix_array_impl_recursive!(u8, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+                          18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
+                          40, 48, 50, 56, 64, 72, 96, 100, 128, 160, 192, 200, 224,);
 fix_array_impl_recursive!(u16, 256, 384, 512, 768, 1024, 2048, 4096, 8192, 16384, 32768,);
 // This array size doesn't exist on 16-bit
 #[cfg(any(target_pointer_width="32", target_pointer_width="64"))]
