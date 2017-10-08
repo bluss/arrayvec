@@ -841,9 +841,7 @@ impl<A: Array> Extend<A::Item> for ArrayVec<A> {
                 value: self,
                 data: len,
                 f: |&len, self_| {
-                    unsafe {
-                        self_.set_len(len)
-                    }
+                    self_.set_len(len)
                 }
             };
             for elt in iter.into_iter().take(take) {
