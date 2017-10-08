@@ -30,6 +30,11 @@ version = "1.0"
 
 [dev-dependencies]
 matches = { version = "0.1" }
+bencher = "0.1.4"
+
+[[bench]]
+name = "extend"
+harness = false
 
 [features]
 default = ["std"]
