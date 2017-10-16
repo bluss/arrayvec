@@ -942,6 +942,7 @@ impl<A: Array> fmt::Debug for ArrayVec<A> where A::Item: fmt::Debug {
 }
 
 impl<A: Array> Default for ArrayVec<A> {
+    /// Return an empty array
     fn default() -> ArrayVec<A> {
         ArrayVec::new()
     }

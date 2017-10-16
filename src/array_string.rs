@@ -31,6 +31,7 @@ pub struct ArrayString<A: Array<Item=u8>> {
 }
 
 impl<A: Array<Item=u8>> Default for ArrayString<A> {
+    /// Return an empty `ArrayString`
     fn default() -> ArrayString<A> {
         ArrayString::new()
     }
