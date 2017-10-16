@@ -8,6 +8,7 @@ matrix:
     - rust: stable
       env:
         - NODEFAULT=1
+        - NODROP_FEATURES='use_needs_drop'
     - rust: beta
     - rust: nightly
       env:

@@ -3,11 +3,10 @@
 //!
 //! - `std`
 //!   - Optional, enabled by default
-//!   - Requires Rust 1.6 *to disable*
 //!   - Use libstd
 //! - `use_needs_drop`
 //!   - Optional
-//!   - Requires nightly channel.
+//!   - Requires Rust 1.21
 //!   - Use `needs_drop` to skip overwriting if not necessary
 //! - `use_union`
 //!   - Optional
@@ -15,8 +14,6 @@
 //!   - Using untagged union, finally we have an implementation of `NoDrop` without hacks,
 //!     for example the fact that `NoDrop<T>` never has a destructor anymore.
 //!
-
-#![cfg_attr(feature="use_needs_drop", feature(core_intrinsics))]
 
 #![cfg_attr(not(any(test, feature="std")), no_std)]
 #[cfg(not(any(test, feature="std")))]
@@ -81,7 +78,7 @@ mod imp {
     #[inline]
     fn needs_drop<T>() -> bool {
         unsafe {
-            ::std::intrinsics::needs_drop::<T>()
+            ::std::mem::needs_drop::<T>()
         }
     }
 
