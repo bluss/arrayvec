@@ -38,7 +38,7 @@ harness = false
 
 [features]
 default = ["std"]
-std = ["odds/std", "nodrop/std"]
+std = []
 use_union = []
 serde-1 = ["serde"]
 
