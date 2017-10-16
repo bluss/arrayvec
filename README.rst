@@ -22,6 +22,12 @@ __ https://docs.rs/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.4.3
+
+  - Improve performance for ``ArrayVec::extend`` with a lower level
+    implementation (#74)
+  - Small cleanup in dependencies (use no std for crates where we don't need more)
+
 - 0.4.2
 
   - Add constructor method ``new`` to ``CapacityError``.
