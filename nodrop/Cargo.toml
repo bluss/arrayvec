@@ -1,15 +1,16 @@
 [package]
 name = "nodrop"
-version = "0.1.9"
+version = "0.1.10"
 authors = ["bluss"]
 
 license = "MIT/Apache-2.0"
 
-description = "A wrapper type to inhibit drop (destructor)."
-documentation = "http://bluss.github.io/arrayvec/doc/nodrop"
+description = "A wrapper type to inhibit drop (destructor). Use std::mem::ManuallyDrop instead!"
+documentation = "https://docs.rs/nodrop/"
 repository = "https://github.com/bluss/arrayvec"
 
 keywords = ["container", "drop", "no_std"]
+categories = ["rust-patterns"]
 
 [features]
 default = ["std"]
@@ -18,7 +19,7 @@ default = ["std"]
 # Use libstd
 std = ["odds/std"]
 
-# Optional, nightly channel
+# Optional, Rust 1.21.0
 # Use `needs_drop` to skip overwriting if not necessary
 use_needs_drop = []
 
@@ -33,3 +34,6 @@ default-features = false
 path = "../nodrop-union"
 version = "0.1.8"
 optional = true
+
+[package.metadata.release]
+no-dev-version = true
