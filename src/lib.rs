@@ -442,6 +442,25 @@ impl<A: Array> ArrayVec<A> {
         }
     }
 
+    /// Shortens the vector, keeping the first `len` elements and dropping
+    /// the rest.
+    ///
+    /// If `len` is greater than the vector's current length this has no
+    /// effect.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::from([1, 2, 3, 4, 5]);
+    /// array.truncate(3);
+    /// assert_eq!(&array[..], &[1, 2, 3]);
+    /// array.truncate(4);
+    /// assert_eq!(&array[..], &[1, 2, 3]);
+    /// ```
+    pub fn truncate(&mut self, len: usize) {
+        while self.len() > len { self.pop(); }
+    }
+
     /// Remove all elements in the vector.
     pub fn clear(&mut self) {
         while let Some(_) = self.pop() { }
