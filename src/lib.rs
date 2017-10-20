@@ -26,7 +26,6 @@
 #![doc(html_root_url="https://docs.rs/arrayvec/0.4/")]
 #![cfg_attr(not(feature="std"), no_std)]
 extern crate odds;
-extern crate nodrop;
 #[cfg(feature="serde-1")]
 extern crate serde;
 
@@ -51,12 +50,6 @@ use std::fmt;
 #[cfg(feature="std")]
 use std::io;
 
-#[cfg(not(feature="use_union"))]
-use nodrop::NoDrop;
-
-#[cfg(feature="use_union")]
-use std::mem::ManuallyDrop as NoDrop;
-
 #[cfg(feature="serde-1")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
@@ -64,6 +57,9 @@ mod array;
 mod array_string;
 mod range;
 mod errors;
+mod maybe_uninit;
+
+use maybe_uninit::MaybeUninit;
 
 pub use array::Array;
 pub use range::RangeArgument;
@@ -71,14 +67,6 @@ use array::Index;
 pub use array_string::ArrayString;
 pub use errors::CapacityError;
 
-
-unsafe fn new_array<A: Array>() -> A {
-    // Note: Returning an uninitialized value here only works
-    // if we can be sure the data is never used. The nullable pointer
-    // inside enum optimization conflicts with this this for example,
-    // so we need to be extra careful. See `NoDrop` enum.
-    mem::uninitialized()
-}
 
 /// A vector with a fixed capacity.
 ///
@@ -93,17 +81,17 @@ unsafe fn new_array<A: Array>() -> A {
 ///
 /// ArrayVec can be converted into a by value iterator.
 pub struct ArrayVec<A: Array> {
-    xs: NoDrop<A>,
+    xs: MaybeUninit<A>,
     len: A::Index,
 }
 
 impl<A: Array> Drop for ArrayVec<A> {
     fn drop(&mut self) {
-        self.clear();
+        unsafe {
+            ptr::drop_in_place(&mut self[..]);
+        }
 
-        // NoDrop inhibits array's drop
-        // panic safety: NoDrop::drop will trigger on panic, so the inner
-        // array will not drop even after panic.
+        // ManuallyDrop inhibits array's drop
     }
 }
 
@@ -130,7 +118,7 @@ impl<A: Array> ArrayVec<A> {
     /// ```
     pub fn new() -> ArrayVec<A> {
         unsafe {
-            ArrayVec { xs: NoDrop::new(new_array()), len: Index::from(0) }
+            ArrayVec { xs: MaybeUninit::uninitialized(), len: Index::from(0) }
         }
     }
 
@@ -463,7 +451,13 @@ impl<A: Array> ArrayVec<A> {
 
     /// Remove all elements in the vector.
     pub fn clear(&mut self) {
-        while let Some(_) = self.pop() { }
+        if mem::needs_drop::<A>() {
+            while let Some(_) = self.pop() { }
+        } else {
+            unsafe {
+                self.set_len(0);
+            }
+        }
     }
 
     /// Retains only the elements specified by the predicate.
@@ -536,7 +530,7 @@ impl<A: Array> ArrayVec<A> {
         // Memory safety
         //
         // When the Drain is first created, it shortens the length of
-        // the source vector to make sure no uninitalized or moved-from elements
+        // the source vector to make sure no uninitialized or moved-from elements
         // are accessible at all if the Drain's destructor never gets to run.
         //
         // Drain will ptr::read out the values to remove.
@@ -568,13 +562,13 @@ impl<A: Array> ArrayVec<A> {
     ///
     /// `Note:` This function may incur unproportionally large overhead
     /// to move the array out, its performance is not optimal.
-    pub fn into_inner(self) -> Result<A, Self> {
+    pub fn into_inner(mut self) -> Result<A, Self> {
         if self.len() < self.capacity() {
             Err(self)
         } else {
             unsafe {
-                let array = ptr::read(&*self.xs);
-                mem::forget(self);
+                let array = ptr::read(self.xs.ptr());
+                self.set_len(0);
                 Ok(array)
             }
         }
@@ -602,7 +596,7 @@ impl<A: Array> Deref for ArrayVec<A> {
     #[inline]
     fn deref(&self) -> &[A::Item] {
         unsafe {
-            slice::from_raw_parts(self.xs.as_ptr(), self.len())
+            slice::from_raw_parts((*self.xs.ptr()).as_ptr(), self.len())
         }
     }
 }
@@ -612,7 +606,7 @@ impl<A: Array> DerefMut for ArrayVec<A> {
     fn deref_mut(&mut self) -> &mut [A::Item] {
         let len = self.len();
         unsafe {
-            slice::from_raw_parts_mut(self.xs.as_mut_ptr(), len)
+            slice::from_raw_parts_mut((*self.xs.ptr_mut()).as_mut_ptr(), len)
         }
     }
 }
@@ -628,7 +622,7 @@ impl<A: Array> DerefMut for ArrayVec<A> {
 /// ```
 impl<A: Array> From<A> for ArrayVec<A> {
     fn from(array: A) -> Self {
-        ArrayVec { xs: NoDrop::new(array), len: Index::from(A::capacity()) }
+        ArrayVec { xs: MaybeUninit::from(array), len: Index::from(A::capacity()) }
     }
 }
 
