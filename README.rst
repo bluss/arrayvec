@@ -22,6 +22,10 @@ __ https://docs.rs/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.4.4
+
+  - Add method ``ArrayVec::truncate()`` by @niklasf
+
 - 0.4.3
 
   - Improve performance for ``ArrayVec::extend`` with a lower level
