@@ -1,6 +1,6 @@
 [package]
 name = "nodrop"
-version = "0.1.10"
+version = "0.1.11"
 authors = ["bluss"]
 
 license = "MIT/Apache-2.0"

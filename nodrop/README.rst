@@ -5,6 +5,10 @@ nodrop
 Recent Changes (nodrop)
 -----------------------
 
+- 0.1.11
+
+  - Remove erronous assertion in test (#77)
+
 - 0.1.10
 
   - Update for stable ``needs_drop`` (Rust 1.21, was nightly only)
