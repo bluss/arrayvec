@@ -3,6 +3,7 @@ use std::cmp;
 use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::mem;
+use std::mem::uninitialized;
 use std::ptr;
 use std::ops::{Deref, DerefMut};
 use std::str;
@@ -53,7 +54,7 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     pub fn new() -> ArrayString<A> {
         unsafe {
             ArrayString {
-                xs: ::new_array(),
+                xs: uninitialized(),
                 len: Index::from(0),
             }
         }
