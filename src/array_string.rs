@@ -12,7 +12,7 @@ use std::slice;
 use array::{Array, ArrayExt};
 use array::Index;
 use CapacityError;
-use odds::char::encode_utf8;
+use char::encode_utf8;
 
 #[cfg(feature="serde-1")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
