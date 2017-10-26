@@ -226,7 +226,7 @@ impl<A: Array> ArrayVec<A> {
     /// It is up to the caller to ensure the capacity of the vector is
     /// sufficiently large.
     ///
-    /// This method *may* use debug assertions to check that the arrayvec is not full.
+    /// This method uses *debug assertions* to check that the arrayvec is not full.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
@@ -502,11 +502,11 @@ impl<A: Array> ArrayVec<A> {
 
     /// Set the vector's length without dropping or moving out elements
     ///
-    /// May use debug assertions to check that `length` is not greater than the
-    /// capacity.
-    ///
-    /// This function is `unsafe` because it changes the notion of the
+    /// This method is `unsafe` because it changes the notion of the
     /// number of “valid” elements in the vector. Use with care.
+    ///
+    /// This method uses *debug assertions* to check that check that `length` is
+    /// not greater than the capacity.
     #[inline]
     pub unsafe fn set_len(&mut self, length: usize) {
         debug_assert!(length <= self.capacity());

@@ -322,10 +322,11 @@ impl<A: Array<Item=u8>> ArrayString<A> {
 
     /// Set the strings's length.
     ///
-    /// May panic if `length` is greater than the capacity.
-    ///
     /// This function is `unsafe` because it changes the notion of the
     /// number of “valid” bytes in the string. Use with care.
+    ///
+    /// This method uses *debug assertions* to check the validity of `length`
+    /// and may use other debug assertions.
     #[inline]
     pub unsafe fn set_len(&mut self, length: usize) {
         debug_assert!(length <= self.capacity());
