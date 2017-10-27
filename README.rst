@@ -22,6 +22,17 @@ __ https://docs.rs/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.4.5
+
+  - Add methods to ``ArrayString`` by @DenialAdams:
+
+    - ``.pop() -> Option<char>``
+    - ``.truncate(new_len)``
+    - ``.remove(index) -> char``
+
+  - Remove dependency on crate odds
+  - Document debug assertions in unsafe methods better
+
 - 0.4.4
 
   - Add method ``ArrayVec::truncate()`` by @niklasf
