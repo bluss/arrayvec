@@ -11,10 +11,6 @@ repository = "https://github.com/bluss/arrayvec"
 keywords = ["stack", "vector", "array", "data-structure", "no_std"]
 categories = ["data-structures", "no-std"]
 
-[dependencies.odds]
-version = "0.2.23"
-default-features = false
-
 [dependencies.nodrop]
 version = "0.1.8"
 path = "nodrop"
@@ -34,6 +30,10 @@ bencher = "0.1.4"
 
 [[bench]]
 name = "extend"
+harness = false
+
+[[bench]]
+name = "arraystring"
 harness = false
 
 [features]

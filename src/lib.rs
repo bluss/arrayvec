@@ -25,7 +25,6 @@
 //!
 #![doc(html_root_url="https://docs.rs/arrayvec/0.4/")]
 #![cfg_attr(not(feature="std"), no_std)]
-extern crate odds;
 extern crate nodrop;
 #[cfg(feature="serde-1")]
 extern crate serde;
@@ -62,6 +61,7 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
 mod array;
 mod array_string;
+mod char;
 mod range;
 mod errors;
 
