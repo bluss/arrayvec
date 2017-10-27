@@ -12,7 +12,6 @@ use std::slice;
 use array::{Array, ArrayExt};
 use array::Index;
 use CapacityError;
-use odds::char::encode_utf8;
 
 #[cfg(feature="serde-1")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
@@ -157,14 +156,19 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     /// ```
     pub fn try_push(&mut self, c: char) -> Result<(), CapacityError<char>> {
         let len = self.len();
+        let char_len = c.len_utf8();
         unsafe {
-            match encode_utf8(c, &mut self.raw_mut_bytes()[len..]) {
-                Ok(n) => {
-                    self.set_len(len + n);
-                    Ok(())
-                }
-                Err(_) => Err(CapacityError::new(c)),
+            let tail_slice = &mut self.raw_mut_bytes()[len..];
+
+            if tail_slice.len() < char_len {
+                return Err(CapacityError::new(c));
+            } else {
+                c.encode_utf8(tail_slice);
             }
+        }
+        unsafe {
+            self.set_len(len + char_len);
+            Ok(())
         }
     }
 
