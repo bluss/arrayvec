@@ -32,6 +32,10 @@ bencher = "0.1.4"
 name = "extend"
 harness = false
 
+[[bench]]
+name = "arraystring"
+harness = false
+
 [features]
 default = ["std"]
 std = []
