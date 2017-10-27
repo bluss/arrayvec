@@ -17,7 +17,7 @@ default = ["std"]
 
 # Default, requires Rust 1.6+ to disable
 # Use libstd
-std = ["odds/std"]
+std = []
 
 # Optional, Rust 1.21.0
 # Use `needs_drop` to skip overwriting if not necessary
@@ -25,10 +25,6 @@ use_needs_drop = []
 
 # Optional, nightly channel
 use_union = ["nodrop-union"]
-
-[dependencies.odds]
-version = "0.2.12"
-default-features = false
 
 [dependencies.nodrop-union]
 path = "../nodrop-union"
