@@ -445,7 +445,7 @@ impl<A: Array> ArrayVec<A> {
     /// Shortens the vector, keeping the first `len` elements and dropping
     /// the rest.
     ///
-    /// If `len` is greater than the vector's current length this has no
+    /// If `len` is greater than the vector’s current length this has no
     /// effect.
     ///
     /// ```
@@ -500,7 +500,7 @@ impl<A: Array> ArrayVec<A> {
         }
     }
 
-    /// Set the vector's length without dropping or moving out elements
+    /// Set the vector’s length without dropping or moving out elements
     ///
     /// This method is `unsafe` because it changes the notion of the
     /// number of “valid” elements in the vector. Use with care.

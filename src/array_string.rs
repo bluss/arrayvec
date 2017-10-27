@@ -250,7 +250,7 @@ impl<A: Array<Item=u8>> ArrayString<A> {
 
     /// Shortens this `ArrayString` to the specified length.
     ///
-    /// If `new_len` is greater than the string's current length, this has no
+    /// If `new_len` is greater than the string’s current length, this has no
     /// effect.
     ///
     /// ***Panics*** if `new_len` does not lie on a `char` boundary.
@@ -283,7 +283,7 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     /// This is an `O(n)` operation, as it requires copying every element in the
     /// array.
     ///
-    /// ***Panics*** if `idx` is larger than or equal to the `ArrayString`'s length,
+    /// ***Panics*** if `idx` is larger than or equal to the `ArrayString`’s length,
     /// or if it does not lie on a `char` boundary.
     ///
     /// ```
@@ -320,7 +320,7 @@ impl<A: Array<Item=u8>> ArrayString<A> {
         }
     }
 
-    /// Set the strings's length.
+    /// Set the strings’s length.
     ///
     /// This function is `unsafe` because it changes the notion of the
     /// number of “valid” bytes in the string. Use with care.
@@ -338,7 +338,7 @@ impl<A: Array<Item=u8>> ArrayString<A> {
         self
     }
 
-    /// Return a mutable slice of the whole string's buffer
+    /// Return a mutable slice of the whole string’s buffer
     unsafe fn raw_mut_bytes(&mut self) -> &mut [u8] {
         slice::from_raw_parts_mut(self.xs.as_mut_ptr(), self.capacity())
     }

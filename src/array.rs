@@ -1,7 +1,7 @@
 
 /// Trait for fixed size arrays.
 pub unsafe trait Array {
-    /// The array's element type
+    /// The array’s element type
     type Item;
     #[doc(hidden)]
     /// The smallest index type that indexes the array.
