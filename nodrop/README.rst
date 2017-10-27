@@ -5,6 +5,10 @@ nodrop
 Recent Changes (nodrop)
 -----------------------
 
+- 0.1.12
+
+  - Remove dependency on crate odds.
+
 - 0.1.11
 
   - Remove erronous assertion in test (#77)
