@@ -597,6 +597,190 @@ impl<A: Array> ArrayVec<A> {
     }
 }
 
+impl<A: Array> ArrayVec<A>
+    where A::Item: Clone,
+{
+    /// Resizes the `ArrayVec` in-place so that `len` is equal to `new_len`.
+    ///
+    /// Does the same thing as `try_resize`, but panics on error instead of
+    /// returning it as a `Result`.
+    pub fn resize(&mut self, new_len: usize, value: A::Item) {
+        self.try_resize(new_len, value).unwrap()
+    }
+
+    /// Resizes the `ArrayVec` in-place so that `len` is equal to `new_len`.
+    ///
+    /// If `new_len` is greater than `len`, the `ArrayVec` is extended by the
+    /// difference, with each additional slot filled with `value`. If `new_len`
+    /// is less than `len`, the `ArrayVec` is simply truncated.
+    ///
+    /// This method requires `Clone` to clone the passed value. If you'd rather
+    /// create a value with `Default` instead, see `try_resize_default`.
+    ///
+    /// If the capacity of the `ArrayVec` is smaller than the passed `new_len`,
+    /// an error is returned, and no changes to the `ArrayVec` is made.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut vec: ArrayVec<[_; 4]> = ArrayVec::new();
+    /// vec.push("hello");
+    /// assert!(vec.try_resize(3, "world").is_ok());
+    /// assert_eq!(&vec[..], &["hello", "world", "world"]);
+    ///
+    /// let mut vec: ArrayVec<[_; 4]> = (1..5).collect();
+    /// assert!(vec.try_resize(2, 0).is_ok());
+    /// assert_eq!(&vec[..], &[1, 2]);
+    /// ```
+    pub fn try_resize(&mut self, new_len: usize, value: A::Item)
+         -> Result<(), CapacityError>
+    {
+        let len = self.len();
+        if new_len > len {
+            self.extend_with(new_len - len, ExtendElement(value))
+        } else {
+            self.truncate(new_len);
+            Ok(())
+        }
+    }
+}
+
+impl<A: Array> ArrayVec<A>
+    where A::Item: Default,
+{
+    /// Resizes the `ArrayVec` in-place so that `len` is equal to `new_len`.
+    ///
+    /// Does the same thing as `try_resize_default`, but panics on error
+    /// instead of returning it as a `Result`.
+    pub fn resize_default(&mut self, new_len: usize) {
+        self.try_resize_default(new_len).unwrap();
+    }
+
+    /// Resizes the `ArrayVec` in-place so that `len` is equal to `new_len`.
+    ///
+    /// If `new_len` is greater than `len`, the `ArrayVec` is extended by the
+    /// difference, with each additional slot filled with `Default::default()`.
+    /// If `new_len` is less than `len`, the `ArrayVec` is simply truncated.
+    ///
+    /// This method uses `Default` to create new values on every push. If you'd
+    /// rather `Clone` a given value, use `try_resize`.
+    ///
+    /// If the capacity of the `ArrayVec` is smaller than the passed `new_len`,
+    /// an error is returned, and no changes to the `ArrayVec` is made.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut vec: ArrayVec<[_; 8]> = (1..4).collect();
+    /// assert!(vec.try_resize_default(5).is_ok());
+    /// assert_eq!(&vec[..], &[1, 2, 3, 0, 0]);
+    ///
+    /// let mut vec: ArrayVec<[_; 4]> = (1..5).collect();
+    /// assert!(vec.try_resize_default(2).is_ok());
+    /// assert_eq!(&vec[..], &[1, 2]);
+    /// ```
+    pub fn try_resize_default(&mut self, new_len: usize)
+        -> Result<(), CapacityError>
+    {
+        let len = self.len();
+        if new_len > len {
+            self.extend_with(new_len - len, ExtendDefault)
+        } else {
+            self.truncate(new_len);
+            Ok(())
+        }
+    }
+}
+
+trait ExtendWith<T> {
+    fn next(&self) -> T;
+    fn last(self) -> T;
+}
+
+struct ExtendElement<T>(T);
+impl<T: Clone> ExtendWith<T> for ExtendElement<T> {
+    fn next(&self) -> T { self.0.clone() }
+    fn last(self) -> T { self.0 }
+}
+
+struct ExtendDefault;
+impl<T: Default> ExtendWith<T> for ExtendDefault {
+    fn next(&self) -> T { Default::default() }
+    fn last(self) -> T { Default::default() }
+}
+
+impl<A: Array> ArrayVec<A> {
+    /// Extend the vector by `n` values, using the given generator.
+    ///
+    /// Doesn't extend the vector and returns an error if the number of added
+    /// elements exceed the capacity of the underlying array.
+    fn extend_with<E: ExtendWith<A::Item>>(&mut self, n: usize, value: E)
+        -> Result<(), CapacityError>
+    {
+        if self.len() + n > self.capacity() {
+            return Err(CapacityError::new(()));
+        }
+        unsafe {
+            let mut ptr = self.as_mut_ptr().offset(self.len() as isize);
+            // Use `SetLenOnDrop` to work around bug where the compiler may not
+            // realize the store through `ptr` and `self.set_len()` don't
+            // alias.
+            let mut local_len = SetLenOnDrop::new(&mut self.len);
+
+            // Write all elements except the last one
+            for _ in 1..n {
+                ptr::write(ptr, value.next());
+                ptr = ptr.offset(1);
+                // Increment the length in every step in case `next()` panics.
+                local_len.increment_len(1);
+            }
+
+            if n > 0 {
+                // We can write the last element directly without cloning
+                // needlessly.
+                ptr::write(ptr, value.last());
+                local_len.increment_len(1);
+            }
+
+            // `len` set by scope guard
+        }
+        Ok(())
+    }
+}
+
+/// Set the length of the vec when the `SetLenOnDrop` value goes out of scope.
+///
+/// The idea is: The length field in `SetLenOnDrop` is a local variable that
+/// the optimizer will see does not alias with any stores through `ArrayVec`'s
+/// data pointer. This is a workaround for alias analysis issue #32155.
+struct SetLenOnDrop<'a, I: Index+'a> {
+    len: &'a mut I,
+    local_len: I,
+}
+
+impl<'a, I: Index> SetLenOnDrop<'a, I> {
+    #[inline]
+    fn new(len: &'a mut I) -> Self {
+        SetLenOnDrop { local_len: *len, len: len }
+    }
+
+    #[inline]
+    fn increment_len(&mut self, increment: usize) {
+        self.local_len = Index::from(self.local_len.to_usize() + increment);
+    }
+}
+
+impl<'a, I: Index> Drop for SetLenOnDrop<'a, I> {
+    #[inline]
+    fn drop(&mut self) {
+        *self.len = self.local_len;
+    }
+}
+
 impl<A: Array> Deref for ArrayVec<A> {
     type Target = [A::Item];
     #[inline]
