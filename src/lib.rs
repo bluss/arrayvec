@@ -1008,23 +1008,6 @@ impl<'a, A: Array> Drop for Drain<'a, A>
     }
 }
 
-struct ScopeExitGuard<T, Data, F>
-    where F: FnMut(&Data, &mut T)
-{
-    value: T,
-    data: Data,
-    f: F,
-}
-
-impl<T, Data, F> Drop for ScopeExitGuard<T, Data, F>
-    where F: FnMut(&Data, &mut T)
-{
-    fn drop(&mut self) {
-        (self.f)(&self.data, &mut self.value)
-    }
-}
-
-
 
 /// Extend the `ArrayVec` with an iterator.
 /// 
@@ -1034,23 +1017,17 @@ impl<A: Array> Extend<A::Item> for ArrayVec<A> {
     fn extend<T: IntoIterator<Item=A::Item>>(&mut self, iter: T) {
         let take = self.capacity() - self.len();
         unsafe {
-            let len = self.len();
-            let mut ptr = self.as_mut_ptr().offset(len as isize);
             // Keep the length in a separate variable, write it back on scope
             // exit. To help the compiler with alias analysis and stuff.
             // We update the length to handle panic in the iteration of the
             // user's iterator, without dropping any elements on the floor.
-            let mut guard = ScopeExitGuard {
-                value: self,
-                data: len,
-                f: |&len, self_| {
-                    self_.set_len(len)
-                }
-            };
+            let len = self.len();
+            let mut ptr = self.as_mut_ptr().offset(len as isize);
+            let mut local_len = SetLenOnDrop::new(&mut self.len);
             for elt in iter.into_iter().take(take) {
                 ptr::write(ptr, elt);
                 ptr = ptr.offset(1);
-                guard.data += 1;
+                local_len.increment_len(1);
             }
         }
     }
