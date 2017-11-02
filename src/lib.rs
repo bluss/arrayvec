@@ -35,6 +35,7 @@ extern crate core as std;
 
 use std::cmp;
 use std::iter;
+use std::marker::PhantomData;
 use std::mem;
 use std::ptr;
 use std::ops::{
@@ -595,24 +596,23 @@ impl<A: Array> ArrayVec<A> {
     pub fn as_mut_slice(&mut self) -> &mut [A::Item] {
         self
     }
-}
 
-impl<A: Array> ArrayVec<A>
-    where A::Item: Clone,
-{
-    /// Resizes the `ArrayVec` in-place so that `len` is equal to `new_len`.
+    /// Resizes the `ArrayVec` in-place so that its length becomes `new_len`.
     ///
     /// Does the same thing as `try_resize`, but panics on error instead of
     /// returning it as a `Result`.
-    pub fn resize(&mut self, new_len: usize, value: A::Item) {
+    ///
+    /// **Panics** if the corresponding `try_resize` would return an error.
+    pub fn resize(&mut self, new_len: usize, value: A::Item) where A::Item: Clone {
         self.try_resize(new_len, value).unwrap()
     }
 
-    /// Resizes the `ArrayVec` in-place so that `len` is equal to `new_len`.
+    /// Resizes the `ArrayVec` in-place so that its length becomes `new_len`.
     ///
-    /// If `new_len` is greater than `len`, the `ArrayVec` is extended by the
-    /// difference, with each additional slot filled with `value`. If `new_len`
-    /// is less than `len`, the `ArrayVec` is simply truncated.
+    /// If `new_len` is greater than the vector's current length, the
+    /// `ArrayVec` is extended by the difference, with each additional slot
+    /// filled with `value`. If `new_len` is less than the vector's current
+    /// length, the `ArrayVec` is simply truncated.
     ///
     /// This method requires `Clone` to clone the passed value. If you'd rather
     /// create a value with `Default` instead, see `try_resize_default`.
@@ -636,33 +636,34 @@ impl<A: Array> ArrayVec<A>
     /// ```
     pub fn try_resize(&mut self, new_len: usize, value: A::Item)
          -> Result<(), CapacityError>
+         where A::Item: Clone,
     {
         let len = self.len();
         if new_len > len {
-            self.extend_with(new_len - len, ExtendElement(value))
+            self.extend_with(ExtendElement::new(new_len - len, value))
         } else {
             self.truncate(new_len);
             Ok(())
         }
     }
-}
 
-impl<A: Array> ArrayVec<A>
-    where A::Item: Default,
-{
-    /// Resizes the `ArrayVec` in-place so that `len` is equal to `new_len`.
+    /// Resizes the `ArrayVec` in-place so that its length becomes `new_len`.
     ///
     /// Does the same thing as `try_resize_default`, but panics on error
     /// instead of returning it as a `Result`.
-    pub fn resize_default(&mut self, new_len: usize) {
+    ///
+    /// **Panics** if the corresponding `try_resize_default` would return an
+    /// error.
+    pub fn resize_default(&mut self, new_len: usize) where A::Item: Default {
         self.try_resize_default(new_len).unwrap();
     }
 
-    /// Resizes the `ArrayVec` in-place so that `len` is equal to `new_len`.
+    /// Resizes the `ArrayVec` in-place so that its length becomes `new_len`.
     ///
-    /// If `new_len` is greater than `len`, the `ArrayVec` is extended by the
-    /// difference, with each additional slot filled with `Default::default()`.
-    /// If `new_len` is less than `len`, the `ArrayVec` is simply truncated.
+    /// If `new_len` is greater than the vector's current length, the
+    /// `ArrayVec` is extended by the difference, with each additional slot
+    /// filled with `Default::default()`. If `new_len` is less than the
+    /// vector's current length, the `ArrayVec` is simply truncated.
     ///
     /// This method uses `Default` to create new values on every push. If you'd
     /// rather `Clone` a given value, use `try_resize`.
@@ -685,10 +686,11 @@ impl<A: Array> ArrayVec<A>
     /// ```
     pub fn try_resize_default(&mut self, new_len: usize)
         -> Result<(), CapacityError>
+        where A::Item: Default,
     {
         let len = self.len();
         if new_len > len {
-            self.extend_with(new_len - len, ExtendDefault)
+            self.extend_with(ExtendDefault::new(new_len - len))
         } else {
             self.truncate(new_len);
             Ok(())
@@ -696,32 +698,84 @@ impl<A: Array> ArrayVec<A>
     }
 }
 
-trait ExtendWith<T> {
-    fn next(&self) -> T;
-    fn last(self) -> T;
+trait ExtendIterator: Iterator {
+    fn needed_capacity(&self) -> usize;
 }
 
-struct ExtendElement<T>(T);
-impl<T: Clone> ExtendWith<T> for ExtendElement<T> {
-    fn next(&self) -> T { self.0.clone() }
-    fn last(self) -> T { self.0 }
+struct ExtendElement<T: Clone>(usize, Option<T>);
+impl<T: Clone> ExtendElement<T> {
+    fn new(n: usize, value: T) -> ExtendElement<T> {
+        ExtendElement(n, Some(value))
+    }
+}
+impl<T: Clone> Iterator for ExtendElement<T> {
+    type Item = T;
+    fn next(&mut self) -> Option<T> {
+        if self.0 == 0 {
+            return None;
+        }
+        self.0 -= 1;
+        Some(if self.0 > 0 {
+            self.1.as_ref().unwrap().clone()
+        } else {
+            self.1.take().unwrap()
+        })
+    }
+}
+impl<T: Clone> ExtendIterator for ExtendElement<T> {
+    fn needed_capacity(&self) -> usize {
+        self.0
+    }
 }
 
-struct ExtendDefault;
-impl<T: Default> ExtendWith<T> for ExtendDefault {
-    fn next(&self) -> T { Default::default() }
-    fn last(self) -> T { Default::default() }
+struct ExtendDefault<T: Default>(usize, PhantomData<T>);
+impl<T: Default> ExtendDefault<T> {
+    fn new(n: usize) -> ExtendDefault<T> {
+        ExtendDefault(n, PhantomData)
+    }
+}
+impl<T: Default> Iterator for ExtendDefault<T> {
+    type Item = T;
+    fn next(&mut self) -> Option<T> {
+        if self.0 == 0 {
+            return None;
+        }
+        self.0 -= 1;
+        Some(Default::default())
+    }
+}
+impl<T: Default> ExtendIterator for ExtendDefault<T> {
+    fn needed_capacity(&self) -> usize {
+        self.0
+    }
+}
+
+struct ExtendIter<I: Iterator>(I);
+impl<I: Iterator> ExtendIter<I> {
+    fn new(i: I) -> ExtendIter<I> {
+        ExtendIter(i)
+    }
+}
+impl<I: Iterator> Iterator for ExtendIter<I> {
+    type Item = I::Item;
+    fn next(&mut self) -> Option<I::Item> { self.0.next() }
+    fn size_hint(&self) -> (usize, Option<usize>) { self.0.size_hint() }
+}
+impl<I: Iterator> ExtendIterator for ExtendIter<I> {
+    fn needed_capacity(&self) -> usize {
+        0
+    }
 }
 
 impl<A: Array> ArrayVec<A> {
-    /// Extend the vector by `n` values, using the given generator.
+    /// Extend the vector by values specified , using the given generator.
     ///
     /// Doesn't extend the vector and returns an error if the number of added
     /// elements exceed the capacity of the underlying array.
-    fn extend_with<E: ExtendWith<A::Item>>(&mut self, n: usize, value: E)
-        -> Result<(), CapacityError>
+    fn extend_with<E>(&mut self, values: E) -> Result<(), CapacityError>
+        where E: ExtendIterator+Iterator<Item=A::Item>,
     {
-        if self.len() + n > self.capacity() {
+        if self.capacity() - self.len() < values.needed_capacity() {
             return Err(CapacityError::new(()));
         }
         unsafe {
@@ -729,20 +783,14 @@ impl<A: Array> ArrayVec<A> {
             // Use `SetLenOnDrop` to work around bug where the compiler may not
             // realize the store through `ptr` and `self.set_len()` don't
             // alias.
+            let remaining = self.capacity() - self.len();
             let mut local_len = SetLenOnDrop::new(&mut self.len);
 
             // Write all elements except the last one
-            for _ in 1..n {
-                ptr::write(ptr, value.next());
+            for elt in values.take(remaining) {
+                ptr::write(ptr, elt);
                 ptr = ptr.offset(1);
                 // Increment the length in every step in case `next()` panics.
-                local_len.increment_len(1);
-            }
-
-            if n > 0 {
-                // We can write the last element directly without cloning
-                // needlessly.
-                ptr::write(ptr, value.last());
                 local_len.increment_len(1);
             }
 
@@ -1015,21 +1063,7 @@ impl<'a, A: Array> Drop for Drain<'a, A>
 /// occurs if there are more iterator elements.
 impl<A: Array> Extend<A::Item> for ArrayVec<A> {
     fn extend<T: IntoIterator<Item=A::Item>>(&mut self, iter: T) {
-        let take = self.capacity() - self.len();
-        unsafe {
-            // Keep the length in a separate variable, write it back on scope
-            // exit. To help the compiler with alias analysis and stuff.
-            // We update the length to handle panic in the iteration of the
-            // user's iterator, without dropping any elements on the floor.
-            let len = self.len();
-            let mut ptr = self.as_mut_ptr().offset(len as isize);
-            let mut local_len = SetLenOnDrop::new(&mut self.len);
-            for elt in iter.into_iter().take(take) {
-                ptr::write(ptr, elt);
-                ptr = ptr.offset(1);
-                local_len.increment_len(1);
-            }
-        }
+        self.extend_with(ExtendIter::new(iter.into_iter())).unwrap()
     }
 }
 
