@@ -22,6 +22,17 @@ __ https://docs.rs/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.4.6
+
+  - Fix compilation on 16-bit targets. This means, the 65536 array size is not
+    included on these targets.
+
+- 0.3.24
+
+  - Fix compilation on 16-bit targets. This means, the 65536 array size is not
+    included on these targets.
+  - Fix license files so that they are both included (was fixed in 0.4 before)
+
 - 0.4.5
 
   - Add methods to ``ArrayString`` by @DenialAdams:
