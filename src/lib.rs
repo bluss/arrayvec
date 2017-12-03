@@ -739,11 +739,10 @@ impl<A: Array> Drop for IntoIter<A> {
         let len = self.v.len();
         unsafe {
             self.v.set_len(0);
-            let elements = slice::from_raw_parts(self.v.get_unchecked_mut(index),
-                                                 len - index);
-            for elt in elements {
-                ptr::read(elt);
-            }
+            let elements = slice::from_raw_parts_mut(
+                self.v.get_unchecked_mut(index),
+                len - index);
+            ptr::drop_in_place(elements);
         }
     }
 }
