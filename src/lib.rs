@@ -34,6 +34,7 @@ extern crate core as std;
 
 use std::cmp;
 use std::iter;
+use std::marker::PhantomData;
 use std::mem;
 use std::ptr;
 use std::ops::{
@@ -595,6 +596,237 @@ impl<A: Array> ArrayVec<A> {
     pub fn as_mut_slice(&mut self) -> &mut [A::Item] {
         self
     }
+
+    /// Resizes the `ArrayVec` in-place so that its length becomes `new_len`.
+    ///
+    /// Does the same thing as `try_resize`, but panics on error instead of
+    /// returning it as a `Result`.
+    ///
+    /// **Panics** if the corresponding `try_resize` would return an error.
+    pub fn resize(&mut self, new_len: usize, value: A::Item) where A::Item: Clone {
+        self.try_resize(new_len, value).unwrap()
+    }
+
+    /// Resizes the `ArrayVec` in-place so that its length becomes `new_len`.
+    ///
+    /// If `new_len` is greater than the vector's current length, the
+    /// `ArrayVec` is extended by the difference, with each additional slot
+    /// filled with `value`. If `new_len` is less than the vector's current
+    /// length, the `ArrayVec` is simply truncated.
+    ///
+    /// This method requires `Clone` to clone the passed value. If you'd rather
+    /// create a value with `Default` instead, see `try_resize_default`.
+    ///
+    /// If the capacity of the `ArrayVec` is smaller than the passed `new_len`,
+    /// an error is returned, and no changes to the `ArrayVec` is made.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut vec: ArrayVec<[_; 4]> = ArrayVec::new();
+    /// vec.push("hello");
+    /// assert!(vec.try_resize(3, "world").is_ok());
+    /// assert_eq!(&vec[..], &["hello", "world", "world"]);
+    ///
+    /// let mut vec: ArrayVec<[_; 4]> = (1..5).collect();
+    /// assert!(vec.try_resize(2, 0).is_ok());
+    /// assert_eq!(&vec[..], &[1, 2]);
+    /// ```
+    pub fn try_resize(&mut self, new_len: usize, value: A::Item)
+         -> Result<(), CapacityError>
+         where A::Item: Clone,
+    {
+        let len = self.len();
+        if new_len > len {
+            self.extend_with(ExtendElement::new(new_len - len, value))
+        } else {
+            self.truncate(new_len);
+            Ok(())
+        }
+    }
+
+    /// Resizes the `ArrayVec` in-place so that its length becomes `new_len`.
+    ///
+    /// Does the same thing as `try_resize_default`, but panics on error
+    /// instead of returning it as a `Result`.
+    ///
+    /// **Panics** if the corresponding `try_resize_default` would return an
+    /// error.
+    pub fn resize_default(&mut self, new_len: usize) where A::Item: Default {
+        self.try_resize_default(new_len).unwrap();
+    }
+
+    /// Resizes the `ArrayVec` in-place so that its length becomes `new_len`.
+    ///
+    /// If `new_len` is greater than the vector's current length, the
+    /// `ArrayVec` is extended by the difference, with each additional slot
+    /// filled with `Default::default()`. If `new_len` is less than the
+    /// vector's current length, the `ArrayVec` is simply truncated.
+    ///
+    /// This method uses `Default` to create new values on every push. If you'd
+    /// rather `Clone` a given value, use `try_resize`.
+    ///
+    /// If the capacity of the `ArrayVec` is smaller than the passed `new_len`,
+    /// an error is returned, and no changes to the `ArrayVec` is made.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut vec: ArrayVec<[_; 8]> = (1..4).collect();
+    /// assert!(vec.try_resize_default(5).is_ok());
+    /// assert_eq!(&vec[..], &[1, 2, 3, 0, 0]);
+    ///
+    /// let mut vec: ArrayVec<[_; 4]> = (1..5).collect();
+    /// assert!(vec.try_resize_default(2).is_ok());
+    /// assert_eq!(&vec[..], &[1, 2]);
+    /// ```
+    pub fn try_resize_default(&mut self, new_len: usize)
+        -> Result<(), CapacityError>
+        where A::Item: Default,
+    {
+        let len = self.len();
+        if new_len > len {
+            self.extend_with(ExtendDefault::new(new_len - len))
+        } else {
+            self.truncate(new_len);
+            Ok(())
+        }
+    }
+}
+
+trait ExtendIterator: Iterator {
+    fn needed_capacity(&self) -> usize;
+}
+
+struct ExtendElement<T: Clone>(usize, Option<T>);
+impl<T: Clone> ExtendElement<T> {
+    fn new(n: usize, value: T) -> ExtendElement<T> {
+        ExtendElement(n, Some(value))
+    }
+}
+impl<T: Clone> Iterator for ExtendElement<T> {
+    type Item = T;
+    fn next(&mut self) -> Option<T> {
+        if self.0 == 0 {
+            return None;
+        }
+        self.0 -= 1;
+        Some(if self.0 > 0 {
+            self.1.as_ref().unwrap().clone()
+        } else {
+            self.1.take().unwrap()
+        })
+    }
+}
+impl<T: Clone> ExtendIterator for ExtendElement<T> {
+    fn needed_capacity(&self) -> usize {
+        self.0
+    }
+}
+
+struct ExtendDefault<T: Default>(usize, PhantomData<T>);
+impl<T: Default> ExtendDefault<T> {
+    fn new(n: usize) -> ExtendDefault<T> {
+        ExtendDefault(n, PhantomData)
+    }
+}
+impl<T: Default> Iterator for ExtendDefault<T> {
+    type Item = T;
+    fn next(&mut self) -> Option<T> {
+        if self.0 == 0 {
+            return None;
+        }
+        self.0 -= 1;
+        Some(Default::default())
+    }
+}
+impl<T: Default> ExtendIterator for ExtendDefault<T> {
+    fn needed_capacity(&self) -> usize {
+        self.0
+    }
+}
+
+struct ExtendIter<I: Iterator>(I);
+impl<I: Iterator> ExtendIter<I> {
+    fn new(i: I) -> ExtendIter<I> {
+        ExtendIter(i)
+    }
+}
+impl<I: Iterator> Iterator for ExtendIter<I> {
+    type Item = I::Item;
+    fn next(&mut self) -> Option<I::Item> { self.0.next() }
+    fn size_hint(&self) -> (usize, Option<usize>) { self.0.size_hint() }
+}
+impl<I: Iterator> ExtendIterator for ExtendIter<I> {
+    fn needed_capacity(&self) -> usize {
+        0
+    }
+}
+
+impl<A: Array> ArrayVec<A> {
+    /// Extend the vector by values specified , using the given generator.
+    ///
+    /// Doesn't extend the vector and returns an error if the number of added
+    /// elements exceed the capacity of the underlying array.
+    fn extend_with<E>(&mut self, values: E) -> Result<(), CapacityError>
+        where E: ExtendIterator+Iterator<Item=A::Item>,
+    {
+        if self.capacity() - self.len() < values.needed_capacity() {
+            return Err(CapacityError::new(()));
+        }
+        unsafe {
+            let mut ptr = self.as_mut_ptr().offset(self.len() as isize);
+            // Use `SetLenOnDrop` to work around bug where the compiler may not
+            // realize the store through `ptr` and `self.set_len()` don't
+            // alias.
+            let remaining = self.capacity() - self.len();
+            let mut local_len = SetLenOnDrop::new(&mut self.len);
+
+            // Write all elements except the last one
+            for elt in values.take(remaining) {
+                ptr::write(ptr, elt);
+                ptr = ptr.offset(1);
+                // Increment the length in every step in case `next()` panics.
+                local_len.increment_len(1);
+            }
+
+            // `len` set by scope guard
+        }
+        Ok(())
+    }
+}
+
+/// Set the length of the vec when the `SetLenOnDrop` value goes out of scope.
+///
+/// The idea is: The length field in `SetLenOnDrop` is a local variable that
+/// the optimizer will see does not alias with any stores through `ArrayVec`'s
+/// data pointer. This is a workaround for alias analysis issue #32155.
+struct SetLenOnDrop<'a, I: Index+'a> {
+    len: &'a mut I,
+    local_len: I,
+}
+
+impl<'a, I: Index> SetLenOnDrop<'a, I> {
+    #[inline]
+    fn new(len: &'a mut I) -> Self {
+        SetLenOnDrop { local_len: *len, len: len }
+    }
+
+    #[inline]
+    fn increment_len(&mut self, increment: usize) {
+        self.local_len = Index::from(self.local_len.to_usize() + increment);
+    }
+}
+
+impl<'a, I: Index> Drop for SetLenOnDrop<'a, I> {
+    #[inline]
+    fn drop(&mut self) {
+        *self.len = self.local_len;
+    }
 }
 
 impl<A: Array> Deref for ArrayVec<A> {
@@ -823,23 +1055,6 @@ impl<'a, A: Array> Drop for Drain<'a, A>
     }
 }
 
-struct ScopeExitGuard<T, Data, F>
-    where F: FnMut(&Data, &mut T)
-{
-    value: T,
-    data: Data,
-    f: F,
-}
-
-impl<T, Data, F> Drop for ScopeExitGuard<T, Data, F>
-    where F: FnMut(&Data, &mut T)
-{
-    fn drop(&mut self) {
-        (self.f)(&self.data, &mut self.value)
-    }
-}
-
-
 
 /// Extend the `ArrayVec` with an iterator.
 /// 
@@ -847,27 +1062,7 @@ impl<T, Data, F> Drop for ScopeExitGuard<T, Data, F>
 /// occurs if there are more iterator elements.
 impl<A: Array> Extend<A::Item> for ArrayVec<A> {
     fn extend<T: IntoIterator<Item=A::Item>>(&mut self, iter: T) {
-        let take = self.capacity() - self.len();
-        unsafe {
-            let len = self.len();
-            let mut ptr = self.as_mut_ptr().offset(len as isize);
-            // Keep the length in a separate variable, write it back on scope
-            // exit. To help the compiler with alias analysis and stuff.
-            // We update the length to handle panic in the iteration of the
-            // user's iterator, without dropping any elements on the floor.
-            let mut guard = ScopeExitGuard {
-                value: self,
-                data: len,
-                f: |&len, self_| {
-                    self_.set_len(len)
-                }
-            };
-            for elt in iter.into_iter().take(take) {
-                ptr::write(ptr, elt);
-                ptr = ptr.offset(1);
-                guard.data += 1;
-            }
-        }
+        self.extend_with(ExtendIter::new(iter.into_iter())).unwrap()
     }
 }
 
