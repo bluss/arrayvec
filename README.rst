@@ -22,6 +22,16 @@ __ https://docs.rs/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.4.7
+
+  - Fix future compat warning about raw pointer casts
+  - Use ``drop_in_place`` when dropping the arrayvec by-value iterator
+  - Decrease mininum Rust version (see docs) by @jeehoonkang
+
+- 0.3.25
+
+  - Fix future compat warning about raw pointer casts
+
 - 0.4.6
 
   - Fix compilation on 16-bit targets. This means, the 65536 array size is not
