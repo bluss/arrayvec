@@ -22,6 +22,10 @@ __ https://bluss.github.io/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.3.25
+
+  - Fix future compat warning about raw pointer casts
+
 - 0.3.24
 
   - Fix compilation on 16-bit targets. This means, the 65536 array size is not
