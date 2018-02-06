@@ -893,22 +893,16 @@ impl<A: Array> Clone for ArrayVec<A>
     fn clone_from(&mut self, rhs: &Self) {
         // recursive case for the common prefix
         let prefix = cmp::min(self.len(), rhs.len());
-        {
-            let a = &mut self[..prefix];
-            let b = &rhs[..prefix];
-            for i in 0..prefix {
-                a[i].clone_from(&b[i]);
-            }
-        }
+        self[..prefix].clone_from_slice(&rhs[..prefix]);
+
         if prefix < self.len() {
             // rhs was shorter
             for _ in 0..self.len() - prefix {
                 self.pop();
             }
         } else {
-            for elt in &rhs[self.len()..] {
-                self.push(elt.clone());
-            }
+            let rhs_elems = rhs[self.len()..].iter().cloned();
+            self.extend(rhs_elems);
         }
     }
 }
