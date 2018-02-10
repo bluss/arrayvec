@@ -257,7 +257,8 @@ impl<A: Array> ArrayVec<A> {
     /// It is an error if the index is greater than the length or if the
     /// arrayvec is full.
     ///
-    /// ***Panics*** on errors. See `try_result` for fallible version.
+    /// ***Panics*** if the array is full or the `index` is out of bounds. See
+    /// `try_insert` for fallible version.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
