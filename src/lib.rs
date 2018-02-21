@@ -483,22 +483,7 @@ impl<A: Array> ArrayVec<A> {
     pub fn retain<F>(&mut self, mut f: F)
         where F: FnMut(&mut A::Item) -> bool
     {
-        let len = self.len();
-        let mut del = 0;
-        {
-            let v = &mut **self;
-
-            for i in 0..len {
-                if !f(&mut v[i]) {
-                    del += 1;
-                } else if del > 0 {
-                    v.swap(i - del, i);
-                }
-            }
-        }
-        if del > 0 {
-            self.drain(len - del..);
-        }
+        self.drain_filter(|x| !f(x));
     }
 
     /// Set the vector’s length without dropping or moving out elements
@@ -559,6 +544,42 @@ impl<A: Array> ArrayVec<A> {
                 iter: (*range_slice).iter(),
                 vec: self as *mut _,
             }
+        }
+    }
+
+    /// Creates an iterator which uses a predicate to filter and remove
+    /// elements.
+    ///
+    /// Elements on which the predicate is true will be removed and yielded.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut numbers = ArrayVec::from([0, 2, 3, 4, 5, 6, 8, 9, 11, 13, 14]);
+    ///
+    /// let evens: ArrayVec<[_; 6]> = numbers.drain_filter(|x| *x % 2 == 0).collect();
+    /// let odds = numbers;
+    ///
+    /// assert_eq!(&evens[..], &[0, 2, 4, 6, 8, 14]);
+    /// assert_eq!(&odds[..], &[3, 5, 9, 11, 13]);
+    /// ```
+    pub fn drain_filter<F>(&mut self, filter: F) -> DrainFilter<A, F>
+        where F: FnMut(&mut A::Item) -> bool
+    {
+        let old_len = self.len();
+
+        // Leak amplification to protect against dropping items twice
+        // when there is a panic while iterating.
+        unsafe {
+            self.set_len(0);
+        }
+
+        DrainFilter {
+            vec: self,
+            idx: 0,
+            del: 0,
+            old_len,
+            pred: filter,
         }
     }
 
@@ -820,6 +841,59 @@ impl<'a, A: Array> Drop for Drain<'a, A>
                 ptr::copy(src, dst, self.tail_len);
                 source_vec.set_len(start + self.tail_len);
             }
+        }
+    }
+}
+
+/// An iterator produced by calling `drain_filter` on `ArrayVec`.
+pub struct DrainFilter<'a, A: Array, F>
+    where A: 'a,
+          F: FnMut(&mut A::Item) -> bool
+{
+    vec: &'a mut ArrayVec<A>,
+    idx: usize,
+    del: usize,
+    old_len: usize,
+    pred: F,
+}
+
+impl<'a, A: Array, F> Iterator for DrainFilter<'a, A, F>
+    where F: FnMut(&mut A::Item) -> bool
+{
+    type Item = A::Item;
+
+    fn next(&mut self) -> Option<A::Item> {
+        unsafe {
+            while self.idx != self.old_len {
+                let i = self.idx;
+                self.idx += 1;
+                let v = slice::from_raw_parts_mut(self.vec.as_mut_ptr(), self.old_len);
+                if (self.pred)(&mut v[i]) {
+                    self.del += 1;
+                    return Some(ptr::read(&v[i]));
+                } else if self.del > 0 {
+                    let del = self.del;
+                    let src: *const A::Item = &v[i];
+                    let dst: *mut A::Item = &mut v[i - del];
+                    // Making a copy is safe because the underlying arrayvec's
+                    // length was set to 0, so the element will not be dropped
+                    // twice in the event of a panic.
+                    ptr::copy_nonoverlapping(src, dst, 1);
+                }
+            }
+            None
+        }
+    }
+}
+
+impl<'a, A: Array, F> Drop for DrainFilter<'a, A, F>
+    where F: FnMut(&mut A::Item) -> bool
+{
+    fn drop(&mut self) {
+        for _ in self.by_ref() { }
+
+        unsafe {
+            self.vec.set_len(self.old_len - self.del);
         }
     }
 }
