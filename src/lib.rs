@@ -578,7 +578,7 @@ impl<A: Array> ArrayVec<A> {
             vec: self,
             idx: 0,
             del: 0,
-            old_len,
+            old_len: old_len,
             pred: filter,
         }
     }
