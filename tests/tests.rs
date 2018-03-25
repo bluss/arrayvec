@@ -127,7 +127,22 @@ fn test_drop_panics() {
             }
         }
     }
+    // check if rust is new enough
+    flag.set(0);
+    {
+        let array = vec![Bump(flag), Bump(flag)];
+        let res = catch_unwind(AssertUnwindSafe(|| {
+            drop(array);
+        }));
+        assert!(res.is_err());
+    }
 
+    if flag.get() != 2 {
+        println!("test_drop_panics: skip, this version of Rust doesn't continue in drop_in_place");
+        return;
+    }
+
+    flag.set(0);
     {
         let mut array = ArrayVec::<[Bump; 128]>::new();
         array.push(Bump(flag));
