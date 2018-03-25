@@ -459,12 +459,18 @@ impl<A: Array> ArrayVec<A> {
     /// assert_eq!(&array[..], &[1, 2, 3]);
     /// ```
     pub fn truncate(&mut self, len: usize) {
-        while self.len() > len { self.pop(); }
+        unsafe {
+            if len < self.len() {
+                let tail: *mut [_] = &mut self[len..];
+                self.set_len(len);
+                ptr::drop_in_place(tail);
+            }
+        }
     }
 
     /// Remove all elements in the vector.
     pub fn clear(&mut self) {
-        while let Some(_) = self.pop() { }
+        self.truncate(0)
     }
 
     /// Retains only the elements specified by the predicate.
