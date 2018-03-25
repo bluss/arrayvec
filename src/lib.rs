@@ -637,6 +637,7 @@ impl<A: Array> ArrayVec<A> {
     }
 
     /// Dispose of `self` without the overwriting that is needed in Drop.
+    #[deprecated(note="This method is now obsolete and is no better than dropping")]
     pub fn dispose(mut self) {
         self.clear();
         mem::forget(self);
