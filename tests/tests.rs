@@ -108,6 +108,65 @@ fn test_drop() {
 }
 
 #[test]
+fn test_drop_panics() {
+    use std::cell::Cell;
+    use std::panic::catch_unwind;
+    use std::panic::AssertUnwindSafe;
+
+    let flag = &Cell::new(0);
+
+    struct Bump<'a>(&'a Cell<i32>);
+
+    // Panic in the first drop
+    impl<'a> Drop for Bump<'a> {
+        fn drop(&mut self) {
+            let n = self.0.get();
+            self.0.set(n + 1);
+            if n == 0 {
+                panic!("Panic in Bump's drop");
+            }
+        }
+    }
+
+    {
+        let mut array = ArrayVec::<[Bump; 128]>::new();
+        array.push(Bump(flag));
+        array.push(Bump(flag));
+        array.push(Bump(flag));
+
+        let res = catch_unwind(AssertUnwindSafe(|| {
+            drop(array);
+        }));
+        assert!(res.is_err());
+    }
+    // Check that all the elements drop, even if the first drop panics.
+    assert_eq!(flag.get(), 3);
+
+
+    flag.set(0);
+    {
+        let mut array = ArrayVec::<[Bump; 16]>::new();
+        array.push(Bump(flag));
+        array.push(Bump(flag));
+        array.push(Bump(flag));
+        array.push(Bump(flag));
+        array.push(Bump(flag));
+
+        let i = 2;
+        let tail_len = array.len() - i;
+
+        let res = catch_unwind(AssertUnwindSafe(|| {
+            array.truncate(i);
+        }));
+        assert!(res.is_err());
+        // Check that all the tail elements drop, even if the first drop panics.
+        assert_eq!(flag.get(), tail_len as i32);
+    }
+
+
+}
+
+#[test]
 fn test_extend() {
     let mut range = 0..10;
 
