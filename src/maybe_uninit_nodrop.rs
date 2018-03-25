@@ -1,5 +1,5 @@
 
-
+use array::Array;
 use nodrop::NoDrop;
 use std::mem::uninitialized;
 
@@ -18,14 +18,18 @@ impl<T> MaybeUninit<T> {
         MaybeUninit(NoDrop::new(v))
     }
 
-    /// Return a raw pointer to the interior
-    pub fn ptr(&self) -> *const T {
-        &**(&self.0)
+    /// Return a raw pointer to the start of the interior array
+    pub fn ptr(&self) -> *const T::Item
+        where T: Array
+    {
+        self.0.as_ptr()
     }
 
-    /// Return a raw pointer to the interior (mutable)
-    pub fn ptr_mut(&mut self) -> *mut T {
-        &mut **(&mut self.0)
+    /// Return a mut raw pointer to the start of the interior array
+    pub fn ptr_mut(&mut self) -> *mut T::Item
+        where T: Array
+    {
+        self.0.as_mut_ptr()
     }
 }
 

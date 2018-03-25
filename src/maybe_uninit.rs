@@ -1,11 +1,13 @@
 
 
+use array::Array;
 use std::mem::ManuallyDrop;
 use std::mem::uninitialized;
 
 /// A combination of ManuallyDrop and “maybe uninitialized”;
 /// this wraps a value that can be wholly or partially uninitialized;
 /// it also has no drop regardless of the type of T.
+#[repr(C)]
 pub struct MaybeUninit<T>(ManuallyDrop<T>);
 
 impl<T> MaybeUninit<T> {
@@ -19,16 +21,42 @@ impl<T> MaybeUninit<T> {
         MaybeUninit(ManuallyDrop::new(v))
     }
 
-    /// Return a raw pointer to the interior
-    pub fn ptr(&self) -> *const T {
-        (&self.0) as *const ManuallyDrop<_> as *const T
+    // Raw pointer casts written so that we don't reference or access the
+    // uninitialized interior value
+
+    /// Return a raw pointer to the start of the interior array
+    pub fn ptr(&self) -> *const T::Item
+        where T: Array
+    {
+        self as *const _ as *const T::Item
     }
 
-    /// Return a raw pointer to the interior (mutable)
-    pub fn ptr_mut(&mut self) -> *mut T {
-        (&mut self.0) as *mut ManuallyDrop<_> as *mut T
+    /// Return a mut raw pointer to the start of the interior array
+    pub fn ptr_mut(&mut self) -> *mut T::Item
+        where T: Array
+    {
+        self as *mut _ as *mut T::Item
     }
 }
 
 
 
+#[test]
+fn test_offset() {
+    use std::ptr;
+
+    let mut mu = MaybeUninit::from([1, 2, 3]);
+    assert!(ptr::eq(mu.ptr(), &mu.0[0]));
+    assert!(ptr::eq(mu.ptr_mut(), &mut mu.0[0]));
+}
+
+#[test]
+#[cfg(feature = "std")]
+fn test_offset_string() {
+    use std::ptr;
+
+    let s = String::from;
+    let mut mu = MaybeUninit::from([s("a"), s("b")]);
+    assert!(ptr::eq(mu.ptr(), &mu.0[0]));
+    assert!(ptr::eq(mu.ptr_mut(), &mut mu.0[0]));
+}

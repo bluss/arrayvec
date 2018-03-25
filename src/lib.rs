@@ -629,7 +629,7 @@ impl<A: Array> ArrayVec<A> {
             Err(self)
         } else {
             unsafe {
-                let array = ptr::read(self.xs.ptr());
+                let array = ptr::read(self.xs.ptr() as *const A);
                 mem::forget(self);
                 Ok(array)
             }
@@ -658,7 +658,7 @@ impl<A: Array> Deref for ArrayVec<A> {
     #[inline]
     fn deref(&self) -> &[A::Item] {
         unsafe {
-            slice::from_raw_parts((*self.xs.ptr()).as_ptr(), self.len())
+            slice::from_raw_parts(self.xs.ptr(), self.len())
         }
     }
 }
@@ -668,7 +668,7 @@ impl<A: Array> DerefMut for ArrayVec<A> {
     fn deref_mut(&mut self) -> &mut [A::Item] {
         let len = self.len();
         unsafe {
-            slice::from_raw_parts_mut((*self.xs.ptr_mut()).as_mut_ptr(), len)
+            slice::from_raw_parts_mut(self.xs.ptr_mut(), len)
         }
     }
 }
