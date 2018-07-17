@@ -172,6 +172,19 @@ impl<A: Array> ArrayVec<A> {
     /// ```
     pub fn is_full(&self) -> bool { self.len() == self.capacity() }
 
+    /// Returns the capacity left in the `ArrayVec`.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::from([1, 2, 3]);
+    /// array.pop();
+    /// assert_eq!(array.capacity_left(), 1);
+    /// ```
+    pub fn capacity_left(&self) -> usize {
+        self.capacity() - self.len()
+    }
+
     /// Push `element` to the end of the vector.
     ///
     /// ***Panics*** if the vector is already full.
