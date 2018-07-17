@@ -1079,16 +1079,9 @@ impl<A: Array> Ord for ArrayVec<A> where A::Item: Ord {
 /// Requires `features="std"`.
 impl<A: Array<Item=u8>> io::Write for ArrayVec<A> {
     fn write(&mut self, data: &[u8]) -> io::Result<usize> {
-        unsafe {
-            let len = self.len();
-            let mut tail = slice::from_raw_parts_mut(self.get_unchecked_mut(len),
-                                                     A::capacity() - len);
-            let result = tail.write(data);
-            if let Ok(written) = result {
-                self.set_len(len + written);
-            }
-            result
-        }
+        let len = cmp::min(self.capacity_left(), data.len());
+        self.extend_from_slice(&data[..len]);
+        Ok(len)
     }
     fn flush(&mut self) -> io::Result<()> { Ok(()) }
 }
