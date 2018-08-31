@@ -2,7 +2,6 @@ use std::borrow::Borrow;
 use std::cmp;
 use std::fmt;
 use std::hash::{Hash, Hasher};
-use std::mem;
 use std::ptr;
 use std::ops::{Deref, DerefMut};
 use std::str;
@@ -360,8 +359,7 @@ impl<A: Array<Item=u8>> DerefMut for ArrayString<A> {
     fn deref_mut(&mut self) -> &mut str {
         unsafe {
             let sl = slice::from_raw_parts_mut(self.xs.as_mut_ptr(), self.len.to_usize());
-            // FIXME: Nothing but transmute to do this right now
-            mem::transmute(sl)
+            str::from_utf8_unchecked_mut(sl)
         }
     }
 }
