@@ -55,6 +55,7 @@ fn test_drop() {
 
     let flag = &Cell::new(0);
 
+    #[derive(Clone)]
     struct Bump<'a>(&'a Cell<i32>);
 
     impl<'a> Drop for Bump<'a> {
@@ -105,6 +106,24 @@ fn test_drop() {
         assert_eq!(flag.get(), 3);
     }
 
+    // test cloning into_iter
+    flag.set(0);
+    {
+        let mut array = ArrayVec::<[_; 3]>::new();
+        array.push(Bump(flag));
+        array.push(Bump(flag));
+        array.push(Bump(flag));
+        let mut iter = array.into_iter();
+        assert_eq!(flag.get(), 0);
+        iter.next();
+        assert_eq!(flag.get(), 1);
+        let clone = iter.clone();
+        assert_eq!(flag.get(), 1);
+        drop(clone);
+        assert_eq!(flag.get(), 3);
+        drop(iter);
+        assert_eq!(flag.get(), 5);
+    }
 }
 
 #[test]
