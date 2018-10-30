@@ -748,6 +748,30 @@ impl<A: Array> Drop for IntoIter<A> {
     }
 }
 
+impl<A: Array> Clone for IntoIter<A>
+where
+    A::Item: Clone,
+{
+    fn clone(&self) -> IntoIter<A> {
+        self.v[self.index.to_usize()..]
+            .iter()
+            .cloned()
+            .collect::<ArrayVec<A>>()
+            .into_iter()
+    }
+}
+
+impl<A: Array> fmt::Debug for IntoIter<A>
+where
+    A::Item: fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_list()
+            .entries(&self.v[self.index.to_usize()..])
+            .finish()
+    }
+}
+
 /// A draining iterator for `ArrayVec`.
 pub struct Drain<'a, A> 
     where A: Array,
