@@ -22,6 +22,15 @@ __ https://docs.rs/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.4.8
+
+  - Implement Clone and Debug for ``IntoIter`` by @clarcharr
+  - Add more array sizes under crate features. These cover all in the range
+    up to 128 and 129 to 255 respectively (we have a few of those by default):
+
+    - ``array-size-33-128``
+    - ``array-size-129-255``
+
 - 0.4.7
 
   - Fix future compat warning about raw pointer casts
