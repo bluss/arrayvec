@@ -1,5 +1,17 @@
 
 /// Trait for fixed size arrays.
+///
+/// This trait is implemented for some specific array sizes, see
+/// the implementor list below. At the current state of Rust we can't
+/// make this fully general for every array size.
+///
+/// The following crate features add more array sizes (and they are not
+/// enabled by default due to their impact on compliation speed).
+///
+/// - `array-sizes-33-128`: All sizes 33 to 128 are implemented
+///   (a few in this range are included by default).
+/// - `array-sizes-129-255`: All sizes 129 to 255 are implemented
+///   (a few in this range are included by default).
 pub unsafe trait Array {
     /// The array’s element type
     type Item;
