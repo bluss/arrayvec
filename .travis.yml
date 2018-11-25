@@ -9,6 +9,9 @@ matrix:
       env:
         - NODEFAULT=1
         - NODROP_FEATURES='use_needs_drop'
+    - rust: 1.22.1
+      env:
+      - FEATURES='array-sizes-33-128 array-sizes-129-255'
     - rust: stable
       env:
       - FEATURES='array-sizes-33-128 array-sizes-129-255'
