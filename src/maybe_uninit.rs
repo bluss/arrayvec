@@ -7,6 +7,8 @@ use std::mem::uninitialized;
 /// A combination of ManuallyDrop and “maybe uninitialized”;
 /// this wraps a value that can be wholly or partially uninitialized;
 /// it also has no drop regardless of the type of T.
+///
+/// This is a stop-gap solution until MaybeUninit is stable in Rust's std.
 #[repr(C)]
 pub struct MaybeUninit<T>(ManuallyDrop<T>);
 
