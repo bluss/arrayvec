@@ -461,11 +461,11 @@ impl<A: Array> ArrayVec<A> {
     /// array.truncate(4);
     /// assert_eq!(&array[..], &[1, 2, 3]);
     /// ```
-    pub fn truncate(&mut self, len: usize) {
+    pub fn truncate(&mut self, new_len: usize) {
         unsafe {
-            if len < self.len() {
-                let tail: *mut [_] = &mut self[len..];
-                self.set_len(len);
+            if new_len < self.len() {
+                let tail: *mut [_] = &mut self[new_len..];
+                self.len = Index::from(new_len);
                 ptr::drop_in_place(tail);
             }
         }
@@ -890,10 +890,10 @@ impl<A: Array> Extend<A::Item> for ArrayVec<A> {
             // We update the length to handle panic in the iteration of the
             // user's iterator, without dropping any elements on the floor.
             let mut guard = ScopeExitGuard {
-                value: self,
+                value: &mut self.len,
                 data: len,
-                f: |&len, self_| {
-                    self_.set_len(len)
+                f: move |&len, self_len| {
+                    **self_len = Index::from(len);
                 }
             };
             for elt in iter.into_iter().take(take) {
