@@ -5,6 +5,7 @@ extern crate arrayvec;
 use arrayvec::ArrayVec;
 
 use bencher::Bencher;
+use bencher::black_box;
 
 fn extend_with_constant(b: &mut Bencher) {
     let mut v = ArrayVec::<[u8; 512]>::new();
@@ -33,7 +34,7 @@ fn extend_with_slice(b: &mut Bencher) {
     let data = [1; 512];
     b.iter(|| {
         v.clear();
-        v.extend(data.iter().cloned());
+        v.extend(black_box(data.iter()).cloned());
         v[0]
     });
     b.bytes = v.capacity() as u64;
