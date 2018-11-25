@@ -18,6 +18,9 @@
 //! - `serde-1`
 //!   - Optional
 //!   - Enable serialization for ArrayVec and ArrayString using serde 1.0
+//! - `array-sizes-33-128`, `array-sizes-129-255`
+//!   - Optional
+//!   - Enable more array sizes (see [Array] for more information)
 //!
 //! ## Rust Version
 //!

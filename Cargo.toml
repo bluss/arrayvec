@@ -40,6 +40,9 @@ std = []
 use_union = []
 serde-1 = ["serde"]
 
+array-sizes-33-128 = []
+array-sizes-129-255 = []
+
 [package.metadata.docs.rs]
 features = ["serde-1"]
 
