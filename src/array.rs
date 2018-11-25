@@ -77,10 +77,13 @@ macro_rules! fix_array_impl {
         unsafe impl<T> Array for [T; $len] {
             type Item = T;
             type Index = $index_type;
+            #[doc(hidden)]
             #[inline(always)]
             fn as_ptr(&self) -> *const T { self as *const _ as *const _ }
+            #[doc(hidden)]
             #[inline(always)]
             fn as_mut_ptr(&mut self) -> *mut T { self as *mut _ as *mut _}
+            #[doc(hidden)]
             #[inline(always)]
             fn capacity() -> usize { $len }
         }
