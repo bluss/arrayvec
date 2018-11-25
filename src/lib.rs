@@ -48,6 +48,7 @@ use std::io;
 
 mod maybe_uninit;
 use maybe_uninit::MaybeUninit;
+use maybe_uninit::MaybeUninitCopy;
 
 #[cfg(feature="serde-1")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
@@ -64,14 +65,6 @@ use array::Index;
 pub use array_string::ArrayString;
 pub use errors::CapacityError;
 
-
-unsafe fn new_array<A: Array>() -> A {
-    // Note: Returning an uninitialized value here only works
-    // if we can be sure the data is never used. The nullable pointer
-    // inside enum optimization conflicts with this this for example,
-    // so we need to be extra careful. See `NoDrop` enum.
-    mem::uninitialized()
-}
 
 /// A vector with a fixed capacity.
 ///

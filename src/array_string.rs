@@ -16,6 +16,8 @@ use char::encode_utf8;
 #[cfg(feature="serde-1")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
+use super::MaybeUninitCopy;
+
 /// A string with a fixed capacity.
 ///
 /// The `ArrayString` is a string backed by a fixed size array. It keeps track
@@ -24,19 +26,25 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 /// The string is a contiguous value that you can store directly on the stack
 /// if needed.
 #[derive(Copy)]
-pub struct ArrayString<A: Array<Item=u8>> {
-    xs: A,
+pub struct ArrayString<A>
+    where A: Array<Item=u8> + Copy
+{
+    xs: MaybeUninitCopy<A>,
     len: A::Index,
 }
 
-impl<A: Array<Item=u8>> Default for ArrayString<A> {
+impl<A> Default for ArrayString<A>
+    where A: Array<Item=u8> + Copy
+{
     /// Return an empty `ArrayString`
     fn default() -> ArrayString<A> {
         ArrayString::new()
     }
 }
 
-impl<A: Array<Item=u8>> ArrayString<A> {
+impl<A> ArrayString<A>
+    where A: Array<Item=u8> + Copy
+{
     /// Create a new empty `ArrayString`.
     ///
     /// Capacity is inferred from the type parameter.
@@ -52,7 +60,7 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     pub fn new() -> ArrayString<A> {
         unsafe {
             ArrayString {
-                xs: ::new_array(),
+                xs: MaybeUninitCopy::uninitialized(),
                 len: Index::from(0),
             }
         }
@@ -88,11 +96,12 @@ impl<A: Array<Item=u8>> ArrayString<A> {
     /// let string = ArrayString::from_byte_string(b"hello world").unwrap();
     /// ```
     pub fn from_byte_string(b: &A) -> Result<Self, Utf8Error> {
-        let mut arraystr = Self::new();
-        let s = try!(str::from_utf8(b.as_slice()));
-        let _result = arraystr.try_push_str(s);
-        debug_assert!(_result.is_ok());
-        Ok(arraystr)
+        let len = str::from_utf8(b.as_slice())?.len();
+        debug_assert_eq!(len, A::capacity());
+        Ok(ArrayString {
+            xs: MaybeUninitCopy::from(*b),
+            len: Index::from(A::capacity()),
+        })
     }
 
     /// Return the capacity of the `ArrayString`.
@@ -210,7 +219,7 @@ impl<A: Array<Item=u8>> ArrayString<A> {
             return Err(CapacityError::new(s));
         }
         unsafe {
-            let dst = self.xs.as_mut_ptr().offset(self.len() as isize);
+            let dst = self.xs.ptr_mut().offset(self.len() as isize);
             let src = s.as_ptr();
             ptr::copy_nonoverlapping(src, dst, s.len());
             let newl = self.len() + s.len();
@@ -304,8 +313,8 @@ impl<A: Array<Item=u8>> ArrayString<A> {
         let next = idx + ch.len_utf8();
         let len = self.len();
         unsafe {
-            ptr::copy(self.xs.as_ptr().offset(next as isize),
-                      self.xs.as_mut_ptr().offset(idx as isize),
+            ptr::copy(self.xs.ptr().offset(next as isize),
+                      self.xs.ptr_mut().offset(idx as isize),
                       len - next);
             self.set_len(len - (next - idx));
         }
@@ -339,75 +348,99 @@ impl<A: Array<Item=u8>> ArrayString<A> {
 
     /// Return a mutable slice of the whole string’s buffer
     unsafe fn raw_mut_bytes(&mut self) -> &mut [u8] {
-        slice::from_raw_parts_mut(self.xs.as_mut_ptr(), self.capacity())
+        slice::from_raw_parts_mut(self.xs.ptr_mut(), self.capacity())
     }
 }
 
-impl<A: Array<Item=u8>> Deref for ArrayString<A> {
+impl<A> Deref for ArrayString<A>
+    where A: Array<Item=u8> + Copy
+{
     type Target = str;
     #[inline]
     fn deref(&self) -> &str {
         unsafe {
-            let sl = slice::from_raw_parts(self.xs.as_ptr(), self.len.to_usize());
+            let sl = slice::from_raw_parts(self.xs.ptr(), self.len.to_usize());
             str::from_utf8_unchecked(sl)
         }
     }
 }
 
-impl<A: Array<Item=u8>> DerefMut for ArrayString<A> {
+impl<A> DerefMut for ArrayString<A>
+    where A: Array<Item=u8> + Copy
+{
     #[inline]
     fn deref_mut(&mut self) -> &mut str {
         unsafe {
-            let sl = slice::from_raw_parts_mut(self.xs.as_mut_ptr(), self.len.to_usize());
+            let sl = slice::from_raw_parts_mut(self.xs.ptr_mut(), self.len.to_usize());
             str::from_utf8_unchecked_mut(sl)
         }
     }
 }
 
-impl<A: Array<Item=u8>> PartialEq for ArrayString<A> {
+impl<A> PartialEq for ArrayString<A>
+    where A: Array<Item=u8> + Copy
+{
     fn eq(&self, rhs: &Self) -> bool {
         **self == **rhs
     }
 }
 
-impl<A: Array<Item=u8>> PartialEq<str> for ArrayString<A> {
+impl<A> PartialEq<str> for ArrayString<A>
+    where A: Array<Item=u8> + Copy
+{
     fn eq(&self, rhs: &str) -> bool {
         &**self == rhs
     }
 }
 
-impl<A: Array<Item=u8>> PartialEq<ArrayString<A>> for str {
+impl<A> PartialEq<ArrayString<A>> for str
+    where A: Array<Item=u8> + Copy
+{
     fn eq(&self, rhs: &ArrayString<A>) -> bool {
         self == &**rhs
     }
 }
 
-impl<A: Array<Item=u8>> Eq for ArrayString<A> { }
+impl<A> Eq for ArrayString<A> 
+    where A: Array<Item=u8> + Copy
+{ }
 
-impl<A: Array<Item=u8>> Hash for ArrayString<A> {
+impl<A> Hash for ArrayString<A>
+    where A: Array<Item=u8> + Copy
+{
     fn hash<H: Hasher>(&self, h: &mut H) {
         (**self).hash(h)
     }
 }
 
-impl<A: Array<Item=u8>> Borrow<str> for ArrayString<A> {
+impl<A> Borrow<str> for ArrayString<A>
+    where A: Array<Item=u8> + Copy
+{
     fn borrow(&self) -> &str { self }
 }
 
-impl<A: Array<Item=u8>> AsRef<str> for ArrayString<A> {
+impl<A> AsRef<str> for ArrayString<A>
+    where A: Array<Item=u8> + Copy
+{
     fn as_ref(&self) -> &str { self }
 }
 
-impl<A: Array<Item=u8>> fmt::Debug for ArrayString<A> {
+impl<A> fmt::Debug for ArrayString<A>
+    where A: Array<Item=u8> + Copy
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { (**self).fmt(f) }
 }
 
-impl<A: Array<Item=u8>> fmt::Display for ArrayString<A> {
+impl<A> fmt::Display for ArrayString<A>
+    where A: Array<Item=u8> + Copy
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { (**self).fmt(f) }
 }
 
 /// `Write` appends written data to the end of the string.
-impl<A: Array<Item=u8>> fmt::Write for ArrayString<A> {
+impl<A> fmt::Write for ArrayString<A>
+    where A: Array<Item=u8> + Copy
+{
     fn write_char(&mut self, c: char) -> fmt::Result {
         self.try_push(c).map_err(|_| fmt::Error)
     }
@@ -417,7 +450,9 @@ impl<A: Array<Item=u8>> fmt::Write for ArrayString<A> {
     }
 }
 
-impl<A: Array<Item=u8> + Copy> Clone for ArrayString<A> {
+impl<A> Clone for ArrayString<A>
+    where A: Array<Item=u8> + Copy
+{
     fn clone(&self) -> ArrayString<A> {
         *self
     }
@@ -428,7 +463,9 @@ impl<A: Array<Item=u8> + Copy> Clone for ArrayString<A> {
     }
 }
 
-impl<A: Array<Item=u8>> PartialOrd for ArrayString<A> {
+impl<A> PartialOrd for ArrayString<A>
+    where A: Array<Item=u8> + Copy
+{
     fn partial_cmp(&self, rhs: &Self) -> Option<cmp::Ordering> {
         (**self).partial_cmp(&**rhs)
     }
@@ -438,7 +475,9 @@ impl<A: Array<Item=u8>> PartialOrd for ArrayString<A> {
     fn ge(&self, rhs: &Self) -> bool { **self >= **rhs }
 }
 
-impl<A: Array<Item=u8>> PartialOrd<str> for ArrayString<A> {
+impl<A> PartialOrd<str> for ArrayString<A>
+    where A: Array<Item=u8> + Copy
+{
     fn partial_cmp(&self, rhs: &str) -> Option<cmp::Ordering> {
         (**self).partial_cmp(rhs)
     }
@@ -448,7 +487,9 @@ impl<A: Array<Item=u8>> PartialOrd<str> for ArrayString<A> {
     fn ge(&self, rhs: &str) -> bool { &**self >= rhs }
 }
 
-impl<A: Array<Item=u8>> PartialOrd<ArrayString<A>> for str {
+impl<A> PartialOrd<ArrayString<A>> for str
+    where A: Array<Item=u8> + Copy
+{
     fn partial_cmp(&self, rhs: &ArrayString<A>) -> Option<cmp::Ordering> {
         self.partial_cmp(&**rhs)
     }
@@ -458,7 +499,9 @@ impl<A: Array<Item=u8>> PartialOrd<ArrayString<A>> for str {
     fn ge(&self, rhs: &ArrayString<A>) -> bool { self >= &**rhs }
 }
 
-impl<A: Array<Item=u8>> Ord for ArrayString<A> {
+impl<A> Ord for ArrayString<A>
+    where A: Array<Item=u8> + Copy
+{
     fn cmp(&self, rhs: &Self) -> cmp::Ordering {
         (**self).cmp(&**rhs)
     }
@@ -466,7 +509,9 @@ impl<A: Array<Item=u8>> Ord for ArrayString<A> {
 
 #[cfg(feature="serde-1")]
 /// Requires crate feature `"serde-1"`
-impl<A: Array<Item=u8>> Serialize for ArrayString<A> {
+impl<A> Serialize for ArrayString<A>
+    where A: Array<Item=u8> + Copy
+{
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer
     {
@@ -476,7 +521,9 @@ impl<A: Array<Item=u8>> Serialize for ArrayString<A> {
 
 #[cfg(feature="serde-1")]
 /// Requires crate feature `"serde-1"`
-impl<'de, A: Array<Item=u8>> Deserialize<'de> for ArrayString<A> {
+impl<'de, A> Deserialize<'de> for ArrayString<A> 
+    where A: Array<Item=u8> + Copy
+{
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where D: Deserializer<'de>
     {
@@ -485,7 +532,7 @@ impl<'de, A: Array<Item=u8>> Deserialize<'de> for ArrayString<A> {
 
         struct ArrayStringVisitor<A: Array<Item=u8>>(PhantomData<A>);
 
-        impl<'de, A: Array<Item=u8>> Visitor<'de> for ArrayStringVisitor<A> {
+        impl<'de, A: Copy + Array<Item=u8>> Visitor<'de> for ArrayStringVisitor<A> {
             type Value = ArrayString<A>;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
