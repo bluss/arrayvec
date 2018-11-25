@@ -890,10 +890,10 @@ impl<A: Array> Extend<A::Item> for ArrayVec<A> {
             // We update the length to handle panic in the iteration of the
             // user's iterator, without dropping any elements on the floor.
             let mut guard = ScopeExitGuard {
-                value: self,
+                value: &mut self.len,
                 data: len,
-                f: |&len, self_| {
-                    self_.set_len(len)
+                f: move |&len, self_len| {
+                    **self_len = Index::from(len);
                 }
             };
             for elt in iter.into_iter().take(take) {
