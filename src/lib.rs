@@ -462,12 +462,18 @@ impl<A: Array> ArrayVec<A> {
     /// assert_eq!(&array[..], &[1, 2, 3]);
     /// ```
     pub fn truncate(&mut self, len: usize) {
-        while self.len() > len { self.pop(); }
+        unsafe {
+            if len < self.len() {
+                let tail: *mut [_] = &mut self[len..];
+                self.set_len(len);
+                ptr::drop_in_place(tail);
+            }
+        }
     }
 
     /// Remove all elements in the vector.
     pub fn clear(&mut self) {
-        while let Some(_) = self.pop() { }
+        self.truncate(0)
     }
 
     /// Retains only the elements specified by the predicate.
@@ -540,7 +546,7 @@ impl<A: Array> ArrayVec<A> {
         // Memory safety
         //
         // When the Drain is first created, it shortens the length of
-        // the source vector to make sure no uninitalized or moved-from elements
+        // the source vector to make sure no uninitialized or moved-from elements
         // are accessible at all if the Drain's destructor never gets to run.
         //
         // Drain will ptr::read out the values to remove.
