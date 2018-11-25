@@ -18,6 +18,9 @@
 //! - `serde-1`
 //!   - Optional
 //!   - Enable serialization for ArrayVec and ArrayString using serde 1.0
+//! - `array-sizes-33-128`, `array-sizes-129-255`
+//!   - Optional
+//!   - Enable more array sizes (see [Array] for more information)
 //!
 //! ## Rust Version
 //!
@@ -745,6 +748,30 @@ impl<A: Array> Drop for IntoIter<A> {
                 len - index);
             ptr::drop_in_place(elements);
         }
+    }
+}
+
+impl<A: Array> Clone for IntoIter<A>
+where
+    A::Item: Clone,
+{
+    fn clone(&self) -> IntoIter<A> {
+        self.v[self.index.to_usize()..]
+            .iter()
+            .cloned()
+            .collect::<ArrayVec<A>>()
+            .into_iter()
+    }
+}
+
+impl<A: Array> fmt::Debug for IntoIter<A>
+where
+    A::Item: fmt::Debug,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_list()
+            .entries(&self.v[self.index.to_usize()..])
+            .finish()
     }
 }
 

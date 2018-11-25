@@ -5,6 +5,10 @@ nodrop
 Recent Changes (nodrop)
 -----------------------
 
+- 0.1.13
+
+  - Update to include license files in the crate by @ignatenkobrain
+
 - 0.1.12
 
   - Remove dependency on crate odds.
