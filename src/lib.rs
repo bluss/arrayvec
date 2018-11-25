@@ -461,11 +461,11 @@ impl<A: Array> ArrayVec<A> {
     /// array.truncate(4);
     /// assert_eq!(&array[..], &[1, 2, 3]);
     /// ```
-    pub fn truncate(&mut self, len: usize) {
+    pub fn truncate(&mut self, new_len: usize) {
         unsafe {
-            if len < self.len() {
-                let tail: *mut [_] = &mut self[len..];
-                self.set_len(len);
+            if new_len < self.len() {
+                let tail: *mut [_] = &mut self[new_len..];
+                self.len = Index::from(new_len);
                 ptr::drop_in_place(tail);
             }
         }
