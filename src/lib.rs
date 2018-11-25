@@ -21,7 +21,6 @@
 #![doc(html_root_url="https://docs.rs/arrayvec/0.4/")]
 #![cfg_attr(not(feature="std"), no_std)]
 
-extern crate nodrop;
 #[cfg(feature="serde-1")]
 extern crate serde;
 
@@ -47,15 +46,8 @@ use std::fmt;
 use std::io;
 
 
-#[cfg(has_manuallydrop)]
 mod maybe_uninit;
-#[cfg(has_manuallydrop)]
 use maybe_uninit::MaybeUninit;
-
-#[cfg(not(has_manuallydrop))]
-mod maybe_uninit_nodrop;
-#[cfg(not(has_manuallydrop))]
-use maybe_uninit_nodrop::MaybeUninit;
 
 #[cfg(feature="serde-1")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};

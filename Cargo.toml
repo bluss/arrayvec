@@ -12,10 +12,8 @@ keywords = ["stack", "vector", "array", "data-structure", "no_std"]
 categories = ["data-structures", "no-std"]
 
 [build-dependencies]
-version_check = "0.1"
 
 [dependencies]
-nodrop = { version = "0.1.12", path = "nodrop", default-features = false }
 
 [dependencies.serde]
 version = "1.0"
