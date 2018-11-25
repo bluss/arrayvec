@@ -56,7 +56,10 @@ mod maybe_uninit;
 #[path="maybe_uninit_nodrop.rs"]
 mod maybe_uninit;
 
+mod maybe_uninit_copy;
+
 use maybe_uninit::MaybeUninit;
+use maybe_uninit_copy::MaybeUninitCopy;
 
 #[cfg(feature="serde-1")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
