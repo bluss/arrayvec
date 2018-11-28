@@ -179,9 +179,9 @@ impl<A: Array> ArrayVec<A> {
     ///
     /// let mut array = ArrayVec::from([1, 2, 3]);
     /// array.pop();
-    /// assert_eq!(array.capacity_left(), 1);
+    /// assert_eq!(array.remaining_capacity(), 1);
     /// ```
-    pub fn capacity_left(&self) -> usize {
+    pub fn remaining_capacity(&self) -> usize {
         self.capacity() - self.len()
     }
 
@@ -549,14 +549,14 @@ impl<A: Array> ArrayVec<A> {
     ///
     /// # Panics
     ///
-    /// This method will panic if the capacity left (see [`capacity_left`]) is
+    /// This method will panic if the capacity left (see [`remaining_capacity`]) is
     /// smaller then the length of the provided slice.
     ///
-    /// [`capacity_left`]: #method.capacity_left
+    /// [`remaining_capacity`]: #method.remaining_capacity
     pub fn extend_from_slice(&mut self, other: &[A::Item])
         where A::Item: Copy,
     {
-        if self.capacity_left() < other.len() {
+        if self.remaining_capacity() < other.len() {
             panic!("ArrayVec::extend_from_slice: slice is larger then capacity left");
         }
 
@@ -1079,7 +1079,7 @@ impl<A: Array> Ord for ArrayVec<A> where A::Item: Ord {
 /// Requires `features="std"`.
 impl<A: Array<Item=u8>> io::Write for ArrayVec<A> {
     fn write(&mut self, data: &[u8]) -> io::Result<usize> {
-        let len = cmp::min(self.capacity_left(), data.len());
+        let len = cmp::min(self.remaining_capacity(), data.len());
         self.extend_from_slice(&data[..len]);
         Ok(len)
     }
