@@ -543,21 +543,22 @@ impl<A: Array> ArrayVec<A> {
     ///
     /// let mut vec: ArrayVec<[usize; 10]> = ArrayVec::new();
     /// vec.push(1);
-    /// vec.extend_from_slice(&[2, 3]);
+    /// vec.try_extend_from_slice(&[2, 3]).unwrap();
     /// assert_eq!(&vec[..], &[1, 2, 3]);
     /// ```
     ///
-    /// # Panics
+    /// # Errors
     ///
-    /// This method will panic if the capacity left (see [`remaining_capacity`]) is
-    /// smaller then the length of the provided slice.
+    /// This method will return an error if the capacity left (see
+    /// [`remaining_capacity`]) is smaller then the length of the provided
+    /// slice.
     ///
     /// [`remaining_capacity`]: #method.remaining_capacity
-    pub fn extend_from_slice(&mut self, other: &[A::Item])
+    pub fn try_extend_from_slice(&mut self, other: &[A::Item]) -> Result<(), CapacityError>
         where A::Item: Copy,
     {
         if self.remaining_capacity() < other.len() {
-            panic!("ArrayVec::extend_from_slice: slice is larger then capacity left");
+            return Err(CapacityError::new(()));
         }
 
         let self_len = self.len();
@@ -568,6 +569,7 @@ impl<A: Array> ArrayVec<A> {
             ptr::copy_nonoverlapping(other.as_ptr(), dst, other_len);
             self.set_len(self_len + other_len);
         }
+        Ok(())
     }
 
     /// Create a draining iterator that removes the specified range in the vector
@@ -1080,7 +1082,8 @@ impl<A: Array> Ord for ArrayVec<A> where A::Item: Ord {
 impl<A: Array<Item=u8>> io::Write for ArrayVec<A> {
     fn write(&mut self, data: &[u8]) -> io::Result<usize> {
         let len = cmp::min(self.remaining_capacity(), data.len());
-        self.extend_from_slice(&data[..len]);
+        let _result = self.try_extend_from_slice(&data[..len]);
+        debug_assert!(_result.is_ok());
         Ok(len)
     }
     fn flush(&mut self) -> io::Result<()> { Ok(()) }

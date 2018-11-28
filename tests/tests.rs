@@ -45,7 +45,7 @@ fn test_capacity_left() {
 fn test_extend_from_slice() {
     let mut vec: ArrayVec<[usize; 10]> = ArrayVec::new();
 
-    vec.extend_from_slice(&[1, 2, 3]);
+    vec.try_extend_from_slice(&[1, 2, 3]);
     assert_eq!(vec.len(), 3);
     assert_eq!(&vec[..], &[1, 2, 3]);
     assert_eq!(vec.pop(), Some(3));

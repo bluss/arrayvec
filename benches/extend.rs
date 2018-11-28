@@ -45,7 +45,7 @@ fn extend_with_slice_fn(b: &mut Bencher) {
     let data = [1; 512];
     b.iter(|| {
         v.clear();
-        black_box(v.extend_from_slice(&data));
+        black_box(v.try_extend_from_slice(&data));
         v[0]
     });
     b.bytes = v.capacity() as u64;
