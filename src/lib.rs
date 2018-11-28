@@ -172,6 +172,19 @@ impl<A: Array> ArrayVec<A> {
     /// ```
     pub fn is_full(&self) -> bool { self.len() == self.capacity() }
 
+    /// Returns the capacity left in the `ArrayVec`.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::from([1, 2, 3]);
+    /// array.pop();
+    /// assert_eq!(array.capacity_left(), 1);
+    /// ```
+    pub fn capacity_left(&self) -> usize {
+        self.capacity() - self.len()
+    }
+
     /// Push `element` to the end of the vector.
     ///
     /// ***Panics*** if the vector is already full.
@@ -523,6 +536,39 @@ impl<A: Array> ArrayVec<A> {
         self.len = Index::from(length);
     }
 
+    /// Copy and appends all elements in a slice to the `ArrayVec`.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut vec: ArrayVec<[usize; 10]> = ArrayVec::new();
+    /// vec.push(1);
+    /// vec.extend_from_slice(&[2, 3]);
+    /// assert_eq!(&vec[..], &[1, 2, 3]);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This method will panic if the capacity left (see [`capacity_left`]) is
+    /// smaller then the length of the provided slice.
+    ///
+    /// [`capacity_left`]: #method.capacity_left
+    pub fn extend_from_slice(&mut self, other: &[A::Item])
+        where A::Item: Copy,
+    {
+        if self.capacity_left() < other.len() {
+            panic!("ArrayVec::extend_from_slice: slice is larger then capacity left");
+        }
+
+        let self_len = self.len();
+        let other_len = other.len();
+
+        unsafe {
+            let dst = self.xs.as_mut_ptr().offset(self_len as isize);
+            ptr::copy_nonoverlapping(other.as_ptr(), dst, other_len);
+            self.set_len(self_len + other_len);
+        }
+    }
 
     /// Create a draining iterator that removes the specified range in the vector
     /// and yields the removed items from start to end. The element range is
@@ -1033,16 +1079,9 @@ impl<A: Array> Ord for ArrayVec<A> where A::Item: Ord {
 /// Requires `features="std"`.
 impl<A: Array<Item=u8>> io::Write for ArrayVec<A> {
     fn write(&mut self, data: &[u8]) -> io::Result<usize> {
-        unsafe {
-            let len = self.len();
-            let mut tail = slice::from_raw_parts_mut(self.get_unchecked_mut(len),
-                                                     A::capacity() - len);
-            let result = tail.write(data);
-            if let Ok(written) = result {
-                self.set_len(len + written);
-            }
-            result
-        }
+        let len = cmp::min(self.capacity_left(), data.len());
+        self.extend_from_slice(&data[..len]);
+        Ok(len)
     }
     fn flush(&mut self) -> io::Result<()> { Ok(()) }
 }

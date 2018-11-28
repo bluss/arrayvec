@@ -28,6 +28,31 @@ fn test_simple() {
 }
 
 #[test]
+fn test_capacity_left() {
+    let mut vec: ArrayVec<[usize; 4]> = ArrayVec::new();
+    assert_eq!(vec.capacity_left(), 4);
+    vec.push(1);
+    assert_eq!(vec.capacity_left(), 3);
+    vec.push(2);
+    assert_eq!(vec.capacity_left(), 2);
+    vec.push(3);
+    assert_eq!(vec.capacity_left(), 1);
+    vec.push(4);
+    assert_eq!(vec.capacity_left(), 0);
+}
+
+#[test]
+fn test_extend_from_slice() {
+    let mut vec: ArrayVec<[usize; 10]> = ArrayVec::new();
+
+    vec.extend_from_slice(&[1, 2, 3]);
+    assert_eq!(vec.len(), 3);
+    assert_eq!(&vec[..], &[1, 2, 3]);
+    assert_eq!(vec.pop(), Some(3));
+    assert_eq!(&vec[..], &[1, 2]);
+}
+
+#[test]
 fn test_u16_index() {
     const N: usize = 4096;
     let mut vec: ArrayVec<[_; N]> = ArrayVec::new();
