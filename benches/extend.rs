@@ -40,16 +40,16 @@ fn extend_with_slice(b: &mut Bencher) {
     b.bytes = v.capacity() as u64;
 }
 
-fn extend_with_slice_fn(b: &mut Bencher) {
+fn extend_from_slice(b: &mut Bencher) {
     let mut v = ArrayVec::<[u8; 512]>::new();
     let data = [1; 512];
     b.iter(|| {
         v.clear();
-        black_box(v.try_extend_from_slice(&data));
-        v[0]
+        v.try_extend_from_slice(&data).ok();
+        v[511]
     });
     b.bytes = v.capacity() as u64;
 }
 
-benchmark_group!(benches, extend_with_constant, extend_with_range, extend_with_slice, extend_with_slice_fn);
+benchmark_group!(benches, extend_with_constant, extend_with_range, extend_with_slice, extend_from_slice);
 benchmark_main!(benches);
