@@ -933,6 +933,7 @@ impl<A: Array> Extend<A::Item> for ArrayVec<A> {
         unsafe {
             let len = self.len();
             let mut ptr = self.as_mut_ptr().offset(len as isize);
+            let end_ptr = ptr.offset(take as isize);
             // Keep the length in a separate variable, write it back on scope
             // exit. To help the compiler with alias analysis and stuff.
             // We update the length to handle panic in the iteration of the
@@ -944,10 +945,16 @@ impl<A: Array> Extend<A::Item> for ArrayVec<A> {
                     **self_len = Index::from(len);
                 }
             };
-            for elt in iter.into_iter().take(take) {
-                ptr::write(ptr, elt);
-                ptr = ptr.offset(1);
-                guard.data += 1;
+            let mut iter = iter.into_iter();
+            loop {
+                if ptr == end_ptr { break; }
+                if let Some(elt) = iter.next() {
+                    ptr::write(ptr, elt);
+                    ptr = ptr.offset(1);
+                    guard.data += 1;
+                } else {
+                    break;
+                }
             }
         }
     }
