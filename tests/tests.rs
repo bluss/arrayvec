@@ -45,11 +45,24 @@ fn test_capacity_left() {
 fn test_extend_from_slice() {
     let mut vec: ArrayVec<[usize; 10]> = ArrayVec::new();
 
-    vec.try_extend_from_slice(&[1, 2, 3]);
+    vec.try_extend_from_slice(&[1, 2, 3]).unwrap();
     assert_eq!(vec.len(), 3);
     assert_eq!(&vec[..], &[1, 2, 3]);
     assert_eq!(vec.pop(), Some(3));
     assert_eq!(&vec[..], &[1, 2]);
+}
+
+#[test]
+fn test_extend_from_slice_error() {
+    let mut vec: ArrayVec<[usize; 10]> = ArrayVec::new();
+
+    vec.try_extend_from_slice(&[1, 2, 3]).unwrap();
+    let res = vec.try_extend_from_slice(&[0; 8]);
+    assert_matches!(res, Err(_));
+
+    let mut vec: ArrayVec<[usize; 0]> = ArrayVec::new();
+    let res = vec.try_extend_from_slice(&[0; 1]);
+    assert_matches!(res, Err(_));
 }
 
 #[test]
