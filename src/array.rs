@@ -23,8 +23,6 @@ pub unsafe trait Array {
     #[doc(hidden)]
     fn as_ptr(&self) -> *const Self::Item;
     #[doc(hidden)]
-    fn as_mut_ptr(&mut self) -> *mut Self::Item;
-    #[doc(hidden)]
     fn capacity() -> usize;
 }
 
@@ -97,9 +95,6 @@ macro_rules! fix_array_impl {
             #[doc(hidden)]
             #[inline(always)]
             fn as_ptr(&self) -> *const T { self as *const _ as *const _ }
-            #[doc(hidden)]
-            #[inline(always)]
-            fn as_mut_ptr(&mut self) -> *mut T { self as *mut _ as *mut _}
             #[doc(hidden)]
             #[inline(always)]
             fn capacity() -> usize { $len }
