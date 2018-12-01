@@ -15,9 +15,11 @@
 pub unsafe trait Array {
     /// The array’s element type
     type Item;
+    /// The smallest type that can index and tell the length of the array.
     #[doc(hidden)]
-    /// The smallest index type that indexes the array.
     type Index: Index;
+    /// The array's element capacity
+    const CAPACITY: usize;
     #[doc(hidden)]
     fn as_ptr(&self) -> *const Self::Item;
     #[doc(hidden)]
@@ -91,6 +93,7 @@ macro_rules! fix_array_impl {
         unsafe impl<T> Array for [T; $len] {
             type Item = T;
             type Index = $index_type;
+            const CAPACITY: usize = $len;
             #[doc(hidden)]
             #[inline(always)]
             fn as_ptr(&self) -> *const T { self as *const _ as *const _ }
