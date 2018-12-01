@@ -614,9 +614,6 @@ impl<A: Array> ArrayVec<A> {
     ///
     /// Return an `Ok` value with the array if length equals capacity,
     /// return an `Err` with self otherwise.
-    ///
-    /// `Note:` This function may incur unproportionally large overhead
-    /// to move the array out, its performance is not optimal.
     pub fn into_inner(self) -> Result<A, Self> {
         if self.len() < self.capacity() {
             Err(self)
