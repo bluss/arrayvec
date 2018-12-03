@@ -282,6 +282,14 @@ fn test_compact_size() {
 }
 
 #[test]
+fn test_still_works_with_option_arrayvec() {
+    type RefArray = ArrayVec<[&'static i32; 2]>;
+    let array = Some(RefArray::new());
+    assert!(array.is_some());
+    println!("{:?}", array);
+}
+
+#[test]
 fn test_drain() {
     let mut v = ArrayVec::from([0; 8]);
     v.pop();
