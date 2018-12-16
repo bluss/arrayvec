@@ -7,14 +7,6 @@
 //!   - Optional, enabled by default
 //!   - Use libstd; disable to use `no_std` instead.
 //!
-//! - `use_union`
-//!   - Optional
-//!   - Requires Rust nightly channel
-//!   - Experimental: This flag uses nightly so it *may break* unexpectedly
-//!     at some point; since it doesn't change API this flag may also change
-//!     to do nothing in the future.
-//!   - Use the unstable feature untagged unions for the internal implementation,
-//!     which may have reduced space overhead
 //! - `serde-1`
 //!   - Optional
 //!   - Enable serialization for ArrayVec and ArrayString using serde 1.0
@@ -28,12 +20,16 @@
 //!
 #![doc(html_root_url="https://docs.rs/arrayvec/0.4/")]
 #![cfg_attr(not(feature="std"), no_std)]
-extern crate nodrop;
+#![cfg_attr(has_union_feature, feature(untagged_unions))]
+
 #[cfg(feature="serde-1")]
 extern crate serde;
 
 #[cfg(not(feature="std"))]
 extern crate core as std;
+
+#[cfg(not(has_manually_drop_in_union))]
+extern crate nodrop;
 
 use std::cmp;
 use std::iter;
@@ -53,11 +49,14 @@ use std::fmt;
 #[cfg(feature="std")]
 use std::io;
 
-#[cfg(not(feature="use_union"))]
-use nodrop::NoDrop;
 
-#[cfg(feature="use_union")]
-use std::mem::ManuallyDrop as NoDrop;
+#[cfg(has_manually_drop_in_union)]
+mod maybe_uninit;
+#[cfg(not(has_manually_drop_in_union))]
+#[path="maybe_uninit_nodrop.rs"]
+mod maybe_uninit;
+
+use maybe_uninit::MaybeUninit;
 
 #[cfg(feature="serde-1")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
@@ -75,14 +74,6 @@ pub use array_string::ArrayString;
 pub use errors::CapacityError;
 
 
-unsafe fn new_array<A: Array>() -> A {
-    // Note: Returning an uninitialized value here only works
-    // if we can be sure the data is never used. The nullable pointer
-    // inside enum optimization conflicts with this this for example,
-    // so we need to be extra careful. See `NoDrop` enum.
-    mem::uninitialized()
-}
-
 /// A vector with a fixed capacity.
 ///
 /// The `ArrayVec` is a vector backed by a fixed size array. It keeps track of
@@ -96,7 +87,7 @@ unsafe fn new_array<A: Array>() -> A {
 ///
 /// ArrayVec can be converted into a by value iterator.
 pub struct ArrayVec<A: Array> {
-    xs: NoDrop<A>,
+    xs: MaybeUninit<A>,
     len: A::Index,
 }
 
@@ -133,7 +124,7 @@ impl<A: Array> ArrayVec<A> {
     /// ```
     pub fn new() -> ArrayVec<A> {
         unsafe {
-            ArrayVec { xs: NoDrop::new(new_array()), len: Index::from(0) }
+            ArrayVec { xs: MaybeUninit::uninitialized(), len: Index::from(0) }
         }
     }
 
@@ -565,7 +556,7 @@ impl<A: Array> ArrayVec<A> {
         let other_len = other.len();
 
         unsafe {
-            let dst = self.xs.as_mut_ptr().offset(self_len as isize);
+            let dst = self.xs.ptr_mut().offset(self_len as isize);
             ptr::copy_nonoverlapping(other.as_ptr(), dst, other_len);
             self.set_len(self_len + other_len);
         }
@@ -631,7 +622,7 @@ impl<A: Array> ArrayVec<A> {
             Err(self)
         } else {
             unsafe {
-                let array = ptr::read(&*self.xs);
+                let array = ptr::read(self.xs.ptr() as *const A);
                 mem::forget(self);
                 Ok(array)
             }
@@ -660,7 +651,7 @@ impl<A: Array> Deref for ArrayVec<A> {
     #[inline]
     fn deref(&self) -> &[A::Item] {
         unsafe {
-            slice::from_raw_parts(self.xs.as_ptr(), self.len())
+            slice::from_raw_parts(self.xs.ptr(), self.len())
         }
     }
 }
@@ -670,7 +661,7 @@ impl<A: Array> DerefMut for ArrayVec<A> {
     fn deref_mut(&mut self) -> &mut [A::Item] {
         let len = self.len();
         unsafe {
-            slice::from_raw_parts_mut(self.xs.as_mut_ptr(), len)
+            slice::from_raw_parts_mut(self.xs.ptr_mut(), len)
         }
     }
 }
@@ -686,7 +677,7 @@ impl<A: Array> DerefMut for ArrayVec<A> {
 /// ```
 impl<A: Array> From<A> for ArrayVec<A> {
     fn from(array: A) -> Self {
-        ArrayVec { xs: NoDrop::new(array), len: Index::from(A::capacity()) }
+        ArrayVec { xs: MaybeUninit::from(array), len: Index::from(A::capacity()) }
     }
 }
 

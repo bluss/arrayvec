@@ -19,13 +19,16 @@ matrix:
     - rust: nightly
       env:
         - NODEFAULT=1
+        - ARRAYVECTEST_ENSURE_UNION=1
     - rust: nightly
       env:
       - NODROP_FEATURES='use_needs_drop'
+      - ARRAYVECTEST_ENSURE_UNION=1
     - rust: nightly
       env:
       - FEATURES='serde use_union'
       - NODROP_FEATURES='use_union'
+      - ARRAYVECTEST_ENSURE_UNION=1
 branches:
   only:
     - master
