@@ -22,6 +22,20 @@ __ https://docs.rs/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.4.9
+
+  - Use ``union`` in the implementation on when this is detected to be supported
+    (nightly only for now). This is a better solution for treating uninitialized
+    regions correctly, and we'll use it in stable Rust as soon as we are able.
+    When this is enabled, the ``ArrayVec`` has no space overhead in its memory
+    layout, although the size of the vec should not be relied upon. (See `#114`_)
+  - ``ArrayString`` updated to not use uninitialized memory, it instead zeros its
+    backing array. This will be refined in the next version, since we
+    need to make changes to the user visible API.
+  - The ``use_union`` feature now does nothing (like its documentation foretold).
+
+.. _`#114`: https://github.com/bluss/arrayvec/pull/114
+
 - 0.4.8
 
   - Implement Clone and Debug for ``IntoIter`` by @clarcharr

@@ -1,6 +1,6 @@
 [package]
 name = "arrayvec"
-version = "0.4.8"
+version = "0.4.9"
 authors = ["bluss"]
 license = "MIT/Apache-2.0"
 
@@ -10,6 +10,8 @@ repository = "https://github.com/bluss/arrayvec"
 
 keywords = ["stack", "vector", "array", "data-structure", "no_std"]
 categories = ["data-structures", "no-std"]
+
+[build-dependencies]
 
 [dependencies]
 nodrop = { version = "0.1.12", path = "nodrop", default-features = false }
@@ -37,11 +39,13 @@ harness = false
 [features]
 default = ["std"]
 std = []
-use_union = []
 serde-1 = ["serde"]
 
 array-sizes-33-128 = []
 array-sizes-129-255 = []
+
+# has no effect
+use_union = []
 
 [package.metadata.docs.rs]
 features = ["serde-1"]
