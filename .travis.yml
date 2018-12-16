@@ -4,13 +4,13 @@ env:
   - FEATURES='serde-1'
 matrix:
   include:
+    - rust: 1.24.1
+      env:
+      - FEATURES='array-sizes-33-128 array-sizes-129-255'
     - rust: stable
     - rust: stable
       env:
       - FEATURES='serde-1'
-    - rust: 1.22.1
-      env:
-      - FEATURES='array-sizes-33-128 array-sizes-129-255'
     - rust: stable
       env:
       - FEATURES='array-sizes-33-128 array-sizes-129-255'
