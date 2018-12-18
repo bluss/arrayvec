@@ -16,7 +16,7 @@
 //!
 //! ## Rust Version
 //!
-//! This version of arrayvec requires Rust 1.13 or later.
+//! This version of arrayvec requires Rust 1.24 or later.
 //!
 #![doc(html_root_url="https://docs.rs/arrayvec/0.4/")]
 #![cfg_attr(not(feature="std"), no_std)]
@@ -56,7 +56,10 @@ mod maybe_uninit;
 #[path="maybe_uninit_nodrop.rs"]
 mod maybe_uninit;
 
+mod maybe_uninit_copy;
+
 use maybe_uninit::MaybeUninit;
+use maybe_uninit_copy::MaybeUninitCopy;
 
 #[cfg(feature="serde-1")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
@@ -614,9 +617,6 @@ impl<A: Array> ArrayVec<A> {
     ///
     /// Return an `Ok` value with the array if length equals capacity,
     /// return an `Err` with self otherwise.
-    ///
-    /// `Note:` This function may incur unproportionally large overhead
-    /// to move the array out, its performance is not optimal.
     pub fn into_inner(self) -> Result<A, Self> {
         if self.len() < self.capacity() {
             Err(self)

@@ -44,9 +44,6 @@ serde-1 = ["serde"]
 array-sizes-33-128 = []
 array-sizes-129-255 = []
 
-# has no effect
-use_union = []
-
 [package.metadata.docs.rs]
 features = ["serde-1"]
 
