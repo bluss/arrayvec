@@ -2,6 +2,7 @@
 use array::Array;
 
 #[derive(Copy, Clone)]
+#[repr(C)] // for cast from self ptr to value
 pub union MaybeUninitCopy<T>
     where T: Copy
 {
