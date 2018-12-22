@@ -6,18 +6,12 @@ use std::mem::ManuallyDrop;
 /// A combination of ManuallyDrop and “maybe uninitialized”;
 /// this wraps a value that can be wholly or partially uninitialized;
 /// it also has no drop regardless of the type of T.
-#[derive(Copy)]
 #[repr(C)] // for cast from self ptr to value
 pub union MaybeUninit<T> {
     empty: (),
     value: ManuallyDrop<T>,
 }
 // Why we don't use std's MaybeUninit on nightly? See the ptr method
-
-impl<T> Clone for MaybeUninit<T> where T: Copy
-{
-    fn clone(&self) -> Self { *self }
-}
 
 impl<T> MaybeUninit<T> {
     /// Create a new MaybeUninit with uninitialized interior
