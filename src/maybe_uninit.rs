@@ -7,6 +7,7 @@ use std::mem::ManuallyDrop;
 /// this wraps a value that can be wholly or partially uninitialized;
 /// it also has no drop regardless of the type of T.
 #[derive(Copy)]
+#[repr(C)] // for cast from self ptr to value
 pub union MaybeUninit<T> {
     empty: (),
     value: ManuallyDrop<T>,
