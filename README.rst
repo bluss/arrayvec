@@ -22,6 +22,11 @@ __ https://docs.rs/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.4.10
+
+  - Use ``repr(C)`` in the ``union`` version that was introduced in 0.4.9, to
+    allay some soundness concerns.
+
 - 0.4.9
 
   - Use ``union`` in the implementation on when this is detected to be supported
