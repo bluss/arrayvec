@@ -5,6 +5,7 @@ use std::hash::{Hash, Hasher};
 use std::ptr;
 use std::ops::{Deref, DerefMut};
 use std::str;
+use std::str::FromStr;
 use std::str::Utf8Error;
 use std::slice;
 
@@ -504,6 +505,16 @@ impl<A> Ord for ArrayString<A>
 {
     fn cmp(&self, rhs: &Self) -> cmp::Ordering {
         (**self).cmp(&**rhs)
+    }
+}
+
+impl<A> FromStr for ArrayString<A>
+    where A: Array<Item=u8> + Copy
+{
+    type Err = CapacityError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::from(s).map_err(CapacityError::simplify)
     }
 }
 
