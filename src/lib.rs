@@ -522,7 +522,7 @@ impl<A: Array> ArrayVec<A> {
     /// This method is `unsafe` because it changes the notion of the
     /// number of “valid” elements in the vector. Use with care.
     ///
-    /// This method uses *debug assertions* to check that check that `length` is
+    /// This method uses *debug assertions* to check that `length` is
     /// not greater than the capacity.
     #[inline]
     pub unsafe fn set_len(&mut self, length: usize) {
