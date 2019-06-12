@@ -28,6 +28,12 @@ extern crate serde;
 #[cfg(not(feature="std"))]
 extern crate core as std;
 
+#[cfg(feature="quickcheck-1")]
+extern crate rand;
+
+#[cfg(feature="quickcheck-1")]
+extern crate quickcheck;
+
 #[cfg(not(has_manually_drop_in_union))]
 extern crate nodrop;
 
@@ -63,6 +69,12 @@ use maybe_uninit_copy::MaybeUninitCopy;
 
 #[cfg(feature="serde-1")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
+
+#[cfg(feature="quickcheck-1")]
+use rand::Rng;
+
+#[cfg(feature="quickcheck-1")]
+use quickcheck::{Arbitrary,Gen};
 
 mod array;
 mod array_string;
@@ -984,6 +996,23 @@ impl<A: Array> Clone for ArrayVec<A>
             let rhs_elems = rhs[self.len()..].iter().cloned();
             self.extend(rhs_elems);
         }
+    }
+}
+
+#[cfg(feature="quickcheck-1")]
+impl<A: Array + Send + Clone + 'static > Arbitrary for ArrayVec<A>
+where <A as array::Array>::Item: std::clone::Clone + Arbitrary,
+<A as array::Array>::Index: std::marker::Send
+{
+    fn arbitrary<G: Gen>(g: &mut G) -> Self {
+        use std::cmp::{min, max};
+        let mut v = Self::default();
+        let size = g.gen_range(0, max(1, min(g.size(), v.capacity())));
+        (0..size).for_each(
+            |_|
+            {v.push(Arbitrary::arbitrary(g));}
+        );
+        v
     }
 }
 
