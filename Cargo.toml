@@ -13,6 +13,14 @@ categories = ["data-structures", "no-std"]
 
 [build-dependencies]
 
+[dependencies.rand]
+version = "0.6"
+optional = true
+
+[dependencies.quickcheck]
+version = "0.8"
+optional = true
+
 [dependencies.serde]
 version = "1.0"
 optional = true
@@ -37,6 +45,7 @@ harness = false
 default = ["std"]
 std = []
 serde-1 = ["serde"]
+quickcheck-1 = ["quickcheck","rand"]
 
 array-sizes-33-128 = []
 array-sizes-129-255 = []
