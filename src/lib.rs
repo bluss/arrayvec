@@ -346,7 +346,7 @@ impl<A: Array> ArrayVec<A> {
     /// ```
     pub fn pop(&mut self) -> Option<A::Item> {
         if self.len() == 0 {
-            return None
+            return None;
         }
         unsafe {
             let new_len = self.len() - 1;
