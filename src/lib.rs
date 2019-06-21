@@ -1007,7 +1007,7 @@ impl<A: Array + Send + Clone + 'static> Arbitrary for ArrayVec<A>
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
         use std::cmp::{min, max};
         let mut v = Self::default();
-        let size = g.gen_range(0, max(1, min(g.size(), v.capacity())));
+        let size = g.gen_range(0, max(1, min(g.size(), v.capacity() + 1)));
         (0..size).for_each(
             |_|
             {v.push(Arbitrary::arbitrary(g));}
