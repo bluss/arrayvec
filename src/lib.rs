@@ -1002,7 +1002,7 @@ impl<A: Array> Clone for ArrayVec<A>
 #[cfg(feature="quickcheck-1")]
 impl<A: Array + Send + Clone + 'static> Arbitrary for ArrayVec<A>
     where <A as array::Array>::Item: Clone + Arbitrary,
-<A as array::Array>::Index: std::marker::Send
+          <A as array::Array>::Index: Send,
 {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
         use std::cmp::{min, max};
