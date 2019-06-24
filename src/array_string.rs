@@ -8,6 +8,7 @@ use std::str;
 use std::str::FromStr;
 use std::str::Utf8Error;
 use std::slice;
+use std::iter;
 
 use array::{Array, ArrayExt};
 use array::Index;
@@ -517,6 +518,52 @@ impl<A> FromStr for ArrayString<A>
         Self::from(s).map_err(CapacityError::simplify)
     }
 }
+
+/// Extend the `ArrayString` with an iterator.
+///
+/// Does not extract more items than there is space for. No error
+/// occurs if there are more iterator elements.
+///
+/// Caveat: Because the iterator cannot guess how large a character
+/// will be in bytes before it sees it, it will potentially leave
+/// characters unextracted even if there is room for them. This is
+/// because characters can take up to four bytes of space, and if
+/// there are less than four bytes available, this code will stop.
+impl<A> iter::Extend<char> for ArrayString<A>
+    where A: Array<Item=u8> + Copy
+{
+    fn extend<T: IntoIterator<Item=char>>(&mut self, iter: T) {
+        let mut iter = iter.into_iter();
+        while self.len() < self.capacity() - 4 {
+            if let Some(c) = iter.next() {
+                self.push(c)
+            } else {
+                return
+            }
+        }
+    }
+}
+
+/// Create an `ArrayString` from an iterator.
+///
+/// Does not extract more items than there is space for. No error
+/// occurs if there are more iterator elements.
+///
+/// Caveat: Because the iterator cannot guess how large a character
+/// will be in bytes before it sees it, it will potentially leave
+/// characters unextracted even if there is room for them. This is
+/// because characters can take up to four bytes of space, and if
+/// there are less than four bytes available, this code will stop.
+impl<A> iter::FromIterator<char> for ArrayString<A>
+    where A: Array<Item=u8> + Copy
+{
+    fn from_iter<T: IntoIterator<Item=char>>(iter: T) -> Self {
+        let mut array = ArrayString::new();
+        array.extend(iter);
+        array
+    }
+}
+
 
 #[cfg(feature="serde-1")]
 /// Requires crate feature `"serde-1"`
