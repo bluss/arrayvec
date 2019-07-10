@@ -9,7 +9,7 @@ use std::str::FromStr;
 use std::str::Utf8Error;
 use std::slice;
 
-use array::{Array, ArrayExt};
+use array::Array;
 use array::Index;
 use CapacityError;
 use char::encode_utf8;

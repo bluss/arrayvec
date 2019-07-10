@@ -155,7 +155,7 @@ impl<A: Array> ArrayVec<A> {
     /// assert_eq!(array.capacity(), 3);
     /// ```
     #[inline]
-    pub fn capacity(&self) -> usize { A::capacity() }
+    pub fn capacity(&self) -> usize { A::CAPACITY }
 
     /// Return if the `ArrayVec` is completely filled.
     ///
