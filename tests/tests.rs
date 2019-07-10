@@ -510,10 +510,8 @@ fn test_sizes_129_255() {
 
 
 #[test]
-fn test_nightly_uses_maybe_uninit() {
-    if option_env!("ARRAYVECTEST_ENSURE_UNION").map(|s| !s.is_empty()).unwrap_or(false) {
-        assert!(cfg!(has_manually_drop_in_union));
-        type ByteArray = ArrayVec<[u8; 4]>;
-        assert!(mem::size_of::<ByteArray>() == 5);
+fn test_newish_stable_uses_maybe_uninit() {
+    if option_env!("ARRAYVECTEST_ENSURE_MAYBEUNINIT").map(|s| !s.is_empty()).unwrap_or(false) {
+        assert!(cfg!(has_stable_maybe_uninit));
     }
 }

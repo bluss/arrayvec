@@ -15,6 +15,7 @@ matrix:
     - rust: stable
       env:
       - FEATURES='array-sizes-33-128 array-sizes-129-255'
+      - ARRAYVECTEST_ENSURE_MAYBEUNINIT=1
     - rust: beta
     - rust: nightly
       env:
@@ -23,12 +24,12 @@ matrix:
     - rust: nightly
       env:
       - NODROP_FEATURES='use_needs_drop'
-      - ARRAYVECTEST_ENSURE_UNION=1
+      - ARRAYVECTEST_ENSURE_MAYBEUNINIT=1
     - rust: nightly
       env:
       - FEATURES='serde use_union'
       - NODROP_FEATURES='use_union'
-      - ARRAYVECTEST_ENSURE_UNION=1
+      - ARRAYVECTEST_ENSURE_MAYBEUNINIT=1
 branches:
   only:
     - master
