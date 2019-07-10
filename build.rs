@@ -11,17 +11,28 @@ fn main() {
 }
 
 fn detect_maybe_uninit() {
+    let has_stable_maybe_uninit = probe(&stable_maybe_uninit());
+    if has_stable_maybe_uninit {
+        println!("cargo:rustc-cfg=has_stable_maybe_uninit");
+        return;
+    }
     let has_unstable_union_with_md = probe(&maybe_uninit_code(true));
     if has_unstable_union_with_md {
         println!("cargo:rustc-cfg=has_manually_drop_in_union");
         println!("cargo:rustc-cfg=has_union_feature");
-        return;
     }
+}
 
-    let has_stable_union_with_md = probe(&maybe_uninit_code(false));
-    if has_stable_union_with_md {
-        println!("cargo:rustc-cfg=has_manually_drop_in_union");
-    }
+// To guard against changes in this currently unstable feature, use
+// a detection tests instead of a Rustc version and/or date test.
+fn stable_maybe_uninit() -> String {
+    let code = "
+    #![allow(warnings)]
+    use std::mem::MaybeUninit;
+
+    fn main() { }
+    ";
+    code.to_string()
 }
 
 // To guard against changes in this currently unstable feature, use

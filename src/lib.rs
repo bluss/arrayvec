@@ -50,9 +50,12 @@ use std::fmt;
 use std::io;
 
 
-#[cfg(has_manually_drop_in_union)]
+#[cfg(has_stable_maybe_uninit)]
+#[path="maybe_uninit_stable.rs"]
 mod maybe_uninit;
-#[cfg(not(has_manually_drop_in_union))]
+#[cfg(all(not(has_stable_maybe_uninit), has_manually_drop_in_union))]
+mod maybe_uninit;
+#[cfg(all(not(has_stable_maybe_uninit), not(has_manually_drop_in_union)))]
 #[path="maybe_uninit_nodrop.rs"]
 mod maybe_uninit;
 
