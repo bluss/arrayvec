@@ -22,6 +22,13 @@ __ https://docs.rs/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.4.11
+
+  - In Rust 1.36 or later, use newly stable MaybeUninit. This extends the
+    soundness work introduced in 0.4.9, we are finally able to use this in
+    stable. We use feature detection (build script) to enable this at build
+    time.
+
 - 0.4.10
 
   - Use ``repr(C)`` in the ``union`` version that was introduced in 0.4.9, to
