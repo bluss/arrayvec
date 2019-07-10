@@ -22,6 +22,20 @@ __ https://docs.rs/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.5.0 (not released yet)
+
+  - Add ``FromStr`` impl for ``ArrayString`` by @despawnerer
+  - Use a union in the implementation of ``ArrayString`` (stable Rust),
+    while this is only used for ``ArrayVec`` on nightly.
+  - Add method ``try_extend_from_slice`` to ``ArrayVec``, which is always
+    effecient by @Thomasdezeeuw.
+  - Add method ``remaining_capacity`` by @Thomasdezeeuw
+  - Improve performance of the ``extend`` method.
+  - The index type of zero capacity vectors is now itself zero size, by
+    @clarcharr
+  - Use ``drop_in_place`` for truncate and clear methods. This affects drop order
+    and resume from panic during drop.
+
 - 0.4.11
 
   - In Rust 1.36 or later, use newly stable MaybeUninit. This extends the
