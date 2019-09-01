@@ -547,7 +547,7 @@ impl<'de, A> Deserialize<'de> for ArrayString<A>
             type Value = ArrayString<A>;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                write!(formatter, "a string no more than {} bytes long", A::capacity())
+                write!(formatter, "a string no more than {} bytes long", A::CAPACITY)
             }
 
             fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
