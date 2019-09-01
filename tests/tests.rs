@@ -640,3 +640,23 @@ fn test_newish_stable_uses_maybe_uninit() {
         assert!(cfg!(has_stable_maybe_uninit));
     }
 }
+
+#[test]
+fn test_extend_zst() {
+    let mut range = 0..10;
+    #[derive(Copy, Clone, PartialEq, Debug)]
+    struct Z; // Zero sized type
+
+    let mut array: ArrayVec<[_; 5]> = range.by_ref().map(|_| Z).collect();
+    assert_eq!(&array[..], &[Z; 5]);
+    assert_eq!(range.next(), Some(5));
+
+    array.extend(range.by_ref().map(|_| Z));
+    assert_eq!(range.next(), Some(6));
+
+    let mut array: ArrayVec<[_; 10]> = (0..3).map(|_| Z).collect();
+    assert_eq!(&array[..], &[Z; 3]);
+    array.extend((3..5).map(|_| Z));
+    assert_eq!(&array[..], &[Z; 5]);
+    assert_eq!(array.len(), 5);
+}

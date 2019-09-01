@@ -926,8 +926,8 @@ impl<A: Array> Extend<A::Item> for ArrayVec<A> {
         let take = self.capacity() - self.len();
         unsafe {
             let len = self.len();
-            let mut ptr = self.as_mut_ptr().offset(len as isize);
-            let end_ptr = ptr.offset(take as isize);
+            let mut ptr = raw_ptr_add(self.as_mut_ptr(), len);
+            let end_ptr = raw_ptr_add(ptr, take);
             // Keep the length in a separate variable, write it back on scope
             // exit. To help the compiler with alias analysis and stuff.
             // We update the length to handle panic in the iteration of the
@@ -943,14 +943,32 @@ impl<A: Array> Extend<A::Item> for ArrayVec<A> {
             loop {
                 if ptr == end_ptr { break; }
                 if let Some(elt) = iter.next() {
-                    ptr::write(ptr, elt);
-                    ptr = ptr.offset(1);
+                    raw_ptr_write(ptr, elt);
+                    ptr = raw_ptr_add(ptr, 1);
                     guard.data += 1;
                 } else {
                     break;
                 }
             }
         }
+    }
+}
+
+/// Rawptr add but uses arithmetic distance for ZST
+unsafe fn raw_ptr_add<T>(ptr: *mut T, offset: usize) -> *mut T {
+    if mem::size_of::<T>() == 0 {
+        // Special case for ZST
+        (ptr as usize).wrapping_add(offset) as _
+    } else {
+        ptr.offset(offset as isize)
+    }
+}
+
+unsafe fn raw_ptr_write<T>(ptr: *mut T, value: T) {
+    if mem::size_of::<T>() == 0 {
+        /* nothing */
+    } else {
+        ptr::write(ptr, value)
     }
 }
 
