@@ -28,9 +28,6 @@ extern crate serde;
 #[cfg(not(feature="std"))]
 extern crate core as std;
 
-#[cfg(not(has_manually_drop_in_union))]
-extern crate nodrop;
-
 use std::cmp;
 use std::iter;
 use std::mem;
@@ -50,19 +47,8 @@ use std::fmt;
 use std::io;
 
 
-#[cfg(has_stable_maybe_uninit)]
-#[path="maybe_uninit_stable.rs"]
 mod maybe_uninit;
-#[cfg(all(not(has_stable_maybe_uninit), has_manually_drop_in_union))]
-mod maybe_uninit;
-#[cfg(all(not(has_stable_maybe_uninit), not(has_manually_drop_in_union)))]
-#[path="maybe_uninit_nodrop.rs"]
-mod maybe_uninit;
-
-mod maybe_uninit_copy;
-
 use maybe_uninit::MaybeUninit;
-use maybe_uninit_copy::MaybeUninitCopy;
 
 #[cfg(feature="serde-1")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
@@ -223,7 +209,7 @@ impl<A: Array> ArrayVec<A> {
     /// assert!(overflow.is_err());
     /// ```
     pub fn try_push(&mut self, element: A::Item) -> Result<(), CapacityError<A::Item>> {
-        if self.len() < A::capacity() {
+        if self.len() < A::CAPACITY {
             unsafe {
                 self.push_unchecked(element);
             }
@@ -258,7 +244,7 @@ impl<A: Array> ArrayVec<A> {
     #[inline]
     pub unsafe fn push_unchecked(&mut self, element: A::Item) {
         let len = self.len();
-        debug_assert!(len < A::capacity());
+        debug_assert!(len < A::CAPACITY);
         ptr::write(self.get_unchecked_mut(len), element);
         self.set_len(len + 1);
     }
@@ -680,7 +666,7 @@ impl<A: Array> DerefMut for ArrayVec<A> {
 /// ```
 impl<A: Array> From<A> for ArrayVec<A> {
     fn from(array: A) -> Self {
-        ArrayVec { xs: MaybeUninit::from(array), len: Index::from(A::capacity()) }
+        ArrayVec { xs: MaybeUninit::from(array), len: Index::from(A::CAPACITY) }
     }
 }
 
