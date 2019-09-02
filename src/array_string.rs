@@ -9,10 +9,10 @@ use std::str::FromStr;
 use std::str::Utf8Error;
 use std::slice;
 
-use array::Array;
-use array::Index;
-use CapacityError;
-use char::encode_utf8;
+use crate::array::Array;
+use crate::array::Index;
+use crate::CapacityError;
+use crate::char::encode_utf8;
 
 #[cfg(feature="serde-1")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};

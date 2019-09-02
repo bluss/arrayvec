@@ -1,6 +1,6 @@
 
 
-use array::Array;
+use crate::array::Array;
 use std::mem::MaybeUninit as StdMaybeUninit;
 
 #[derive(Copy)]

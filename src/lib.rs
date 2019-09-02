@@ -48,7 +48,7 @@ use std::io;
 
 
 mod maybe_uninit;
-use maybe_uninit::MaybeUninit;
+use crate::maybe_uninit::MaybeUninit;
 
 #[cfg(feature="serde-1")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
@@ -59,11 +59,11 @@ mod char;
 mod range;
 mod errors;
 
-pub use array::Array;
-pub use range::RangeArgument;
-use array::Index;
-pub use array_string::ArrayString;
-pub use errors::CapacityError;
+pub use crate::array::Array;
+pub use crate::range::RangeArgument;
+use crate::array::Index;
+pub use crate::array_string::ArrayString;
+pub use crate::errors::CapacityError;
 
 
 /// A vector with a fixed capacity.
