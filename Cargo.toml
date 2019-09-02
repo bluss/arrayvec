@@ -13,9 +13,6 @@ categories = ["data-structures", "no-std"]
 
 [build-dependencies]
 
-[dependencies]
-nodrop = { version = "0.1.12", path = "nodrop", default-features = false }
-
 [dependencies.serde]
 version = "1.0"
 optional = true

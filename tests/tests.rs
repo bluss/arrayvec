@@ -633,14 +633,6 @@ fn test_sizes_129_255() {
     ArrayVec::from([0u8; 255]);
 }
 
-
-#[test]
-fn test_newish_stable_uses_maybe_uninit() {
-    if option_env!("ARRAYVECTEST_ENSURE_MAYBEUNINIT").map(|s| !s.is_empty()).unwrap_or(false) {
-        assert!(cfg!(has_stable_maybe_uninit));
-    }
-}
-
 #[test]
 fn test_extend_zst() {
     let mut range = 0..10;

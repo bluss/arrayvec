@@ -9,7 +9,7 @@ use std::str::FromStr;
 use std::str::Utf8Error;
 use std::slice;
 
-use array::{Array, ArrayExt};
+use array::Array;
 use array::Index;
 use CapacityError;
 use char::encode_utf8;
@@ -17,7 +17,7 @@ use char::encode_utf8;
 #[cfg(feature="serde-1")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
-use super::MaybeUninitCopy;
+use super::MaybeUninit as MaybeUninitCopy;
 
 /// A string with a fixed capacity.
 ///
@@ -98,10 +98,10 @@ impl<A> ArrayString<A>
     /// ```
     pub fn from_byte_string(b: &A) -> Result<Self, Utf8Error> {
         let len = str::from_utf8(b.as_slice())?.len();
-        debug_assert_eq!(len, A::capacity());
+        debug_assert_eq!(len, A::CAPACITY);
         Ok(ArrayString {
             xs: MaybeUninitCopy::from(*b),
-            len: Index::from(A::capacity()),
+            len: Index::from(A::CAPACITY),
         })
     }
 
@@ -114,7 +114,7 @@ impl<A> ArrayString<A>
     /// assert_eq!(string.capacity(), 3);
     /// ```
     #[inline]
-    pub fn capacity(&self) -> usize { A::capacity() }
+    pub fn capacity(&self) -> usize { A::CAPACITY }
 
     /// Return if the `ArrayString` is completely filled.
     ///
@@ -547,7 +547,7 @@ impl<'de, A> Deserialize<'de> for ArrayString<A>
             type Value = ArrayString<A>;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                write!(formatter, "a string no more than {} bytes long", A::capacity())
+                write!(formatter, "a string no more than {} bytes long", A::CAPACITY)
             }
 
             fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>

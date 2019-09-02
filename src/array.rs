@@ -20,29 +20,14 @@ pub unsafe trait Array {
     type Index: Index;
     /// The array's element capacity
     const CAPACITY: usize;
-    #[doc(hidden)]
-    fn as_ptr(&self) -> *const Self::Item;
-    #[doc(hidden)]
-    fn capacity() -> usize;
+    fn as_slice(&self) -> &[Self::Item];
+    fn as_mut_slice(&mut self) -> &mut [Self::Item];
 }
 
 pub trait Index : PartialEq + Copy {
     fn to_usize(self) -> usize;
     fn from(usize) -> Self;
 }
-
-use std::slice::{from_raw_parts};
-
-pub trait ArrayExt : Array {
-    #[inline(always)]
-    fn as_slice(&self) -> &[Self::Item] {
-        unsafe {
-            from_raw_parts(self.as_ptr(), Self::capacity())
-        }
-    }
-}
-
-impl<A> ArrayExt for A where A: Array { }
 
 impl Index for () {
     #[inline(always)]
@@ -93,11 +78,11 @@ macro_rules! fix_array_impl {
             type Index = $index_type;
             const CAPACITY: usize = $len;
             #[doc(hidden)]
-            #[inline(always)]
-            fn as_ptr(&self) -> *const T { self as *const _ as *const _ }
+            #[inline]
+            fn as_slice(&self) -> &[Self::Item] { self }
             #[doc(hidden)]
-            #[inline(always)]
-            fn capacity() -> usize { $len }
+            #[inline]
+            fn as_mut_slice(&mut self) -> &mut [Self::Item] { self }
         }
     )
 }

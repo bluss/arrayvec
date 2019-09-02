@@ -4,7 +4,7 @@ env:
   - FEATURES='serde-1'
 matrix:
   include:
-    - rust: 1.24.1
+    - rust: 1.36.0
       env:
       - FEATURES='array-sizes-33-128 array-sizes-129-255'
     - rust: stable
@@ -14,23 +14,17 @@ matrix:
     - rust: stable
       env:
       - FEATURES='array-sizes-33-128 array-sizes-129-255'
-      - ARRAYVECTEST_ENSURE_MAYBEUNINIT=1
     - rust: beta
     - rust: nightly
-      env:
-      - ARRAYVECTEST_ENSURE_UNION=1
     - rust: nightly
       env:
       - FEATURES='serde'
-      - ARRAYVECTEST_ENSURE_UNION=1
     - rust: nightly
       env:
       - FEATURES='serde-1'
-      - ARRAYVECTEST_ENSURE_UNION=1
     - rust: nightly
       env:
       - FEATURES='array-sizes-33-128 array-sizes-129-255'
-      - ARRAYVECTEST_ENSURE_MAYBEUNINIT=1
 branches:
   only:
     - master
