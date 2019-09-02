@@ -472,7 +472,7 @@ fn test_string() {
     // Test Error trait / try
     let t = || -> Result<(), Box<Error>> {
         let mut t = ArrayString::<[_; 2]>::new();
-        try!(t.try_push_str(text));
+        t.try_push_str(text)?;
         Ok(())
     }();
     assert!(t.is_err());

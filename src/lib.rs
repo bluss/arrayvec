@@ -1127,7 +1127,7 @@ impl<'de, T: Deserialize<'de>, A: Array<Item=T>> Deserialize<'de> for ArrayVec<A
             {
                 let mut values = ArrayVec::<A>::new();
 
-                while let Some(value) = try!(seq.next_element()) {
+                while let Some(value) = seq.next_element()? {
                     if let Err(_) = values.try_push(value) {
                         return Err(SA::Error::invalid_length(A::CAPACITY + 1, &self));
                     }
