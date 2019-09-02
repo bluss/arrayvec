@@ -20,7 +20,6 @@
 //!
 #![doc(html_root_url="https://docs.rs/arrayvec/0.4/")]
 #![cfg_attr(not(feature="std"), no_std)]
-#![cfg_attr(has_union_feature, feature(untagged_unions))]
 
 #[cfg(feature="serde-1")]
 extern crate serde;
