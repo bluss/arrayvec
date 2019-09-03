@@ -28,14 +28,11 @@ extern crate serde;
 #[cfg(not(feature="std"))]
 extern crate core as std;
 
-#[cfg(feature="quickcheck-1")]
-extern crate rand;
-
-#[cfg(feature="quickcheck-1")]
-extern crate quickcheck;
+#[cfg(feature="quickcheck-0_8")]
+extern crate quickcheck_0_8 as quickcheck;
 
 use std::cmp;
-use std::iter;
+use std::iter::FromIterator;
 use std::mem;
 use std::ptr;
 use std::ops::{
@@ -59,10 +56,8 @@ use maybe_uninit::MaybeUninit;
 #[cfg(feature="serde-1")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
-#[cfg(feature="quickcheck-1")]
-use rand::Rng;
 
-#[cfg(feature="quickcheck-1")]
+#[cfg(feature="quickcheck-0_8")]
 use quickcheck::{Arbitrary,Gen};
 
 mod array;
@@ -974,7 +969,7 @@ unsafe fn raw_ptr_write<T>(ptr: *mut T, value: T) {
 /// 
 /// Does not extract more items than there is space for. No error
 /// occurs if there are more iterator elements.
-impl<A: Array> iter::FromIterator<A::Item> for ArrayVec<A> {
+impl<A: Array> FromIterator<A::Item> for ArrayVec<A> {
     fn from_iter<T: IntoIterator<Item=A::Item>>(iter: T) -> Self {
         let mut array = ArrayVec::new();
         array.extend(iter);
@@ -1006,19 +1001,21 @@ impl<A: Array> Clone for ArrayVec<A>
     }
 }
 
-#[cfg(feature="quickcheck-1")]
-impl<A: Array + Send + Clone + 'static> Arbitrary for ArrayVec<A>
-    where <A as array::Array>::Item: Clone + Arbitrary,
-          <A as array::Array>::Index: Send,
+#[cfg(feature="quickcheck-0_8")]
+impl<A> Arbitrary for ArrayVec<A>
+    where A: Array + Send + Clone + 'static,
+          A::Item: Send + Clone + Arbitrary + 'static,
+          A::Index: Send,
 {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
-        use std::cmp::{min, max};
-        let mut v = Self::default();
-        let size = g.gen_range(0, max(1, min(g.size(), v.capacity() + 1)));
-        for _ in 0..size {
-            v.push(Arbitrary::arbitrary(g));
-        }
-        v
+        let size = Ord::min(g.size(), A::CAPACITY);
+        let mut gen = quickcheck::StdThreadGen::new(size);
+        ArrayVec::from_iter(Vec::arbitrary(&mut gen))
+    }
+
+    fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
+        Box::new(Vec::from_iter(self.iter().cloned())
+                   .shrink().map(ArrayVec::from_iter))
     }
 }
 
