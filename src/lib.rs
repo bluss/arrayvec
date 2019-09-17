@@ -30,11 +30,8 @@ extern crate core as std;
 use std::cmp;
 use std::iter;
 use std::mem;
+use std::ops::{Bound, Deref, DerefMut, RangeBounds};
 use std::ptr;
-use std::ops::{
-    Deref,
-    DerefMut,
-};
 use std::slice;
 
 // extra traits
@@ -55,11 +52,9 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 mod array;
 mod array_string;
 mod char;
-mod range;
 mod errors;
 
 pub use crate::array::Array;
-pub use crate::range::RangeArgument;
 use crate::array::Index;
 pub use crate::array_string::ArrayString;
 pub use crate::errors::CapacityError;
@@ -572,7 +567,9 @@ impl<A: Array> ArrayVec<A> {
     /// assert_eq!(&v[..], &[3]);
     /// assert_eq!(&u[..], &[1, 2]);
     /// ```
-    pub fn drain<R: RangeArgument>(&mut self, range: R) -> Drain<A> {
+    pub fn drain<R>(&mut self, range: R) -> Drain<A>
+        where R: RangeBounds<usize>
+    {
         // Memory safety
         //
         // When the Drain is first created, it shortens the length of
@@ -584,8 +581,22 @@ impl<A: Array> ArrayVec<A> {
         // the hole, and the vector length is restored to the new length.
         //
         let len = self.len();
-        let start = range.start().unwrap_or(0);
-        let end = range.end().unwrap_or(len);
+        let start = match range.start_bound() {
+            Bound::Unbounded => 0,
+            Bound::Included(&i) => i,
+            Bound::Excluded(&i) => i.saturating_add(1),
+        };
+        let end = match range.end_bound() {
+            Bound::Excluded(&j) => j,
+            Bound::Included(&j) => j.saturating_add(1),
+            Bound::Unbounded => len,
+        };
+        self.drain_range(start, end)
+    }
+
+    fn drain_range(&mut self, start: usize, end: usize) -> Drain<A>
+    {
+        let len = self.len();
         // bounds check happens here
         let range_slice: *const _ = &self[start..end];
 

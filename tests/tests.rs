@@ -307,6 +307,29 @@ fn test_drain() {
 }
 
 #[test]
+fn test_drain_range_inclusive() {
+    let mut v = ArrayVec::from([0; 8]);
+    v.drain(0..=7);
+    assert_eq!(&v[..], &[]);
+
+    v.extend(0..);
+    v.drain(1..=4);
+    assert_eq!(&v[..], &[0, 5, 6, 7]);
+    let u: ArrayVec<[_; 3]> = v.drain(1..=2).rev().collect();
+    assert_eq!(&u[..], &[6, 5]);
+    assert_eq!(&v[..], &[0, 7]);
+    v.drain(..);
+    assert_eq!(&v[..], &[]);
+}
+
+#[test]
+#[should_panic]
+fn test_drain_range_inclusive_oob() {
+    let mut v = ArrayVec::from([0; 0]);
+    v.drain(0..=0);
+}
+
+#[test]
 fn test_retain() {
     let mut v = ArrayVec::from([0; 8]);
     for (i, elt) in v.iter_mut().enumerate() {
