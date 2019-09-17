@@ -258,8 +258,8 @@ fn test_extend() {
 #[test]
 fn test_is_send_sync() {
     let data = ArrayVec::<[Vec<i32>; 5]>::new();
-    &data as &Send;
-    &data as &Sync;
+    &data as &dyn Send;
+    &data as &dyn Sync;
 }
 
 #[test]
@@ -470,9 +470,9 @@ fn test_string() {
     assert_eq!(tmut, "ab");
 
     // Test Error trait / try
-    let t = || -> Result<(), Box<Error>> {
+    let t = || -> Result<(), Box<dyn Error>> {
         let mut t = ArrayString::<[_; 2]>::new();
-        try!(t.try_push_str(text));
+        t.try_push_str(text)?;
         Ok(())
     }();
     assert!(t.is_err());

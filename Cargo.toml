@@ -3,6 +3,7 @@ name = "arrayvec"
 version = "0.4.11"
 authors = ["bluss"]
 license = "MIT/Apache-2.0"
+edition = "2018"
 
 description = "A vector with fixed capacity, backed by an array (it can be stored on the stack too). Implements fixed capacity ArrayVec and ArrayString."
 documentation = "https://docs.rs/arrayvec/"

@@ -9,10 +9,10 @@ use std::str::FromStr;
 use std::str::Utf8Error;
 use std::slice;
 
-use array::Array;
-use array::Index;
-use CapacityError;
-use char::encode_utf8;
+use crate::array::Array;
+use crate::array::Index;
+use crate::CapacityError;
+use crate::char::encode_utf8;
 
 #[cfg(feature="serde-1")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
@@ -559,7 +559,7 @@ impl<'de, A> Deserialize<'de> for ArrayString<A>
             fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
                 where E: de::Error,
             {
-                let s = try!(str::from_utf8(v).map_err(|_| E::invalid_value(de::Unexpected::Bytes(v), &self)));
+                let s = str::from_utf8(v).map_err(|_| E::invalid_value(de::Unexpected::Bytes(v), &self))?;
 
                 ArrayString::from(s).map_err(|_| E::invalid_length(s.len(), &self))
             }
