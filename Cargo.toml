@@ -1,6 +1,6 @@
 [package]
 name = "arrayvec"
-version = "0.4.11"
+version = "0.5.0"
 authors = ["bluss"]
 license = "MIT/Apache-2.0"
 edition = "2018"
@@ -46,3 +46,4 @@ features = ["serde"]
 
 [package.metadata.release]
 no-dev-version = true
+tag-name = "{{version}}"
