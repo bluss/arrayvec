@@ -22,7 +22,7 @@ __ https://docs.rs/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
-- 0.5.0 (not released yet)
+- 0.5.0
 
   - Use ``MaybeUninit`` (now unconditionally) in the implementation of
     ``ArrayVec``
