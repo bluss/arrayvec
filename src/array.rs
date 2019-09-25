@@ -15,11 +15,11 @@
 ///
 /// ## Safety
 ///
-/// If implemented, this trait can only be implmented by fixed-size arrays or
-/// types with exactly the representation of a fixed size array (of the right
-/// element type and capacity).
+/// This trait can *only* be implemented by fixed-size arrays or types with
+/// *exactly* the representation of a fixed size array (of the right element
+/// type and capacity).
 ///
-/// Normally this trait is an implementation detail of arrayvec and doesn't
+/// Normally this trait is an implementation detail of arrayvec and doesn’t
 /// need implementing.
 pub unsafe trait Array {
     /// The array’s element type
