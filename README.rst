@@ -24,17 +24,25 @@ Recent Changes (arrayvec)
 
 - 0.5.0 (not released yet)
 
+  - Use ``MaybeUninit`` (now unconditionally) in the implementation of
+    ``ArrayVec``
+  - Use ``MaybeUninit`` (now unconditionally) in the implementation of
+    ``ArrayString``
+  - The crate feature for serde serialization is now named ``serde``.
+  - Updated the ``Array`` trait interface, and it is now easier to use for
+    users outside the crate.
   - Add ``FromStr`` impl for ``ArrayString`` by @despawnerer
-  - Use a union in the implementation of ``ArrayString`` (stable Rust),
-    while this is only used for ``ArrayVec`` on nightly.
   - Add method ``try_extend_from_slice`` to ``ArrayVec``, which is always
     effecient by @Thomasdezeeuw.
   - Add method ``remaining_capacity`` by @Thomasdezeeuw
   - Improve performance of the ``extend`` method.
   - The index type of zero capacity vectors is now itself zero size, by
-    @clarcharr
+    @clarfon
   - Use ``drop_in_place`` for truncate and clear methods. This affects drop order
     and resume from panic during drop.
+  - Use Rust 2018 edition for the implementation
+  - Require Rust 1.36 or later, for the unconditional ``MaybeUninit``
+    improvements.
 
 - 0.4.11
 
