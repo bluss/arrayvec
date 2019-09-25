@@ -434,6 +434,7 @@ fn test_into_inner_3_() {
     assert_eq!(v.into_inner().unwrap(), [1, 2, 3, 4]);
 }
 
+#[cfg(feature="std")]
 #[test]
 fn test_write() {
     use std::io::Write;
@@ -468,6 +469,7 @@ fn array_clone_from() {
     assert_eq!(&t, &reference[..]);
 }
 
+#[cfg(feature="std")]
 #[test]
 fn test_string() {
     use std::error::Error;
