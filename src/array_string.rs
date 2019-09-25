@@ -14,7 +14,7 @@ use crate::array::Index;
 use crate::CapacityError;
 use crate::char::encode_utf8;
 
-#[cfg(feature="serde-1")]
+#[cfg(feature="serde")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
 use super::MaybeUninit as MaybeUninitCopy;
@@ -518,8 +518,8 @@ impl<A> FromStr for ArrayString<A>
     }
 }
 
-#[cfg(feature="serde-1")]
-/// Requires crate feature `"serde-1"`
+#[cfg(feature="serde")]
+/// Requires crate feature `"serde"`
 impl<A> Serialize for ArrayString<A>
     where A: Array<Item=u8> + Copy
 {
@@ -530,8 +530,8 @@ impl<A> Serialize for ArrayString<A>
     }
 }
 
-#[cfg(feature="serde-1")]
-/// Requires crate feature `"serde-1"`
+#[cfg(feature="serde")]
+/// Requires crate feature `"serde"`
 impl<'de, A> Deserialize<'de> for ArrayString<A> 
     where A: Array<Item=u8> + Copy
 {

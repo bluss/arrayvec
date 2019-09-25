@@ -37,13 +37,12 @@ harness = false
 [features]
 default = ["std"]
 std = []
-serde-1 = ["serde"]
 
 array-sizes-33-128 = []
 array-sizes-129-255 = []
 
 [package.metadata.docs.rs]
-features = ["serde-1"]
+features = ["serde"]
 
 [package.metadata.release]
 no-dev-version = true

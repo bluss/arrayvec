@@ -7,9 +7,9 @@
 //!   - Optional, enabled by default
 //!   - Use libstd; disable to use `no_std` instead.
 //!
-//! - `serde-1`
+//! - `serde`
 //!   - Optional
-//!   - Enable serialization for ArrayVec and ArrayString using serde 1.0
+//!   - Enable serialization for ArrayVec and ArrayString using serde 1.x
 //! - `array-sizes-33-128`, `array-sizes-129-255`
 //!   - Optional
 //!   - Enable more array sizes (see [Array] for more information)
@@ -21,7 +21,7 @@
 #![doc(html_root_url="https://docs.rs/arrayvec/0.4/")]
 #![cfg_attr(not(feature="std"), no_std)]
 
-#[cfg(feature="serde-1")]
+#[cfg(feature="serde")]
 extern crate serde;
 
 #[cfg(not(feature="std"))]
@@ -46,7 +46,7 @@ use std::io;
 mod maybe_uninit;
 use crate::maybe_uninit::MaybeUninit;
 
-#[cfg(feature="serde-1")]
+#[cfg(feature="serde")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
 mod array;
@@ -1104,8 +1104,8 @@ impl<A: Array<Item=u8>> io::Write for ArrayVec<A> {
     fn flush(&mut self) -> io::Result<()> { Ok(()) }
 }
 
-#[cfg(feature="serde-1")]
-/// Requires crate feature `"serde-1"`
+#[cfg(feature="serde")]
+/// Requires crate feature `"serde"`
 impl<T: Serialize, A: Array<Item=T>> Serialize for ArrayVec<A> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer
@@ -1114,8 +1114,8 @@ impl<T: Serialize, A: Array<Item=T>> Serialize for ArrayVec<A> {
     }
 }
 
-#[cfg(feature="serde-1")]
-/// Requires crate feature `"serde-1"`
+#[cfg(feature="serde")]
+/// Requires crate feature `"serde"`
 impl<'de, T: Deserialize<'de>, A: Array<Item=T>> Deserialize<'de> for ArrayVec<A> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where D: Deserializer<'de>
