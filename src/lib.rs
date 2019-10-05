@@ -643,6 +643,16 @@ impl<A: Array> ArrayVec<A> {
     pub fn as_mut_slice(&mut self) -> &mut [A::Item] {
         self
     }
+
+    /// Return a raw pointer to the vector's buffer.
+    pub fn as_ptr(&self) -> *const A::Item {
+        self.xs.ptr()
+    }
+
+    /// Return a raw mutable pointer to the vector's buffer.
+    pub fn as_mut_ptr(&mut self) -> *mut A::Item {
+        self.xs.ptr_mut()
+    }
 }
 
 impl<A: Array> Deref for ArrayVec<A> {
