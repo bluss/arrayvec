@@ -30,7 +30,7 @@ Recent Changes (arrayvec)
   - Use raw pointers instead of ``&mut [u8]`` for encoding chars into ``ArrayString``
     (uninit best practice fix).
   - Use raw pointers instead of ``get_unchecked_mut`` where the target may be
-    uninitialized a everywhere relevant in the ArrayVec implementation
+    uninitialized everywhere relevant in the ArrayVec implementation
     (uninit best practice fix).
   - Changed inline hints on many methods, mainly removing inline hints
   - ``ArrayVec::dispose`` is now deprecated (it has no purpose anymore)
@@ -38,7 +38,7 @@ Recent Changes (arrayvec)
 - 0.4.12
 
   - Use raw pointers instead of ``get_unchecked_mut`` where the target may be
-    uninitialized a everywhere relevant in the ArrayVec implementation.
+    uninitialized everywhere relevant in the ArrayVec implementation.
 
 - 0.5.0
 
