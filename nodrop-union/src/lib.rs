@@ -1,3 +1,6 @@
+//! A wrapper type to inhibit drop (destructor).
+//!
+//! ***Deprecated: Use ManuallyDrop or MaybeUninit instead!***
 //!
 //! **nodrop-union** is the untagged unions (requires Rust nightly channel and
 //! unstable as of this writing) implementation for the **nodrop** crate.
