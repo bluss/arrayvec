@@ -67,6 +67,10 @@ impl<A> ArrayString<A>
         }
     }
 
+    /// Return the length of the string.
+    #[inline]
+    pub fn len(&self) -> usize { self.len.to_usize() }
+
     /// Create a new `ArrayString` from a `str`.
     ///
     /// Capacity is inferred from the type parameter.
