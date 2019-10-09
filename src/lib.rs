@@ -243,8 +243,13 @@ impl<A: Array> ArrayVec<A> {
     pub unsafe fn push_unchecked(&mut self, element: A::Item) {
         let len = self.len();
         debug_assert!(len < A::capacity());
-        ptr::write(self.get_unchecked_mut(len), element);
+        ptr::write(self.get_unchecked_ptr(len), element);
         self.set_len(len + 1);
+    }
+
+    /// Get pointer to where element at `index` would be
+    unsafe fn get_unchecked_ptr(&mut self, index: usize) -> *mut A::Item {
+        self.xs.ptr_mut().offset(index as isize)
     }
 
     /// Insert `element` at position `index`.
@@ -304,7 +309,7 @@ impl<A: Array> ArrayVec<A> {
         unsafe { // infallible
             // The spot to put the new value
             {
-                let p: *mut _ = self.get_unchecked_mut(index);
+                let p: *mut _ = self.get_unchecked_ptr(index);
                 // Shift everything over to make space. (Duplicating the
                 // `index`th element into two consecutive places.)
                 ptr::copy(p, p.offset(1), len - index);
@@ -338,7 +343,7 @@ impl<A: Array> ArrayVec<A> {
         unsafe {
             let new_len = self.len() - 1;
             self.set_len(new_len);
-            Some(ptr::read(self.get_unchecked_mut(new_len)))
+            Some(ptr::read(self.get_unchecked_ptr(new_len)))
         }
     }
 
@@ -701,7 +706,7 @@ impl<A: Array> Iterator for IntoIter<A> {
             unsafe {
                 let index = self.index.to_usize();
                 self.index = Index::from(index + 1);
-                Some(ptr::read(self.v.get_unchecked_mut(index)))
+                Some(ptr::read(self.v.get_unchecked_ptr(index)))
             }
         }
     }
@@ -721,7 +726,7 @@ impl<A: Array> DoubleEndedIterator for IntoIter<A> {
             unsafe {
                 let new_len = self.v.len() - 1;
                 self.v.set_len(new_len);
-                Some(ptr::read(self.v.get_unchecked_mut(new_len)))
+                Some(ptr::read(self.v.get_unchecked_ptr(new_len)))
             }
         }
     }
@@ -737,7 +742,7 @@ impl<A: Array> Drop for IntoIter<A> {
         unsafe {
             self.v.set_len(0);
             let elements = slice::from_raw_parts_mut(
-                self.v.get_unchecked_mut(index),
+                self.v.get_unchecked_ptr(index),
                 len - index);
             ptr::drop_in_place(elements);
         }
@@ -1022,13 +1027,10 @@ impl<A: Array<Item=u8>> io::Write for ArrayVec<A> {
     fn write(&mut self, data: &[u8]) -> io::Result<usize> {
         unsafe {
             let len = self.len();
-            let mut tail = slice::from_raw_parts_mut(self.get_unchecked_mut(len),
-                                                     A::capacity() - len);
-            let result = tail.write(data);
-            if let Ok(written) = result {
-                self.set_len(len + written);
-            }
-            result
+            let write_len = cmp::min(A::capacity() - len, data.len());
+            ptr::copy_nonoverlapping(data.as_ptr(), self.get_unchecked_ptr(len), write_len);
+            self.set_len(len + write_len);
+            Ok(write_len)
         }
     }
     fn flush(&mut self) -> io::Result<()> { Ok(()) }
