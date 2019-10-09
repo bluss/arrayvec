@@ -1,15 +1,19 @@
 [package]
 name = "nodrop"
-version = "0.1.13"
+version = "0.1.14"
 authors = ["bluss"]
 
 license = "MIT/Apache-2.0"
 
-description = "A wrapper type to inhibit drop (destructor). Use std::mem::ManuallyDrop instead!"
+description = """
+A wrapper type to inhibit drop (destructor).
+
+***Deprecated: Use ManuallyDrop or MaybeUninit instead!***
+"""
 documentation = "https://docs.rs/nodrop/"
 repository = "https://github.com/bluss/arrayvec"
 
-keywords = ["container", "drop", "no_std"]
+keywords = []
 categories = ["rust-patterns"]
 
 [features]
@@ -33,3 +37,8 @@ optional = true
 
 [package.metadata.release]
 no-dev-version = true
+tag-name = "nodrop-{{version}}"
+
+
+[badges.maintenance]
+status = "deprecated"
