@@ -22,6 +22,24 @@ __ https://docs.rs/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.5.1
+
+  - Add ``as_ptr``, ``as_mut_ptr`` accessors directly on the ``ArrayVec`` by @tbu-
+    (matches the same addition to ``Vec`` which happened in Rust 1.37).
+  - Add method ``ArrayString::len`` (now available directly, not just through deref to str).
+  - Use raw pointers instead of ``&mut [u8]`` for encoding chars into ``ArrayString``
+    (uninit best practice fix).
+  - Use raw pointers instead of ``get_unchecked_mut`` where the target may be
+    uninitialized a everywhere relevant in the ArrayVec implementation
+    (uninit best practice fix).
+  - Changed inline hints on many methods, mainly removing inline hints
+  - ``ArrayVec::dispose`` is now deprecated (it has no purpose anymore)
+
+- 0.4.12
+
+  - Use raw pointers instead of ``get_unchecked_mut`` where the target may be
+    uninitialized a everywhere relevant in the ArrayVec implementation.
+
 - 0.5.0
 
   - Use ``MaybeUninit`` (now unconditionally) in the implementation of
