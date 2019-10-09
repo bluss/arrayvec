@@ -238,8 +238,13 @@ impl<A: Array> ArrayVec<A> {
     pub unsafe fn push_unchecked(&mut self, element: A::Item) {
         let len = self.len();
         debug_assert!(len < A::CAPACITY);
-        ptr::write(self.get_unchecked_mut(len), element);
+        ptr::write(self.get_unchecked_ptr(len), element);
         self.set_len(len + 1);
+    }
+
+    /// Get pointer to where element at `index` would be
+    unsafe fn get_unchecked_ptr(&mut self, index: usize) -> *mut A::Item {
+        self.xs.ptr_mut().add(index)
     }
 
     /// Insert `element` at position `index`.
@@ -299,7 +304,7 @@ impl<A: Array> ArrayVec<A> {
         unsafe { // infallible
             // The spot to put the new value
             {
-                let p: *mut _ = self.get_unchecked_mut(index);
+                let p: *mut _ = self.get_unchecked_ptr(index);
                 // Shift everything over to make space. (Duplicating the
                 // `index`th element into two consecutive places.)
                 ptr::copy(p, p.offset(1), len - index);
@@ -333,7 +338,7 @@ impl<A: Array> ArrayVec<A> {
         unsafe {
             let new_len = self.len() - 1;
             self.set_len(new_len);
-            Some(ptr::read(self.get_unchecked_mut(new_len)))
+            Some(ptr::read(self.get_unchecked_ptr(new_len)))
         }
     }
 
@@ -760,7 +765,7 @@ impl<A: Array> Iterator for IntoIter<A> {
             unsafe {
                 let index = self.index.to_usize();
                 self.index = Index::from(index + 1);
-                Some(ptr::read(self.v.get_unchecked_mut(index)))
+                Some(ptr::read(self.v.get_unchecked_ptr(index)))
             }
         }
     }
@@ -779,7 +784,7 @@ impl<A: Array> DoubleEndedIterator for IntoIter<A> {
             unsafe {
                 let new_len = self.v.len() - 1;
                 self.v.set_len(new_len);
-                Some(ptr::read(self.v.get_unchecked_mut(new_len)))
+                Some(ptr::read(self.v.get_unchecked_ptr(new_len)))
             }
         }
     }
@@ -795,7 +800,7 @@ impl<A: Array> Drop for IntoIter<A> {
         unsafe {
             self.v.set_len(0);
             let elements = slice::from_raw_parts_mut(
-                self.v.get_unchecked_mut(index),
+                self.v.get_unchecked_ptr(index),
                 len - index);
             ptr::drop_in_place(elements);
         }
