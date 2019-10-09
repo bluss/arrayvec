@@ -134,7 +134,7 @@ impl<A: Array> ArrayVec<A> {
     /// let array = ArrayVec::from([1, 2, 3]);
     /// assert_eq!(array.capacity(), 3);
     /// ```
-    #[inline]
+    #[inline(always)]
     pub fn capacity(&self) -> usize { A::CAPACITY }
 
     /// Return if the `ArrayVec` is completely filled.
@@ -235,12 +235,16 @@ impl<A: Array> ArrayVec<A> {
     ///
     /// assert_eq!(&array[..], &[1, 2]);
     /// ```
-    #[inline]
     pub unsafe fn push_unchecked(&mut self, element: A::Item) {
         let len = self.len();
         debug_assert!(len < A::CAPACITY);
-        ptr::write(self.get_unchecked_mut(len), element);
+        ptr::write(self.get_unchecked_ptr(len), element);
         self.set_len(len + 1);
+    }
+
+    /// Get pointer to where element at `index` would be
+    unsafe fn get_unchecked_ptr(&mut self, index: usize) -> *mut A::Item {
+        self.xs.ptr_mut().add(index)
     }
 
     /// Insert `element` at position `index`.
@@ -300,7 +304,7 @@ impl<A: Array> ArrayVec<A> {
         unsafe { // infallible
             // The spot to put the new value
             {
-                let p: *mut _ = self.get_unchecked_mut(index);
+                let p: *mut _ = self.get_unchecked_ptr(index);
                 // Shift everything over to make space. (Duplicating the
                 // `index`th element into two consecutive places.)
                 ptr::copy(p, p.offset(1), len - index);
@@ -334,7 +338,7 @@ impl<A: Array> ArrayVec<A> {
         unsafe {
             let new_len = self.len() - 1;
             self.set_len(new_len);
-            Some(ptr::read(self.get_unchecked_mut(new_len)))
+            Some(ptr::read(self.get_unchecked_ptr(new_len)))
         }
     }
 
@@ -507,7 +511,6 @@ impl<A: Array> ArrayVec<A> {
     ///
     /// This method uses *debug assertions* to check that `length` is
     /// not greater than the capacity.
-    #[inline]
     pub unsafe fn set_len(&mut self, length: usize) {
         debug_assert!(length <= self.capacity());
         self.len = Index::from(length);
@@ -628,7 +631,8 @@ impl<A: Array> ArrayVec<A> {
         }
     }
 
-    /// Dispose of `self` without the overwriting that is needed in Drop.
+    /// Dispose of `self` (same as drop)
+    #[deprecated="Use std::mem::drop instead, if at all needed."]
     pub fn dispose(mut self) {
         self.clear();
         mem::forget(self);
@@ -754,7 +758,6 @@ pub struct IntoIter<A: Array> {
 impl<A: Array> Iterator for IntoIter<A> {
     type Item = A::Item;
 
-    #[inline]
     fn next(&mut self) -> Option<A::Item> {
         if self.index == self.v.len {
             None
@@ -762,7 +765,7 @@ impl<A: Array> Iterator for IntoIter<A> {
             unsafe {
                 let index = self.index.to_usize();
                 self.index = Index::from(index + 1);
-                Some(ptr::read(self.v.get_unchecked_mut(index)))
+                Some(ptr::read(self.v.get_unchecked_ptr(index)))
             }
         }
     }
@@ -774,7 +777,6 @@ impl<A: Array> Iterator for IntoIter<A> {
 }
 
 impl<A: Array> DoubleEndedIterator for IntoIter<A> {
-    #[inline]
     fn next_back(&mut self) -> Option<A::Item> {
         if self.index == self.v.len {
             None
@@ -782,7 +784,7 @@ impl<A: Array> DoubleEndedIterator for IntoIter<A> {
             unsafe {
                 let new_len = self.v.len() - 1;
                 self.v.set_len(new_len);
-                Some(ptr::read(self.v.get_unchecked_mut(new_len)))
+                Some(ptr::read(self.v.get_unchecked_ptr(new_len)))
             }
         }
     }
@@ -798,7 +800,7 @@ impl<A: Array> Drop for IntoIter<A> {
         unsafe {
             self.v.set_len(0);
             let elements = slice::from_raw_parts_mut(
-                self.v.get_unchecked_mut(index),
+                self.v.get_unchecked_ptr(index),
                 len - index);
             ptr::drop_in_place(elements);
         }
@@ -851,7 +853,6 @@ impl<'a, A: Array> Iterator for Drain<'a, A>
 {
     type Item = A::Item;
 
-    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         self.iter.next().map(|elt|
             unsafe {
@@ -860,7 +861,6 @@ impl<'a, A: Array> Iterator for Drain<'a, A>
         )
     }
 
-    #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.iter.size_hint()
     }
@@ -869,7 +869,6 @@ impl<'a, A: Array> Iterator for Drain<'a, A>
 impl<'a, A: Array> DoubleEndedIterator for Drain<'a, A>
     where A::Item: 'a,
 {
-    #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back().map(|elt|
             unsafe {
@@ -1068,27 +1067,22 @@ impl<A: Array> Default for ArrayVec<A> {
 }
 
 impl<A: Array> PartialOrd for ArrayVec<A> where A::Item: PartialOrd {
-    #[inline]
     fn partial_cmp(&self, other: &ArrayVec<A>) -> Option<cmp::Ordering> {
         (**self).partial_cmp(other)
     }
 
-    #[inline]
     fn lt(&self, other: &Self) -> bool {
         (**self).lt(other)
     }
 
-    #[inline]
     fn le(&self, other: &Self) -> bool {
         (**self).le(other)
     }
 
-    #[inline]
     fn ge(&self, other: &Self) -> bool {
         (**self).ge(other)
     }
 
-    #[inline]
     fn gt(&self, other: &Self) -> bool {
         (**self).gt(other)
     }

@@ -113,7 +113,7 @@ impl<A> ArrayString<A>
     /// let string = ArrayString::<[_; 3]>::new();
     /// assert_eq!(string.capacity(), 3);
     /// ```
-    #[inline]
+    #[inline(always)]
     pub fn capacity(&self) -> usize { A::CAPACITY }
 
     /// Return if the `ArrayString` is completely filled.
@@ -244,7 +244,6 @@ impl<A> ArrayString<A>
     ///
     /// assert_eq!(s.pop(), None);
     /// ```
-    #[inline]
     pub fn pop(&mut self) -> Option<char> {
         let ch = match self.chars().rev().next() {
             Some(ch) => ch,
@@ -273,7 +272,6 @@ impl<A> ArrayString<A>
     /// string.truncate(4);
     /// assert_eq!(&string[..], "foo");
     /// ```
-    #[inline]
     pub fn truncate(&mut self, new_len: usize) {
         if new_len <= self.len() {
             assert!(self.is_char_boundary(new_len));
@@ -304,7 +302,6 @@ impl<A> ArrayString<A>
     /// assert_eq!(s.remove(1), 'o');
     /// assert_eq!(s.remove(0), 'o');
     /// ```
-    #[inline]
     pub fn remove(&mut self, idx: usize) -> char {
         let ch = match self[idx..].chars().next() {
             Some(ch) => ch,
@@ -336,7 +333,6 @@ impl<A> ArrayString<A>
     ///
     /// This method uses *debug assertions* to check the validity of `length`
     /// and may use other debug assertions.
-    #[inline]
     pub unsafe fn set_len(&mut self, length: usize) {
         debug_assert!(length <= self.capacity());
         self.len = Index::from(length);
