@@ -67,6 +67,10 @@ impl<A> ArrayString<A>
         }
     }
 
+    /// Return the length of the string.
+    #[inline]
+    pub fn len(&self) -> usize { self.len.to_usize() }
+
     /// Create a new `ArrayString` from a `str`.
     ///
     /// Capacity is inferred from the type parameter.
@@ -167,7 +171,9 @@ impl<A> ArrayString<A>
     pub fn try_push(&mut self, c: char) -> Result<(), CapacityError<char>> {
         let len = self.len();
         unsafe {
-            match encode_utf8(c, &mut self.raw_mut_bytes()[len..]) {
+            let ptr = self.xs.ptr_mut().add(len);
+            let remaining_cap = self.capacity() - len;
+            match encode_utf8(c, ptr, remaining_cap) {
                 Ok(n) => {
                     self.set_len(len + n);
                     Ok(())
@@ -341,11 +347,6 @@ impl<A> ArrayString<A>
     /// Return a string slice of the whole `ArrayString`.
     pub fn as_str(&self) -> &str {
         self
-    }
-
-    /// Return a mutable slice of the whole string’s buffer
-    unsafe fn raw_mut_bytes(&mut self) -> &mut [u8] {
-        slice::from_raw_parts_mut(self.xs.ptr_mut(), self.capacity())
     }
 }
 
