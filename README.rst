@@ -22,6 +22,11 @@ __ https://docs.rs/arrayvec
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.4.12
+
+  - Use raw pointers instead of ``get_unchecked_mut`` where the target may be
+    uninitialized a everywhere relevant in the ArrayVec implementation.
+
 - 0.4.11
 
   - In Rust 1.36 or later, use newly stable MaybeUninit. This extends the
