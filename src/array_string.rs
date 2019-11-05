@@ -17,6 +17,13 @@ use crate::char::encode_utf8;
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
+#[cfg(feature="diesel")]
+use diesel::{
+    deserialize::{FromSql},
+    backend::Backend,
+    FromSqlRow,
+};
+
 use super::MaybeUninit as MaybeUninitCopy;
 
 /// A string with a fixed capacity.
@@ -27,6 +34,7 @@ use super::MaybeUninit as MaybeUninitCopy;
 /// The string is a contiguous value that you can store directly on the stack
 /// if needed.
 #[derive(Copy)]
+#[cfg_attr(feature="diesel", derive(FromSqlRow))]
 pub struct ArrayString<A>
     where A: Array<Item=u8> + Copy
 {
@@ -563,5 +571,21 @@ impl<'de, A> Deserialize<'de> for ArrayString<A>
         }
 
         deserializer.deserialize_str(ArrayStringVisitor::<A>(PhantomData))
+    }
+}
+
+#[cfg(feature="diesel")]
+/// Requires crate feature `"diesel"`
+impl<A, ST, DB> FromSql<ST, DB> for ArrayString<A>
+    where A: Array<Item = u8> + Copy,
+          DB: Backend,
+          *const str: FromSql<ST, DB>
+{
+    fn from_sql(bytes: Option<&DB::RawValue>) -> diesel::deserialize::Result<Self> {
+        let str_ptr = <*const str as FromSql<ST, DB>>::from_sql(bytes)?;
+        // never be null
+        let string = unsafe { &*str_ptr };
+        Self::from(string)
+            .map_err(|e| Box::new(e.simplify()) as Box<(dyn std::error::Error + Send + Sync)>)
     }
 }
