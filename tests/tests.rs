@@ -513,6 +513,14 @@ fn test_string_from() {
 }
 
 #[test]
+fn test_string_collect() {
+    let text = "hello world";
+    let u: ArrayString::<[_; 11]> = text.chars().collect();
+    assert_eq!(&u, text);
+    assert_eq!(u.len(), text.len());
+}
+
+#[test]
 fn test_string_parse_from_str() {
     let text = "hello world";
     let u: ArrayString<[_; 11]> = text.parse().unwrap();
