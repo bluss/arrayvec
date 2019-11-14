@@ -71,6 +71,10 @@ impl<A> ArrayString<A>
     #[inline]
     pub fn len(&self) -> usize { self.len.to_usize() }
 
+    /// Returns whether the string is empty.
+    #[inline]
+    pub fn is_empty(&self) -> bool { self.len() == 0 }
+
     /// Create a new `ArrayString` from a `str`.
     ///
     /// Capacity is inferred from the type parameter.
