@@ -600,12 +600,15 @@ impl<A: Array> ArrayVec<A> {
     fn drain_range(&mut self, start: usize, end: usize) -> Drain<A>
     {
         let len = self.len();
-        // bounds check happens here
+
+        // bounds check happens here (before length is changed!)
         let range_slice: *const _ = &self[start..end];
 
+        // Calling `set_len` creates a fresh and thus unique mutable references, making all
+        // older aliases we created invalid. So we cannot call that function.
+        self.len = Index::from(start);
+
         unsafe {
-            // set self.vec length's to start, to be safe in case Drain is leaked
-            self.set_len(start);
             Drain {
                 tail_start: end,
                 tail_len: len - end,
