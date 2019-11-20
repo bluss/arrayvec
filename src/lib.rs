@@ -81,9 +81,7 @@ impl<A: Array> Drop for ArrayVec<A> {
     fn drop(&mut self) {
         self.clear();
 
-        // NoDrop inhibits array's drop
-        // panic safety: NoDrop::drop will trigger on panic, so the inner
-        // array will not drop even after panic.
+        // MaybeUninit inhibits array's drop
     }
 }
 
