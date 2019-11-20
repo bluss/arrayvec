@@ -124,6 +124,18 @@ impl<A: Array> ArrayVec<A> {
     #[inline]
     pub fn len(&self) -> usize { self.len.to_usize() }
 
+    /// Returns whether the `ArrayVec` is empty.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::from([1]);
+    /// array.pop();
+    /// assert_eq!(array.is_empty(), true);
+    /// ```
+    #[inline]
+    pub fn is_empty(&self) -> bool { self.len() == 0 }
+
     /// Return the capacity of the `ArrayVec`.
     ///
     /// ```
