@@ -165,6 +165,7 @@ fn test_drop() {
 }
 
 #[test]
+#[cfg(not(miri))] // Miri does not support unwinding
 fn test_drop_panics() {
     use std::cell::Cell;
     use std::panic::catch_unwind;
