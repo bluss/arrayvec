@@ -16,14 +16,14 @@ where
 }
 
 impl<T> MaybeUninit<T> {
-    /// Create a new MaybeUninit with uninitialized interior
+    /// Create a new `MaybeUninit` with uninitialized interior
     pub unsafe fn uninitialized() -> Self {
         Self {
             inner: StdMaybeUninit::uninit(),
         }
     }
 
-    /// Create a new MaybeUninit from the value `v`.
+    /// Create a new `MaybeUninit` from the value `v`.
     pub fn from(v: T) -> Self {
         Self {
             inner: StdMaybeUninit::new(v),

@@ -351,8 +351,12 @@ where
 
     /// Set the strings’s length.
     ///
+    /// # Safety
+    ///
     /// This function is `unsafe` because it changes the notion of the
     /// number of “valid” bytes in the string. Use with care.
+    ///
+    /// # Note
     ///
     /// This method uses *debug assertions* to check the validity of `length`
     /// and may use other debug assertions.
