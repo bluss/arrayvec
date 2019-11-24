@@ -12,8 +12,8 @@ pub struct CapacityError<T = ()> {
 
 impl<T> CapacityError<T> {
     /// Create a new `CapacityError` from `element`.
-    pub fn new(element: T) -> CapacityError<T> {
-        CapacityError { element: element }
+    pub fn new(element: T) -> Self {
+        Self { element }
     }
 
     /// Extract the overflowing element

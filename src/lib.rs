@@ -110,9 +110,9 @@ impl<A: Array> ArrayVec<A> {
     /// assert_eq!(&array[..], &[1, 2]);
     /// assert_eq!(array.capacity(), 16);
     /// ```
-    pub fn new() -> ArrayVec<A> {
+    pub fn new() -> Self {
         unsafe {
-            ArrayVec {
+            Self {
                 xs: MaybeUninit::uninitialized(),
                 len: Index::from(0),
             }
@@ -716,7 +716,7 @@ impl<A: Array> DerefMut for ArrayVec<A> {
 /// ```
 impl<A: Array> From<A> for ArrayVec<A> {
     fn from(array: A) -> Self {
-        ArrayVec {
+        Self {
             xs: MaybeUninit::from(array),
             len: Index::from(A::CAPACITY),
         }
@@ -843,7 +843,7 @@ impl<A: Array> Clone for IntoIter<A>
 where
     A::Item: Clone,
 {
-    fn clone(&self) -> IntoIter<A> {
+    fn clone(&self) -> Self {
         self.v[self.index.to_usize()..]
             .iter()
             .cloned()
@@ -1017,7 +1017,7 @@ unsafe fn raw_ptr_write<T>(ptr: *mut T, value: T) {
 /// occurs if there are more iterator elements.
 impl<A: Array> iter::FromIterator<A::Item> for ArrayVec<A> {
     fn from_iter<T: IntoIterator<Item = A::Item>>(iter: T) -> Self {
-        let mut array = ArrayVec::new();
+        let mut array = Self::new();
         array.extend(iter);
         array
     }
@@ -1112,8 +1112,8 @@ where
 
 impl<A: Array> Default for ArrayVec<A> {
     /// Return an empty array
-    fn default() -> ArrayVec<A> {
-        ArrayVec::new()
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -1121,7 +1121,7 @@ impl<A: Array> PartialOrd for ArrayVec<A>
 where
     A::Item: PartialOrd,
 {
-    fn partial_cmp(&self, other: &ArrayVec<A>) -> Option<cmp::Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         (**self).partial_cmp(other)
     }
 
@@ -1146,7 +1146,7 @@ impl<A: Array> Ord for ArrayVec<A>
 where
     A::Item: Ord,
 {
-    fn cmp(&self, other: &ArrayVec<A>) -> cmp::Ordering {
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
         (**self).cmp(other)
     }
 }

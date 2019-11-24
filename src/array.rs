@@ -66,7 +66,7 @@ impl Index for u8 {
     }
     #[inline(always)]
     fn from(ix: usize) -> Self {
-        ix as u8
+        ix as Self
     }
 }
 
@@ -77,7 +77,7 @@ impl Index for u16 {
     }
     #[inline(always)]
     fn from(ix: usize) -> Self {
-        ix as u16
+        ix as Self
     }
 }
 
@@ -88,7 +88,7 @@ impl Index for u32 {
     }
     #[inline(always)]
     fn from(ix: usize) -> Self {
-        ix as u32
+        ix as Self
     }
 }
 

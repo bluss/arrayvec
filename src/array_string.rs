@@ -40,8 +40,8 @@ where
     A: Array<Item = u8> + Copy,
 {
     /// Return an empty `ArrayString`
-    fn default() -> ArrayString<A> {
-        ArrayString::new()
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -61,9 +61,9 @@ where
     /// assert_eq!(&string[..], "foo");
     /// assert_eq!(string.capacity(), 16);
     /// ```
-    pub fn new() -> ArrayString<A> {
+    pub fn new() -> Self {
         unsafe {
-            ArrayString {
+            Self {
                 xs: MaybeUninitCopy::uninitialized(),
                 len: Index::from(0),
             }
@@ -114,7 +114,7 @@ where
     pub fn from_byte_string(b: &A) -> Result<Self, Utf8Error> {
         let len = str::from_utf8(b.as_slice())?.len();
         debug_assert_eq!(len, A::CAPACITY);
-        Ok(ArrayString {
+        Ok(Self {
             xs: MaybeUninitCopy::from(*b),
             len: Index::from(A::CAPACITY),
         })
@@ -486,7 +486,7 @@ impl<A> Clone for ArrayString<A>
 where
     A: Array<Item = u8> + Copy,
 {
-    fn clone(&self) -> ArrayString<A> {
+    fn clone(&self) -> Self {
         *self
     }
     fn clone_from(&mut self, rhs: &Self) {
