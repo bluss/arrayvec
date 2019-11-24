@@ -1,5 +1,3 @@
-
-
 use crate::array::Array;
 use std::mem::MaybeUninit as StdMaybeUninit;
 
@@ -9,20 +7,27 @@ pub struct MaybeUninit<T> {
 }
 
 impl<T> Clone for MaybeUninit<T>
-    where T: Copy
+where
+    T: Copy,
 {
-    fn clone(&self) -> Self { *self }
+    fn clone(&self) -> Self {
+        *self
+    }
 }
 
 impl<T> MaybeUninit<T> {
     /// Create a new MaybeUninit with uninitialized interior
     pub unsafe fn uninitialized() -> Self {
-        MaybeUninit { inner: StdMaybeUninit::uninit() }
+        MaybeUninit {
+            inner: StdMaybeUninit::uninit(),
+        }
     }
 
     /// Create a new MaybeUninit from the value `v`.
     pub fn from(v: T) -> Self {
-        MaybeUninit { inner: StdMaybeUninit::new(v) }
+        MaybeUninit {
+            inner: StdMaybeUninit::new(v),
+        }
     }
 
     // Raw pointer casts written so that we don't reference or access the
@@ -30,14 +35,16 @@ impl<T> MaybeUninit<T> {
 
     /// Return a raw pointer to the start of the interior array
     pub fn ptr(&self) -> *const T::Item
-        where T: Array
+    where
+        T: Array,
     {
         self.inner.as_ptr() as *const T::Item
     }
 
     /// Return a mut raw pointer to the start of the interior array
     pub fn ptr_mut(&mut self) -> *mut T::Item
-        where T: Array
+    where
+        T: Array,
     {
         self.inner.as_mut_ptr() as *mut T::Item
     }
