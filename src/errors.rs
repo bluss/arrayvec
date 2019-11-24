@@ -27,7 +27,7 @@ impl<T> CapacityError<T> {
     }
 }
 
-const CAPERROR: &'static str = "insufficient capacity";
+const CAPERROR: &str = "insufficient capacity";
 
 #[cfg(feature = "std")]
 /// Requires `features="std"`.
@@ -45,6 +45,6 @@ impl<T> fmt::Display for CapacityError<T> {
 
 impl<T> fmt::Debug for CapacityError<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}: {}", "CapacityError", CAPERROR)
+        write!(f, "CapacityError: {}", CAPERROR)
     }
 }

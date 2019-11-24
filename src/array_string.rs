@@ -241,7 +241,7 @@ where
             return Err(CapacityError::new(s));
         }
         unsafe {
-            let dst = self.xs.ptr_mut().offset(self.len() as isize);
+            let dst = self.xs.ptr_mut().add(self.len());
             let src = s.as_ptr();
             ptr::copy_nonoverlapping(src, dst, s.len());
             let newl = self.len() + s.len();
@@ -333,8 +333,8 @@ where
         let len = self.len();
         unsafe {
             ptr::copy(
-                self.xs.ptr().offset(next as isize),
-                self.xs.ptr_mut().offset(idx as isize),
+                self.xs.ptr().add(next),
+                self.xs.ptr_mut().add(idx),
                 len - next,
             );
             self.set_len(len - (next - idx));

@@ -361,7 +361,7 @@ impl<A: Array> ArrayVec<A> {
     /// assert_eq!(array.pop(), None);
     /// ```
     pub fn pop(&mut self) -> Option<A::Item> {
-        if self.len() == 0 {
+        if self.is_empty() {
             return None;
         }
         unsafe {
@@ -397,7 +397,7 @@ impl<A: Array> ArrayVec<A> {
 
     /// Remove the element at `index` and swap the last element into its place.
     ///
-    /// This is a checked version of `.swap_remove`.  
+    /// This is a checked version of `.swap_remove`.
     /// This operation is O(1).
     ///
     /// Return `Some(` *element* `)` if the index is in bounds, else `None`.
@@ -461,7 +461,7 @@ impl<A: Array> ArrayVec<A> {
         if index >= self.len() {
             None
         } else {
-            self.drain(index..index + 1).next()
+            self.drain(index..=index).next()
         }
     }
 
@@ -572,7 +572,7 @@ impl<A: Array> ArrayVec<A> {
         let other_len = other.len();
 
         unsafe {
-            let dst = self.xs.ptr_mut().offset(self_len as isize);
+            let dst = self.xs.ptr_mut().add(self_len);
             ptr::copy_nonoverlapping(other.as_ptr(), dst, other_len);
             self.set_len(self_len + other_len);
         }
@@ -927,8 +927,8 @@ where
                 // memmove back untouched tail, update to new length
                 let start = source_vec.len();
                 let tail = self.tail_start;
-                let src = source_vec.as_ptr().offset(tail as isize);
-                let dst = source_vec.as_mut_ptr().offset(start as isize);
+                let src = source_vec.as_ptr().add(tail);
+                let dst = source_vec.as_mut_ptr().add(start);
                 ptr::copy(src, dst, self.tail_len);
                 source_vec.set_len(start + self.tail_len);
             }
@@ -999,7 +999,7 @@ unsafe fn raw_ptr_add<T>(ptr: *mut T, offset: usize) -> *mut T {
         // Special case for ZST
         (ptr as usize).wrapping_add(offset) as _
     } else {
-        ptr.offset(offset as isize)
+        ptr.add(offset)
     }
 }
 

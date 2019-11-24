@@ -43,9 +43,7 @@ impl Index for () {
         0
     }
     #[inline(always)]
-    fn from(_ix: usize) -> Self {
-        ()
-    }
+    fn from(_ix: usize) -> Self {}
 }
 
 impl Index for bool {
