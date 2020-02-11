@@ -651,6 +651,33 @@ impl<A: Array> ArrayVec<A> {
         mem::forget(self);
     }
 
+    /// Takes another array and appends as many items as possible to the end
+    /// of this array and drops the rest. Use `try_append` for all or nothing.
+    pub fn append<B: Array<Item = A::Item>>(&mut self, mut other: ArrayVec<B>) {
+        unsafe {
+            let count = other.len().min(A::CAPACITY - self.len());
+            std::ptr::copy_nonoverlapping(other.as_ptr(), self.get_unchecked_ptr(self.len()), count);
+            if std::mem::needs_drop::<A::Item>() {
+                for i in count..other.len() {
+                    std::ptr::drop_in_place(other.get_unchecked_ptr(i));
+                }
+            }
+            std::mem::forget(other);
+            self.set_len(self.len() + count);
+        }
+    }
+
+    /// Takes another array and appends all of the items if there is room
+    /// otherwise it returns the array as an Err
+    pub fn try_append<B: Array<Item = A::Item>>(&mut self, other: ArrayVec<B>) -> Result<(), ArrayVec<B>> {
+        if other.len() > A::CAPACITY - self.len() {
+            Err(other)
+        } else {
+            self.append(other);
+            Ok(())
+        }
+    }
+
     /// Return a slice containing all elements of the vector.
     pub fn as_slice(&self) -> &[A::Item] {
         self

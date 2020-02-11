@@ -7,7 +7,7 @@ use std::mem;
 use arrayvec::CapacityError;
 
 use std::collections::HashMap;
-
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 #[test]
 fn test_simple() {
@@ -677,4 +677,62 @@ fn test_extend_zst() {
     array.extend((3..5).map(|_| Z));
     assert_eq!(&array[..], &[Z; 5]);
     assert_eq!(array.len(), 5);
+}
+
+#[test]
+fn test_append() {
+    let mut empty = ArrayVec::<[u64; 64]>::new();
+    let full: ArrayVec<[u64; 32]> = (0..32).collect();
+    empty.append(full);
+    assert_eq!(empty.len(), 32);
+    empty.iter().enumerate().for_each(|(i, x)|assert_eq!(i as u64, *x));
+
+    let mut empty = ArrayVec::<[u64; 32]>::new();
+    let full: ArrayVec<[u64; 64]> = (0..64).collect();
+    empty.append(full);
+    assert_eq!(empty.len(), 32);
+    empty.iter().enumerate().for_each(|(i, x)|assert_eq!(i as u64, *x));
+
+    let mut half_full: ArrayVec<[u64; 32]> = (0..15).collect();
+    let to_append: ArrayVec<[u64; 32]> = half_full.clone();
+    half_full.append(to_append);
+    assert_eq!(half_full.len(), 30);
+    half_full.iter().enumerate().for_each(|(i, x)|assert_eq!(i as u64 % 15, *x));
+}
+
+#[test]
+fn test_append_drop() {
+    static DROP_COUNT: AtomicUsize = AtomicUsize::new(0);
+    struct DropWrapper(u64);
+    impl Drop for DropWrapper {
+        fn drop(&mut self) {
+            println!("Dropping {}", self.0);
+            DROP_COUNT.fetch_add(1, Ordering::SeqCst);
+        }
+    }
+    let mut empty = ArrayVec::<[DropWrapper; 32]>::new();
+    let full: ArrayVec<[DropWrapper; 64]> = (0..32).map(DropWrapper).collect();
+    empty.append(full);
+    assert_eq!(empty.len(), 32);
+    empty.iter().enumerate().for_each(|(i, x)|assert_eq!(i as u64, x.0));
+    assert_eq!(DROP_COUNT.load(Ordering::SeqCst), 0);
+    let full: ArrayVec<[DropWrapper; 64]> = (0..17).map(DropWrapper).collect();
+    empty.append(full);
+    assert_eq!(empty.len(), 32);
+    empty.iter().enumerate().for_each(|(i, x)|assert_eq!(i as u64, x.0));
+    assert_eq!(DROP_COUNT.load(Ordering::SeqCst), 17);
+}
+
+#[test]
+fn test_try_append() {
+    let mut empty = ArrayVec::<[usize; 32]>::new();
+    let full: ArrayVec<[usize; 16]> = (0..16).collect();
+    empty.try_append(full).expect("Should be able to add all 16 elements");
+    assert_eq!(empty.len(), 16);
+    let full: ArrayVec<[usize; 32]> = (0..32).collect();
+    let mut full = empty.try_append(full).expect_err("Should not be able to add 32 elements");
+    assert_eq!(empty.len(), 16);
+    full.drain(15..32);
+    empty.try_append(full).expect("Should be able to add 15 elements");
+    assert_eq!(empty.len(), 31);
 }
