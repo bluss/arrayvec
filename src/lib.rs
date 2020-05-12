@@ -708,6 +708,35 @@ impl<A: Array> From<A> for ArrayVec<A> {
 }
 
 
+/// Try to create an `ArrayVec` from a slice. This will return an error if the slice was too big to
+/// fit.
+///
+/// ```
+/// use arrayvec::ArrayVec;
+/// use std::convert::TryInto as _;
+///
+/// let array: ArrayVec<[_; 4]> = (&[1, 2, 3] as &[_]).try_into().unwrap();
+/// assert_eq!(array.len(), 3);
+/// assert_eq!(array.capacity(), 4);
+/// ```
+impl<A: Array> std::convert::TryFrom<&[A::Item]> for ArrayVec<A>
+    where
+        A::Item: Clone,
+{
+    type Error = CapacityError;
+
+    fn try_from(slice: &[A::Item]) -> Result<Self, Self::Error> {
+        if A::CAPACITY < slice.len() {
+            Err(CapacityError::new(()))
+        } else {
+            let mut array = Self::new();
+            array.extend(slice.iter().cloned());
+            Ok(array)
+        }
+    }
+}
+
+
 /// Iterate the `ArrayVec` with references to each element.
 ///
 /// ```
