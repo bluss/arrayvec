@@ -715,19 +715,24 @@ impl<A: Array> From<A> for ArrayVec<A> {
 /// use arrayvec::ArrayVec;
 /// use std::convert::TryInto as _;
 ///
-/// let mut array: ArrayVec<[_; 4]> = (&[1, 2, 3] as &[_]).try_into().unwrap();
+/// let array: ArrayVec<[_; 4]> = (&[1, 2, 3] as &[_]).try_into().unwrap();
 /// assert_eq!(array.len(), 3);
 /// assert_eq!(array.capacity(), 4);
 /// ```
 impl<A: Array> std::convert::TryFrom<&[A::Item]> for ArrayVec<A>
     where
-        A::Item: Copy,
+        A::Item: Clone,
 {
     type Error = CapacityError;
 
     fn try_from(slice: &[A::Item]) -> Result<Self, Self::Error> {
-        let mut array = Self::new();
-        array.try_extend_from_slice(slice).map(|()| array)
+        if A::CAPACITY < slice.len() {
+            Err(CapacityError::new(()))
+        } else {
+            let mut array = Self::new();
+            array.extend(slice.iter().cloned());
+            Ok(array)
+        }
     }
 }
 
