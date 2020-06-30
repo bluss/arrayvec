@@ -14,12 +14,19 @@
 //!   - Optional
 //!   - Enable more array sizes (see [Array] for more information)
 //!
+//! - `unstable-const-fn`
+//!   - Optional
+//!   - Makes [`ArrayVec::new`] and [`ArrayString::new`] `const fn`s,
+//!     using the nightly `const_fn` feature.
+//!   - Unstable and requires nightly.
+//!
 //! ## Rust Version
 //!
 //! This version of arrayvec requires Rust 1.36 or later.
 //!
 #![doc(html_root_url="https://docs.rs/arrayvec/0.4/")]
 #![cfg_attr(not(feature="std"), no_std)]
+#![cfg_attr(feature="unstable-const-fn", feature(const_fn))]
 
 #[cfg(feature="serde")]
 extern crate serde;
@@ -106,9 +113,17 @@ impl<A: Array> ArrayVec<A> {
     /// assert_eq!(&array[..], &[1, 2]);
     /// assert_eq!(array.capacity(), 16);
     /// ```
+    #[cfg(not(feature="unstable-const-fn"))]
     pub fn new() -> ArrayVec<A> {
         unsafe {
-            ArrayVec { xs: MaybeUninit::uninitialized(), len: Index::from(0) }
+            ArrayVec { xs: MaybeUninit::uninitialized(), len: Index::ZERO }
+        }
+    }
+
+    #[cfg(feature="unstable-const-fn")]
+    pub const fn new() -> ArrayVec<A> {
+        unsafe {
+            ArrayVec { xs: MaybeUninit::uninitialized(), len: Index::ZERO }
         }
     }
 
