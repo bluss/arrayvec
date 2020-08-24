@@ -1,7 +1,7 @@
 language: rust
 sudo: false
 env:
-  - FEATURES='serde'
+  - FEATURES='serde rayon'
 matrix:
   include:
     - rust: 1.36.0
@@ -13,12 +13,18 @@ matrix:
       - FEATURES='serde'
     - rust: stable
       env:
+      - FEATURES='rayon'
+    - rust: stable
+      env:
       - FEATURES='array-sizes-33-128 array-sizes-129-255'
     - rust: beta
     - rust: nightly
     - rust: nightly
       env:
       - FEATURES='serde'
+    - rust: nightly
+      env:
+      - FEATURES='rayon'
     - rust: nightly
       env:
       - FEATURES='array-sizes-33-128 array-sizes-129-255'
