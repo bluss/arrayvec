@@ -1202,7 +1202,7 @@ impl<'de, T: Deserialize<'de>, A: Array<Item=T>> Deserialize<'de> for ArrayVec<A
     }
 }
 
-// Adapted from `rayon/vec.rs`
+// Adapted from `rayon/srs/vec.rs`
 
 #[cfg(feature="rayon")]
 /// Parallel iterator that moves out of an `ArrayVec`.
