@@ -138,6 +138,8 @@ fn rayon_arrayvec_collect() {
 fn rayon_arrayvec_extend() {
     let mut v = ArrayVec::<[u8; 20]>::new();
 
+    // Test IndexedParallelIterator
+
     // Iterator length == remaining capacity
     v.extend(0..10);
     v.par_extend(0..10u8);
@@ -153,6 +155,26 @@ fn rayon_arrayvec_extend() {
     // Iterator length < remaining capacity
     v.extend(0..10);
     v.par_extend(0..5u8);
+    assert_eq!(v.len(), 15);
+    v.clear();
+
+    // Test ParallelIterator (Unindexed)
+
+    // Iterator length == remaining capacity
+    v.extend(0..10);
+    v.par_extend((0..10u8).into_par_iter().filter(|_| true));
+    assert_eq!(v.len(), 20);
+    v.clear();
+
+    // Iterator length > remaining capacity
+    v.extend(0..10);
+    v.par_extend((0..30u8).into_par_iter().filter(|_| true));
+    assert_eq!(v.len(), 20);
+    v.clear();
+
+    // Iterator length < remaining capacity
+    v.extend(0..10);
+    v.par_extend((0..5u8).into_par_iter().filter(|_| true));
     assert_eq!(v.len(), 15);
     v.clear();
 }
