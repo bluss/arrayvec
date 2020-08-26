@@ -50,9 +50,11 @@ use crate::maybe_uninit::MaybeUninit;
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
 #[cfg(feature="rayon")]
-use rayon::iter::plumbing::{bridge, Consumer, Producer, ProducerCallback, UnindexedConsumer};
-#[cfg(feature="rayon")]
-use rayon::iter::{IntoParallelIterator, ParallelIterator, IndexedParallelIterator};
+use rayon::iter::{
+    plumbing::{bridge, Consumer, Producer, ProducerCallback, UnindexedConsumer},
+    FromParallelIterator, IndexedParallelIterator, IntoParallelIterator, ParallelExtend,
+    ParallelIterator,
+};
 
 mod array;
 mod array_string;
@@ -1368,5 +1370,51 @@ impl<'data, T: 'data> Drop for SliceDrain<'data, T> {
                 std::ptr::drop_in_place(ptr);
             }
         }
+    }
+}
+
+#[cfg(feature = "rayon")]
+impl<T, A> FromParallelIterator<T> for ArrayVec<A>
+where
+    T: Send,
+    A: Array<Item = T> + Send,
+    <A as Array>::Index: Send,
+{
+    fn from_par_iter<I>(par_iter: I) -> Self
+    where
+        I: IntoParallelIterator<Item = T>,
+    {
+        let mut arrayvec = Self::new();
+        arrayvec.par_extend(par_iter);
+        arrayvec
+    }
+}
+
+#[cfg(feature = "rayon")]
+impl<T, A> ParallelExtend<T> for ArrayVec<A>
+where
+    T: Send,
+    A: Array<Item = T> + Send,
+    <A as Array>::Index: Send,
+{
+    fn par_extend<I>(&mut self, par_iter: I)
+    where
+        I: IntoParallelIterator<Item = T>,
+    {
+        self.extend(
+            par_iter
+                .into_par_iter()
+                .fold(
+                    || Self::new(),
+                    |mut arrayvec, element| {
+                        let _ = arrayvec.try_push(element);
+                        arrayvec
+                    },
+                )
+                .reduce(Self::new, |mut arrayvec1, arrayvec2| {
+                    arrayvec1.extend(arrayvec2);
+                    arrayvec1
+                }),
+        )
     }
 }
