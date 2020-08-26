@@ -111,10 +111,48 @@ fn check_len<I: ExactSizeIterator>(iter: &I, len: usize) {
     assert_eq!(iter.len(), len);
 }
 
-// Actual test
+// Actual tests
 
 #[test]
 fn rayon_arrayvec_producer_split_at() {
     let v: ArrayVec<[u8; 10]> = (0..10).collect();
     check(&v, || v.clone());
+}
+
+#[test]
+fn rayon_arrayvec_collect() {
+    // Iterator length == capacity
+    let v: ArrayVec<[u8; 10]> = (0..10u8).into_par_iter().collect();
+    assert_eq!(v.len(), 10);
+
+    // Iterator length > capacity
+    let v: ArrayVec<[u8; 10]> = (0..20u8).into_par_iter().collect();
+    assert_eq!(v.len(), 10);
+
+    // Iterator length < capacity
+    let v: ArrayVec<[u8; 10]> = (0..5u8).into_par_iter().collect();
+    assert_eq!(v.len(), 5);
+}
+
+#[test]
+fn rayon_arrayvec_extend() {
+    let mut v = ArrayVec::<[u8; 20]>::new();
+
+    // Iterator length == remaining capacity
+    v.extend(0..10);
+    v.par_extend(0..10u8);
+    assert_eq!(v.len(), 20);
+    v.clear();
+
+    // Iterator length > remaining capacity
+    v.extend(0..10);
+    v.par_extend(0..30u8);
+    assert_eq!(v.len(), 20);
+    v.clear();
+
+    // Iterator length < remaining capacity
+    v.extend(0..10);
+    v.par_extend(0..5u8);
+    assert_eq!(v.len(), 15);
+    v.clear();
 }
