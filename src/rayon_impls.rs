@@ -8,7 +8,7 @@ use rayon::iter::{
 use std::marker::PhantomData;
 use std::{ptr, slice};
 
-// Adapted from `rayon/srs/vec.rs`
+// Adapted from `rayon/src/vec.rs`
 
 /// Parallel iterator that moves out of an `ArrayVec`.
 #[derive(Debug, Clone)]
@@ -166,7 +166,7 @@ impl<'data, T: 'data> Drop for SliceDrain<'data, T> {
     }
 }
 
-// Adapted from `rayon/srs/iter/collect/mod.rs` and ``rayon/srs/iter/collect/consumer.rs``
+// Adapted from `rayon/src/iter/collect/mod.rs` and `rayon/src/iter/collect/consumer.rs`
 
 impl<A> FromParallelIterator<A::Item> for ArrayVec<A>
 where
