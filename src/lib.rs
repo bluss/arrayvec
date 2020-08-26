@@ -1206,14 +1206,14 @@ impl<'de, T: Deserialize<'de>, A: Array<Item=T>> Deserialize<'de> for ArrayVec<A
 
 // Adapted from `rayon/srs/vec.rs`
 
-#[cfg(feature="rayon")]
+#[cfg(feature = "rayon")]
 /// Parallel iterator that moves out of an `ArrayVec`.
 #[derive(Debug, Clone)]
 pub struct IntoParIter<T, A: Array<Item = T>> {
     vec: ArrayVec<A>,
 }
 
-#[cfg(feature="rayon")]
+#[cfg(feature = "rayon")]
 impl<A> IntoParallelIterator for ArrayVec<A>
 where
     A: Array + Send,
@@ -1228,9 +1228,9 @@ where
     }
 }
 
-#[cfg(feature="rayon")]
+#[cfg(feature = "rayon")]
 impl<A> ParallelIterator for IntoParIter<A::Item, A>
-where 
+where
     A: Array + Send,
     A::Item: Send,
     A::Index: Send,
@@ -1249,7 +1249,7 @@ where
     }
 }
 
-#[cfg(feature="rayon")]
+#[cfg(feature = "rayon")]
 impl<A> IndexedParallelIterator for IntoParIter<A::Item, A>
 where
     A: Array + Send,
@@ -1289,12 +1289,12 @@ where
 
 /// ////////////////////////////////////////////////////////////////////////
 
-#[cfg(feature="rayon")]
+#[cfg(feature = "rayon")]
 struct ArrayVecProducer<'data, T: Send> {
     slice: &'data mut [T],
 }
 
-#[cfg(feature="rayon")]
+#[cfg(feature = "rayon")]
 impl<'data, T: 'data + Send> Producer for ArrayVecProducer<'data, T> {
     type Item = T;
     type IntoIter = SliceDrain<'data, T>;
@@ -1311,11 +1311,14 @@ impl<'data, T: 'data + Send> Producer for ArrayVecProducer<'data, T> {
         // replace the slice so we don't drop it twice
         let slice = std::mem::replace(&mut self.slice, &mut []);
         let (left, right) = slice.split_at_mut(index);
-        (ArrayVecProducer { slice: left }, ArrayVecProducer { slice: right })
+        (
+            ArrayVecProducer { slice: left },
+            ArrayVecProducer { slice: right },
+        )
     }
 }
 
-#[cfg(feature="rayon")]
+#[cfg(feature = "rayon")]
 impl<'data, T: 'data + Send> Drop for ArrayVecProducer<'data, T> {
     fn drop(&mut self) {
         SliceDrain {
@@ -1327,12 +1330,12 @@ impl<'data, T: 'data + Send> Drop for ArrayVecProducer<'data, T> {
 /// ////////////////////////////////////////////////////////////////////////
 
 // like std::vec::Drain, without updating a source Vec
-#[cfg(feature="rayon")]
+#[cfg(feature = "rayon")]
 struct SliceDrain<'data, T> {
     iter: std::slice::IterMut<'data, T>,
 }
 
-#[cfg(feature="rayon")]
+#[cfg(feature = "rayon")]
 impl<'data, T: 'data> Iterator for SliceDrain<'data, T> {
     type Item = T;
 
@@ -1347,7 +1350,7 @@ impl<'data, T: 'data> Iterator for SliceDrain<'data, T> {
     }
 }
 
-#[cfg(feature="rayon")]
+#[cfg(feature = "rayon")]
 impl<'data, T: 'data> DoubleEndedIterator for SliceDrain<'data, T> {
     fn next_back(&mut self) -> Option<Self::Item> {
         let ptr = self.iter.next_back()?;
@@ -1355,14 +1358,14 @@ impl<'data, T: 'data> DoubleEndedIterator for SliceDrain<'data, T> {
     }
 }
 
-#[cfg(feature="rayon")]
+#[cfg(feature = "rayon")]
 impl<'data, T: 'data> ExactSizeIterator for SliceDrain<'data, T> {
     fn len(&self) -> usize {
         self.iter.len()
     }
 }
 
-#[cfg(feature="rayon")]
+#[cfg(feature = "rayon")]
 impl<'data, T: 'data> Drop for SliceDrain<'data, T> {
     fn drop(&mut self) {
         for ptr in &mut self.iter {
