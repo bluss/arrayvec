@@ -1209,19 +1209,19 @@ impl<'de, T: Deserialize<'de>, A: Array<Item=T>> Deserialize<'de> for ArrayVec<A
 #[cfg(feature="rayon")]
 /// Parallel iterator that moves out of an `ArrayVec`.
 #[derive(Debug, Clone)]
-pub struct IntoParIter<T: Send, A: Array<Item = T> + Send> {
+pub struct IntoParIter<T, A: Array<Item = T>> {
     vec: ArrayVec<A>,
 }
 
 #[cfg(feature="rayon")]
-impl<T, A> IntoParallelIterator for ArrayVec<A> 
-where 
-    T: Send,
-    A: Array<Item = T> + Send,
-    <A as Array>::Index: Send
+impl<A> IntoParallelIterator for ArrayVec<A>
+where
+    A: Array + Send,
+    A::Item: Send,
+    A::Index: Send,
 {
-    type Item = T;
-    type Iter = IntoParIter<T, A>;
+    type Item = A::Item;
+    type Iter = IntoParIter<A::Item, A>;
 
     fn into_par_iter(self) -> Self::Iter {
         IntoParIter { vec: self }
@@ -1229,13 +1229,13 @@ where
 }
 
 #[cfg(feature="rayon")]
-impl<T, A> ParallelIterator for IntoParIter<T, A>
+impl<A> ParallelIterator for IntoParIter<A::Item, A>
 where 
-    T: Send,
-    A: Array<Item = T> + Send,
-    <A as Array>::Index: Send
+    A: Array + Send,
+    A::Item: Send,
+    A::Index: Send,
 {
-    type Item = T;
+    type Item = A::Item;
 
     fn drive_unindexed<C>(self, consumer: C) -> C::Result
     where
@@ -1250,11 +1250,11 @@ where
 }
 
 #[cfg(feature="rayon")]
-impl<T, A> IndexedParallelIterator for IntoParIter<T, A>
-where 
-    T: Send,
-    A: Array<Item = T> + Send,
-    <A as Array>::Index: Send
+impl<A> IndexedParallelIterator for IntoParIter<A::Item, A>
+where
+    A: Array + Send,
+    A::Item: Send,
+    A::Index: Send,
 {
     fn drive<C>(self, consumer: C) -> C::Result
     where
@@ -1374,15 +1374,15 @@ impl<'data, T: 'data> Drop for SliceDrain<'data, T> {
 }
 
 #[cfg(feature = "rayon")]
-impl<T, A> FromParallelIterator<T> for ArrayVec<A>
+impl<A> FromParallelIterator<A::Item> for ArrayVec<A>
 where
-    T: Send,
-    A: Array<Item = T> + Send,
-    <A as Array>::Index: Send,
+    A: Array + Send,
+    A::Item: Send,
+    A::Index: Send,
 {
     fn from_par_iter<I>(par_iter: I) -> Self
     where
-        I: IntoParallelIterator<Item = T>,
+        I: IntoParallelIterator<Item = A::Item>,
     {
         let mut arrayvec = Self::new();
         arrayvec.par_extend(par_iter);
@@ -1391,15 +1391,15 @@ where
 }
 
 #[cfg(feature = "rayon")]
-impl<T, A> ParallelExtend<T> for ArrayVec<A>
+impl<A> ParallelExtend<A::Item> for ArrayVec<A>
 where
-    T: Send,
-    A: Array<Item = T> + Send,
-    <A as Array>::Index: Send,
+    A: Array + Send,
+    A::Item: Send,
+    A::Index: Send,
 {
     fn par_extend<I>(&mut self, par_iter: I)
     where
-        I: IntoParallelIterator<Item = T>,
+        I: IntoParallelIterator<Item = A::Item>,
     {
         self.extend(
             par_iter
