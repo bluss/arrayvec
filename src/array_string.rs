@@ -58,11 +58,22 @@ impl<A> ArrayString<A>
     /// assert_eq!(&string[..], "foo");
     /// assert_eq!(string.capacity(), 16);
     /// ```
+    #[cfg(not(feature="unstable-const-fn"))]
     pub fn new() -> ArrayString<A> {
         unsafe {
             ArrayString {
                 xs: MaybeUninitCopy::uninitialized(),
-                len: Index::from(0),
+                len: Index::ZERO,
+            }
+        }
+    }
+
+    #[cfg(feature="unstable-const-fn")]
+    pub const fn new() -> ArrayString<A> {
+        unsafe {
+            ArrayString {
+                xs: MaybeUninitCopy::uninitialized(),
+                len: Index::ZERO,
             }
         }
     }

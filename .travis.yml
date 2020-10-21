@@ -22,6 +22,9 @@ matrix:
     - rust: nightly
       env:
       - FEATURES='array-sizes-33-128 array-sizes-129-255'
+    - rust: nightly
+      env:
+      - FEATURES='unstable-const-fn'
     - name: "miri"
       script: sh ci/miri.sh
 branches:

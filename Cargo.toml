@@ -37,6 +37,7 @@ harness = false
 [features]
 default = ["std"]
 std = []
+unstable-const-fn = []
 
 array-sizes-33-128 = []
 array-sizes-129-255 = []
