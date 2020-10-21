@@ -555,7 +555,7 @@ impl<A: Array> ArrayVec<A> {
         let other_len = other.len();
 
         unsafe {
-            let dst = self.xs.ptr_mut().offset(self_len as isize);
+            let dst = self.xs.ptr_mut().add(self_len);
             ptr::copy_nonoverlapping(other.as_ptr(), dst, other_len);
             self.set_len(self_len + other_len);
         }
@@ -937,8 +937,8 @@ impl<'a, A: Array> Drop for Drain<'a, A>
                 // memmove back untouched tail, update to new length
                 let start = source_vec.len();
                 let tail = self.tail_start;
-                let src = source_vec.as_ptr().offset(tail as isize);
-                let dst = source_vec.as_mut_ptr().offset(start as isize);
+                let src = source_vec.as_ptr().add(tail);
+                let dst = source_vec.as_mut_ptr().add(start);
                 ptr::copy(src, dst, self.tail_len);
                 source_vec.set_len(start + self.tail_len);
             }
@@ -1007,7 +1007,7 @@ unsafe fn raw_ptr_add<T>(ptr: *mut T, offset: usize) -> *mut T {
         // Special case for ZST
         (ptr as usize).wrapping_add(offset) as _
     } else {
-        ptr.offset(offset as isize)
+        ptr.add(offset)
     }
 }
 
