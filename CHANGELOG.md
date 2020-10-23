@@ -1,6 +1,17 @@
 Recent Changes (arrayvec)
 -------------------------
 
+- 0.5.2
+
+  - Add `is_empty` methods for ArrayVec and ArrayString by @nicbn
+  - Implement `TryFrom<Slice>` for ArrayVec by @paulkernfeld
+  - Add `unstable-const-fn` to make `new` methods const by @m-ou-se
+  - Run miri in CI and a few related fixes by @RalfJung
+  - Fix outdated comment by @Phlosioneer
+  - Move changelog to a separate file by @Luro02
+  - Remove deprecated `Error::description` by @AnderEnder
+  - Use pointer method `add` by @hbina
+
 - 0.5.1
 
   - Add `as_ptr`, `as_mut_ptr` accessors directly on the `ArrayVec` by @tbu-
