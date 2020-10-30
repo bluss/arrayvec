@@ -2,6 +2,7 @@ use std::borrow::Borrow;
 use std::cmp;
 use std::fmt;
 use std::hash::{Hash, Hasher};
+use std::iter::FromIterator;
 use std::ptr;
 use std::ops::{Deref, DerefMut};
 use std::str;
@@ -527,6 +528,18 @@ impl<A> FromStr for ArrayString<A>
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Self::from(s).map_err(CapacityError::simplify)
+    }
+}
+
+impl<A> FromIterator<char> for ArrayString<A>
+    where A: Array<Item=u8> + Copy
+{
+    fn from_iter<I: IntoIterator<Item = char>>(iter: I) -> Self {
+        let mut s = Self::new();
+        for c in iter.into_iter() {
+            s.push(c);
+        }
+        s
     }
 }
 
