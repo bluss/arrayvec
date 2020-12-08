@@ -1,13 +1,14 @@
 use std::borrow::Borrow;
 use std::cmp;
+use std::convert::TryFrom;
 use std::fmt;
 use std::hash::{Hash, Hasher};
-use std::ptr;
 use std::ops::{Deref, DerefMut};
+use std::ptr;
+use std::slice;
 use std::str;
 use std::str::FromStr;
 use std::str::Utf8Error;
-use std::slice;
 
 use crate::array::Array;
 use crate::array::Index;
@@ -578,5 +579,18 @@ impl<'de, A> Deserialize<'de> for ArrayString<A>
         }
 
         deserializer.deserialize_str(ArrayStringVisitor::<A>(PhantomData))
+    }
+}
+
+impl<'a, A> TryFrom<&'a str> for ArrayString<A>
+where
+    A: Array<Item = u8> + Copy
+{
+    type Error = CapacityError<&'a str>;
+
+    fn try_from(f: &'a str) -> Result<Self, Self::Error> {
+        let mut v = Self::new();
+        v.try_push_str(f)?;
+        Ok(v)
     }
 }
