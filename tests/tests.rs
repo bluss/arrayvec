@@ -686,3 +686,10 @@ fn test_extend_zst() {
     assert_eq!(&array[..], &[Z; 5]);
     assert_eq!(array.len(), 5);
 }
+
+#[test]
+fn test_try_from_argument() {
+    use core::convert::TryFrom;
+    let v = ArrayString::<[u8; 16]>::try_from(format_args!("Hello {}", 123)).unwrap();
+    assert_eq!(&v, "Hello 123");
+}
