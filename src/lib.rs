@@ -531,11 +531,16 @@ impl<A: Array> ArrayVec<A> {
 
     /// Set the vector’s length without dropping or moving out elements
     ///
-    /// This method is `unsafe` because it changes the notion of the
-    /// number of “valid” elements in the vector. Use with care.
     ///
     /// This method uses *debug assertions* to check that `length` is
     /// not greater than the capacity.
+    ///
+    /// # Safety
+    ///
+    /// This method is `unsafe` because it changes the notion of the
+    /// number of “valid” elements in the vector. This new value
+    /// might not correspond to the actual number of elements in the
+    /// vector which many functions rely to be true. Use with care.
     pub unsafe fn set_len(&mut self, length: usize) {
         debug_assert!(length <= self.capacity());
         self.len = Index::from(length);

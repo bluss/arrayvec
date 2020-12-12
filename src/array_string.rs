@@ -350,11 +350,16 @@ impl<A> ArrayString<A>
 
     /// Set the strings’s length.
     ///
-    /// This function is `unsafe` because it changes the notion of the
-    /// number of “valid” bytes in the string. Use with care.
     ///
     /// This method uses *debug assertions* to check the validity of `length`
     /// and may use other debug assertions.
+    ///
+    /// # Safety 
+    ///
+    /// This method is `unsafe` because it changes the notion of the
+    /// number of “valid” elements in the string. This new value
+    /// might not correspond to the actual number of elements in the
+    /// string which many functions rely to be true. Use with care.
     pub unsafe fn set_len(&mut self, length: usize) {
         debug_assert!(length <= self.capacity());
         self.len = Index::from(length);
