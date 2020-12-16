@@ -24,7 +24,7 @@
 //!
 //! This version of arrayvec requires Rust 1.36 or later.
 //!
-#![doc(html_root_url="https://docs.rs/arrayvec/0.4/")]
+#![doc(html_root_url="https://docs.rs/arrayvec/0.5/")]
 #![cfg_attr(not(feature="std"), no_std)]
 #![cfg_attr(feature="unstable-const-fn", feature(const_fn))]
 
