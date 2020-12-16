@@ -41,6 +41,7 @@ use crate::maybe_uninit::MaybeUninit;
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
 mod array;
+mod arrayvec_impl;
 mod arrayvec;
 mod array_string;
 mod char;
