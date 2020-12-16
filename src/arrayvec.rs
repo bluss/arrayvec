@@ -23,6 +23,7 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use crate::array::Array;
 use crate::errors::CapacityError;
 use crate::array::Index;
+use crate::arrayvec_impl::ArrayVecImpl;
 
 /// A vector with a fixed capacity.
 ///
@@ -159,7 +160,7 @@ impl<A: Array> ArrayVec<A> {
     /// assert_eq!(&array[..], &[1, 2]);
     /// ```
     pub fn push(&mut self, element: A::Item) {
-        self.try_push(element).unwrap()
+        ArrayVecImpl::push(self, element)
     }
 
     /// Push `element` to the end of the vector.
@@ -185,14 +186,7 @@ impl<A: Array> ArrayVec<A> {
     /// assert!(overflow.is_err());
     /// ```
     pub fn try_push(&mut self, element: A::Item) -> Result<(), CapacityError<A::Item>> {
-        if self.len() < A::CAPACITY {
-            unsafe {
-                self.push_unchecked(element);
-            }
-            Ok(())
-        } else {
-            Err(CapacityError::new(element))
-        }
+        ArrayVecImpl::try_push(self, element)
     }
 
 
@@ -218,10 +212,7 @@ impl<A: Array> ArrayVec<A> {
     /// assert_eq!(&array[..], &[1, 2]);
     /// ```
     pub unsafe fn push_unchecked(&mut self, element: A::Item) {
-        let len = self.len();
-        debug_assert!(len < A::CAPACITY);
-        ptr::write(self.get_unchecked_ptr(len), element);
-        self.set_len(len + 1);
+        ArrayVecImpl::push_unchecked(self, element)
     }
 
     /// Get pointer to where element at `index` would be
@@ -314,14 +305,7 @@ impl<A: Array> ArrayVec<A> {
     /// assert_eq!(array.pop(), None);
     /// ```
     pub fn pop(&mut self) -> Option<A::Item> {
-        if self.len() == 0 {
-            return None;
-        }
-        unsafe {
-            let new_len = self.len() - 1;
-            self.set_len(new_len);
-            Some(ptr::read(self.get_unchecked_ptr(new_len)))
-        }
+        ArrayVecImpl::pop(self)
     }
 
     /// Remove the element at `index` and swap the last element into its place.
@@ -438,18 +422,12 @@ impl<A: Array> ArrayVec<A> {
     /// assert_eq!(&array[..], &[1, 2, 3]);
     /// ```
     pub fn truncate(&mut self, new_len: usize) {
-        unsafe {
-            if new_len < self.len() {
-                let tail: *mut [_] = &mut self[new_len..];
-                self.len = Index::from(new_len);
-                ptr::drop_in_place(tail);
-            }
-        }
+        ArrayVecImpl::truncate(self, new_len)
     }
 
     /// Remove all elements in the vector.
     pub fn clear(&mut self) {
-        self.truncate(0)
+        ArrayVecImpl::clear(self)
     }
 
     /// Retains only the elements specified by the predicate.
@@ -663,6 +641,36 @@ impl<A: Array> DerefMut for ArrayVec<A> {
         }
     }
 }
+
+impl<A: Array> ArrayVecImpl for ArrayVec<A> {
+    type Item = A::Item;
+
+    const CAPACITY: usize = A::CAPACITY;
+
+    fn len(&self) -> usize { self.len() }
+    unsafe fn set_len(&mut self, length: usize) { self.set_len(length) }
+
+    /// Return a slice containing all elements of the vector.
+    fn as_slice(&self) -> &[A::Item] {
+        self
+    }
+
+    /// Return a mutable slice containing all elements of the vector.
+    fn as_mut_slice(&mut self) -> &mut [A::Item] {
+        self
+    }
+
+    /// Return a raw pointer to the vector's buffer.
+    fn as_ptr(&self) -> *const A::Item {
+        self.xs.ptr()
+    }
+
+    /// Return a raw mutable pointer to the vector's buffer.
+    fn as_mut_ptr(&mut self) -> *mut A::Item {
+        self.xs.ptr_mut()
+    }
+}
+
 
 /// Create an `ArrayVec` from an array.
 ///
