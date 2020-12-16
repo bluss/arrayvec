@@ -1,4 +1,5 @@
 use std::ptr;
+use std::slice;
 
 use crate::CapacityError;
 
@@ -13,10 +14,20 @@ pub(crate) trait ArrayVecImpl {
     unsafe fn set_len(&mut self, new_len: usize);
 
     /// Return a slice containing all elements of the vector.
-    fn as_slice(&self) -> &[Self::Item];
+    fn as_slice(&self) -> &[Self::Item] {
+        let len = self.len();
+        unsafe {
+            slice::from_raw_parts(self.as_ptr(), len)
+        }
+    }
 
     /// Return a mutable slice containing all elements of the vector.
-    fn as_mut_slice(&mut self) -> &mut [Self::Item];
+    fn as_mut_slice(&mut self) -> &mut [Self::Item] {
+        let len = self.len();
+        unsafe {
+            std::slice::from_raw_parts_mut(self.as_mut_ptr(), len)
+        }
+    }
 
     /// Return a raw pointer to the vector's buffer.
     fn as_ptr(&self) -> *const Self::Item;
@@ -63,9 +74,10 @@ pub(crate) trait ArrayVecImpl {
 
     fn truncate(&mut self, new_len: usize) {
         unsafe {
-            if new_len < self.len() {
-                let tail: *mut [_] = &mut self.as_mut_slice()[new_len..];
+            let len = self.len();
+            if new_len < len {
                 self.set_len(new_len);
+                let tail = slice::from_raw_parts_mut(self.as_mut_ptr().add(new_len), len - new_len);
                 ptr::drop_in_place(tail);
             }
         }
