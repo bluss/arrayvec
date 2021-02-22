@@ -478,8 +478,8 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         let mut g = BackshiftOnDrop { v: self, processed_len: 0, deleted_cnt: 0, original_len };
 
         while g.processed_len < original_len {
-            let cur = unsafe { &mut *g.v.as_mut_ptr().add(g.processed_len) };
-            if !f(cur) {
+            let cur = unsafe { g.v.as_mut_ptr().add(g.processed_len) };
+            if !f(unsafe { &mut *cur }) {
                 g.processed_len += 1;
                 g.deleted_cnt += 1;
                 unsafe { ptr::drop_in_place(cur) };
