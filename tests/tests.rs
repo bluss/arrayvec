@@ -251,17 +251,36 @@ fn test_drop_panics() {
 fn test_extend() {
     let mut range = 0..10;
 
-    let mut array: ArrayVec<_,  5> = range.by_ref().collect();
+    let mut array: ArrayVec<_,  5> = range.by_ref().take(5).collect();
     assert_eq!(&array[..], &[0, 1, 2, 3, 4]);
     assert_eq!(range.next(), Some(5));
 
-    array.extend(range.by_ref());
+    array.extend(range.by_ref().take(0));
     assert_eq!(range.next(), Some(6));
 
     let mut array: ArrayVec<_,  10> = (0..3).collect();
     assert_eq!(&array[..], &[0, 1, 2]);
     array.extend(3..5);
     assert_eq!(&array[..], &[0, 1, 2, 3, 4]);
+}
+
+#[should_panic]
+#[test]
+fn test_extend_capacity_panic_1() {
+    let mut range = 0..10;
+
+    let _: ArrayVec<_,  5> = range.by_ref().collect();
+}
+
+#[should_panic]
+#[test]
+fn test_extend_capacity_panic_2() {
+    let mut range = 0..10;
+
+    let mut array: ArrayVec<_,  5> = range.by_ref().take(5).collect();
+    assert_eq!(&array[..], &[0, 1, 2, 3, 4]);
+    assert_eq!(range.next(), Some(5));
+    array.extend(range.by_ref().take(1));
 }
 
 #[test]
@@ -304,7 +323,7 @@ fn test_drain() {
     v.drain(0..7);
     assert_eq!(&v[..], &[]);
 
-    v.extend(0..);
+    v.extend(0..8);
     v.drain(1..4);
     assert_eq!(&v[..], &[0, 4, 5, 6, 7]);
     let u: ArrayVec<_,  3> = v.drain(1..4).rev().collect();
@@ -320,7 +339,7 @@ fn test_drain_range_inclusive() {
     v.drain(0..=7);
     assert_eq!(&v[..], &[]);
 
-    v.extend(0..);
+    v.extend(0..8);
     v.drain(1..=4);
     assert_eq!(&v[..], &[0, 5, 6, 7]);
     let u: ArrayVec<_,  3> = v.drain(1..=2).rev().collect();
@@ -436,9 +455,9 @@ fn test_into_inner_2() {
 }
 
 #[test]
-fn test_into_inner_3_() {
+fn test_into_inner_3() {
     let mut v = ArrayVec::<i32,  4>::new();
-    v.extend(1..);
+    v.extend(1..=4);
     assert_eq!(v.into_inner().unwrap(), [1, 2, 3, 4]);
 }
 
@@ -672,11 +691,11 @@ fn test_extend_zst() {
     #[derive(Copy, Clone, PartialEq, Debug)]
     struct Z; // Zero sized type
 
-    let mut array: ArrayVec<_,  5> = range.by_ref().map(|_| Z).collect();
+    let mut array: ArrayVec<_,  5> = range.by_ref().take(5).map(|_| Z).collect();
     assert_eq!(&array[..], &[Z; 5]);
     assert_eq!(range.next(), Some(5));
 
-    array.extend(range.by_ref().map(|_| Z));
+    array.extend(range.by_ref().take(0).map(|_| Z));
     assert_eq!(range.next(), Some(6));
 
     let mut array: ArrayVec<_,  10> = (0..3).map(|_| Z).collect();
