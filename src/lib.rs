@@ -10,9 +10,6 @@
 //! - `serde`
 //!   - Optional
 //!   - Enable serialization for ArrayVec and ArrayString using serde 1.x
-//! - `array-sizes-33-128`, `array-sizes-129-255`
-//!   - Optional
-//!   - Enable more array sizes (see [Array] for more information)
 //!
 //! - `unstable-const-fn`
 //!   - Optional
@@ -22,11 +19,11 @@
 //!
 //! ## Rust Version
 //!
-//! This version of arrayvec requires Rust 1.36 or later.
+//! This version of arrayvec requires Rust 1.51 or later.
 //!
 #![doc(html_root_url="https://docs.rs/arrayvec/0.5/")]
 #![cfg_attr(not(feature="std"), no_std)]
-#![cfg_attr(feature="unstable-const-fn", feature(const_fn))]
+#![cfg_attr(feature="unstable-const-fn", feature(const_fn, const_maybe_uninit_assume_init))]
 
 #[cfg(feature="serde")]
 extern crate serde;
@@ -34,19 +31,12 @@ extern crate serde;
 #[cfg(not(feature="std"))]
 extern crate core as std;
 
-mod maybe_uninit;
-use crate::maybe_uninit::MaybeUninit;
-
-#[cfg(feature="serde")]
-use serde::{Serialize, Deserialize, Serializer, Deserializer};
-
-mod array;
+mod arrayvec_impl;
 mod arrayvec;
 mod array_string;
 mod char;
 mod errors;
 
-pub use crate::array::Array;
 pub use crate::array_string::ArrayString;
 pub use crate::errors::CapacityError;
 
