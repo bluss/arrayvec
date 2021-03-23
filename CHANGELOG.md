@@ -4,16 +4,16 @@ Recent Changes (arrayvec)
 ## 0.6.0
 
 - The **const generics** release 🎉. Arrayvec finally implements what it
-  wanted to implement all along, since its first version; a vector backed by
-  and array, with generic parameters for the arbitrary element type
-  and backing array capacity.
+  wanted to implement, since its first version: a vector backed by an array,
+  with generic parameters for the arbitrary element type *and* backing array
+  capacity.
 
-  New type syntax is `ArrayVec<T, CAP>` where CAP is the arrayvec capacity.
+  The New type syntax is `ArrayVec<T, CAP>` where `CAP` is the arrayvec capacity.
   For arraystring the syntax is `ArrayString<CAP>`.
-  By @bluss.
+  Change by @bluss.
 
 - Arrayvec's `.extend()` and `FromIterator`/`.collect()` to arrayvec now
-  **panic** if the capacity of the arrayvec is exceeded.  By @bluss.
+  **panic** if the capacity of the arrayvec is exceeded. Change by @bluss.
 
 - Arraystring now implements `TryFrom<&str>` and `TryFrom<fmt::Arguments>` by
   @c410-f3r
@@ -70,6 +70,8 @@ Recent Changes (arrayvec)
 - Use Rust 2018 edition for the implementation
 - Require Rust 1.36 or later, for the unconditional `MaybeUninit`
   improvements.
+
+## Older releases
 
 - 0.4.11
 
