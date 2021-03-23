@@ -34,9 +34,6 @@ extern crate serde;
 #[cfg(not(feature="std"))]
 extern crate core as std;
 
-mod maybe_uninit;
-use crate::maybe_uninit::MaybeUninit;
-
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
