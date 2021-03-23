@@ -21,7 +21,6 @@ use std::mem::MaybeUninit;
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
 use crate::errors::CapacityError;
-use crate::array::Index;
 use crate::arrayvec_impl::ArrayVecImpl;
 
 /// A vector with a fixed capacity.
@@ -476,7 +475,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// not greater than the capacity.
     pub unsafe fn set_len(&mut self, length: usize) {
         debug_assert!(length <= self.capacity());
-        self.len = Index::from(length);
+        self.len = length;
     }
 
     /// Copy and appends all elements in a slice to the `ArrayVec`.
@@ -569,7 +568,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 
         // Calling `set_len` creates a fresh and thus unique mutable references, making all
         // older aliases we created invalid. So we cannot call that function.
-        self.len = Index::from(start);
+        self.len = start;
 
         unsafe {
             Drain {
@@ -761,7 +760,7 @@ impl<T, const CAP: usize> IntoIterator for ArrayVec<T, CAP> {
     type Item = T;
     type IntoIter = IntoIter<T, CAP>;
     fn into_iter(self) -> IntoIter<T, CAP> {
-        IntoIter { index: Index::from(0), v: self, }
+        IntoIter { index: 0, v: self, }
     }
 }
 
@@ -949,7 +948,7 @@ impl<T, const CAP: usize> Extend<T> for ArrayVec<T, CAP> {
                 value: &mut self.len,
                 data: len,
                 f: move |&len, self_len| {
-                    **self_len = Index::from(len);
+                    **self_len = len;
                 }
             };
             let mut iter = iter.into_iter();

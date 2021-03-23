@@ -10,9 +10,6 @@
 //! - `serde`
 //!   - Optional
 //!   - Enable serialization for ArrayVec and ArrayString using serde 1.x
-//! - `array-sizes-33-128`, `array-sizes-129-255`
-//!   - Optional
-//!   - Enable more array sizes (see [Array] for more information)
 //!
 //! - `unstable-const-fn`
 //!   - Optional
@@ -34,14 +31,12 @@ extern crate serde;
 #[cfg(not(feature="std"))]
 extern crate core as std;
 
-mod array;
 mod arrayvec_impl;
 mod arrayvec;
 mod array_string;
 mod char;
 mod errors;
 
-pub use crate::array::Array;
 pub use crate::array_string::ArrayString;
 pub use crate::errors::CapacityError;
 

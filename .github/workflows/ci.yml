@@ -20,7 +20,7 @@ jobs:
           - rust: 1.51.0 # MSRV
             features: serde
           - rust: stable
-            features: array-sizes-33-128 array-sizes-129-255
+            features:
           - rust: beta
             features: serde
           - rust: nightly
