@@ -596,13 +596,6 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         }
     }
 
-    /// Dispose of `self` (same as drop)
-    #[deprecated="Use std::mem::drop instead, if at all needed."]
-    pub fn dispose(mut self) {
-        self.clear();
-        mem::forget(self);
-    }
-
     /// Return a slice containing all elements of the vector.
     pub fn as_slice(&self) -> &[T] {
         ArrayVecImpl::as_slice(self)
