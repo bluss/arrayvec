@@ -821,11 +821,9 @@ impl<T, const CAP: usize> Clone for IntoIter<T, CAP>
 where T: Clone,
 {
     fn clone(&self) -> IntoIter<T, CAP> {
-        self.v[self.index..]
-            .iter()
-            .cloned()
-            .collect::<ArrayVec<T, CAP>>()
-            .into_iter()
+        let mut v = ArrayVec::new();
+        v.extend_from_slice(&self.v[self.index..]);
+        v.into_iter()
     }
 }
 
