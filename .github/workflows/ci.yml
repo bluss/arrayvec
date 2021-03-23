@@ -13,12 +13,11 @@ env:
 jobs:
   tests:
     runs-on: ubuntu-latest
+    continue-on-error: true
     strategy:
       matrix:
         include:
-          - rust: 1.36.0 # MSRV
-            features: serde
-          - rust: stable
+          - rust: 1.51.0 # MSRV
             features: serde
           - rust: stable
             features: array-sizes-33-128 array-sizes-129-255
