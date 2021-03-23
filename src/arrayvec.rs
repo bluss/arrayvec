@@ -590,8 +590,8 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
             Err(self)
         } else {
             unsafe {
-                let array = ptr::read(self.as_ptr() as *const [T; CAP]);
-                mem::forget(self);
+                let self_ = ManuallyDrop::new(self);
+                let array = ptr::read(self_.as_ptr() as *const [T; CAP]);
                 Ok(array)
             }
         }
