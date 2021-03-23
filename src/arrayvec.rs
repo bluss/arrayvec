@@ -26,10 +26,11 @@ use crate::arrayvec_impl::ArrayVecImpl;
 /// A vector with a fixed capacity.
 ///
 /// The `ArrayVec` is a vector backed by a fixed size array. It keeps track of
-/// the number of initialized elements.
+/// the number of initialized elements. The `ArrayVec<T, CAP>` is parameterized
+/// by `T` for the element type and `CAP` for the maximum capacity.
 ///
-/// The vector is a contiguous value that you can store directly on the stack
-/// if needed.
+/// The vector is a contiguous value (storing the elements inline) that you can store directly on
+/// the stack if needed.
 ///
 /// It offers a simple API but also dereferences to a slice, so
 /// that the full slice API is available.
@@ -62,7 +63,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 
     /// Create a new empty `ArrayVec`.
     ///
-    /// Capacity is inferred from the type parameter.
+    /// The maximum capacity is given by the generic parameter `CAP`.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
@@ -122,7 +123,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     #[inline(always)]
     pub fn capacity(&self) -> usize { CAP }
 
-    /// Return if the `ArrayVec` is completely filled.
+    /// Return ture if the `ArrayVec` is completely filled to its capacity, false otherwise.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
@@ -478,7 +479,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         self.len = length;
     }
 
-    /// Copy and appends all elements in a slice to the `ArrayVec`.
+    /// Copy all elements from the slice and append to the `ArrayVec`.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
@@ -527,10 +528,10 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// ```
     /// use arrayvec::ArrayVec;
     ///
-    /// let mut v = ArrayVec::from([1, 2, 3]);
-    /// let u: ArrayVec<_, 3> = v.drain(0..2).collect();
-    /// assert_eq!(&v[..], &[3]);
-    /// assert_eq!(&u[..], &[1, 2]);
+    /// let mut v1 = ArrayVec::from([1, 2, 3]);
+    /// let v2: ArrayVec<_, 3> = v1.drain(0..2).collect();
+    /// assert_eq!(&v1[..], &[3]);
+    /// assert_eq!(&v2[..], &[1, 2]);
     /// ```
     pub fn drain<R>(&mut self, range: R) -> Drain<T, CAP>
         where R: RangeBounds<usize>
