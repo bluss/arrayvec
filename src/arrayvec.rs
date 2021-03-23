@@ -71,7 +71,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// ```
     /// use arrayvec::ArrayVec;
     ///
-    /// let mut array = ArrayVec::<[_; 16]>::new();
+    /// let mut array = ArrayVec::<_, 16>::new();
     /// array.push(1);
     /// array.push(2);
     /// assert_eq!(&array[..], &[1, 2]);
@@ -131,7 +131,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// ```
     /// use arrayvec::ArrayVec;
     ///
-    /// let mut array = ArrayVec::<[_; 1]>::new();
+    /// let mut array = ArrayVec::<_, 1>::new();
     /// assert!(!array.is_full());
     /// array.push(1);
     /// assert!(array.is_full());
@@ -158,7 +158,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// ```
     /// use arrayvec::ArrayVec;
     ///
-    /// let mut array = ArrayVec::<[_; 2]>::new();
+    /// let mut array = ArrayVec::<_, 2>::new();
     ///
     /// array.push(1);
     /// array.push(2);
@@ -177,7 +177,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// ```
     /// use arrayvec::ArrayVec;
     ///
-    /// let mut array = ArrayVec::<[_; 2]>::new();
+    /// let mut array = ArrayVec::<_, 2>::new();
     ///
     /// let push1 = array.try_push(1);
     /// let push2 = array.try_push(2);
@@ -205,7 +205,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// ```
     /// use arrayvec::ArrayVec;
     ///
-    /// let mut array = ArrayVec::<[_; 2]>::new();
+    /// let mut array = ArrayVec::<_, 2>::new();
     ///
     /// if array.len() + 2 <= array.capacity() {
     ///     unsafe {
@@ -263,7 +263,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// ```
     /// use arrayvec::ArrayVec;
     ///
-    /// let mut array = ArrayVec::<[_; 2]>::new();
+    /// let mut array = ArrayVec::<_, 2>::new();
     ///
     /// array.insert(0, "x");
     /// array.insert(0, "y");
@@ -286,7 +286,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// ```
     /// use arrayvec::ArrayVec;
     ///
-    /// let mut array = ArrayVec::<[_; 2]>::new();
+    /// let mut array = ArrayVec::<_, 2>::new();
     ///
     /// assert!(array.try_insert(0, "x").is_ok());
     /// assert!(array.try_insert(0, "y").is_ok());
@@ -327,7 +327,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// ```
     /// use arrayvec::ArrayVec;
     ///
-    /// let mut array = ArrayVec::<[_; 2]>::new();
+    /// let mut array = ArrayVec::<_, 2>::new();
     ///
     /// array.push(1);
     ///
@@ -487,7 +487,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// ```
     /// use arrayvec::ArrayVec;
     ///
-    /// let mut vec: ArrayVec<[usize; 10]> = ArrayVec::new();
+    /// let mut vec: ArrayVec<usize, 10> = ArrayVec::new();
     /// vec.push(1);
     /// vec.try_extend_from_slice(&[2, 3]).unwrap();
     /// assert_eq!(&vec[..], &[1, 2, 3]);
@@ -532,7 +532,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// use arrayvec::ArrayVec;
     ///
     /// let mut v = ArrayVec::from([1, 2, 3]);
-    /// let u: ArrayVec<[_; 3]> = v.drain(0..2).collect();
+    /// let u: ArrayVec<_, 3> = v.drain(0..2).collect();
     /// assert_eq!(&v[..], &[3]);
     /// assert_eq!(&u[..], &[1, 2]);
     /// ```
@@ -678,9 +678,9 @@ impl<T, const CAP: usize> From<[T; CAP]> for ArrayVec<T, CAP> {
         let array = ManuallyDrop::new(array);
         let mut vec = <ArrayVec<T, CAP>>::new();
         unsafe {
-
             (&*array as *const [T; CAP] as *const [MaybeUninit<T>; CAP])
                 .copy_to_nonoverlapping(&mut vec.xs as *mut [MaybeUninit<T>; CAP], 1);
+            vec.set_len(CAP);
         }
         vec
     }
@@ -694,7 +694,7 @@ impl<T, const CAP: usize> From<[T; CAP]> for ArrayVec<T, CAP> {
 /// use arrayvec::ArrayVec;
 /// use std::convert::TryInto as _;
 ///
-/// let array: ArrayVec<[_; 4]> = (&[1, 2, 3] as &[_]).try_into().unwrap();
+/// let array: ArrayVec<_, 4> = (&[1, 2, 3] as &[_]).try_into().unwrap();
 /// assert_eq!(array.len(), 3);
 /// assert_eq!(array.capacity(), 4);
 /// ```
