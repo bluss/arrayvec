@@ -533,10 +533,10 @@ impl<'de, const CAP: usize> Deserialize<'de> for ArrayString<CAP>
         use serde::de::{self, Visitor};
         use std::marker::PhantomData;
 
-        struct ArrayStringVisitor<const CAP: usize>(PhantomData([u8; CAP]));
+        struct ArrayStringVisitor<const CAP: usize>(PhantomData<[u8; CAP]>);
 
-        impl<'de, const CAP: usize> Visitor<'de> for ArrayStringVisitor {
-            type Value = ArrayString;
+        impl<'de, const CAP: usize> Visitor<'de> for ArrayStringVisitor<CAP> {
+            type Value = ArrayString<CAP>;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 write!(formatter, "a string no more than {} bytes long", CAP)

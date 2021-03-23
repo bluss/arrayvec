@@ -34,9 +34,6 @@ extern crate serde;
 #[cfg(not(feature="std"))]
 extern crate core as std;
 
-#[cfg(feature="serde")]
-use serde::{Serialize, Deserialize, Serializer, Deserializer};
-
 mod array;
 mod arrayvec_impl;
 mod arrayvec;

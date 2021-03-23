@@ -483,7 +483,7 @@ fn test_string() {
     use std::error::Error;
 
     let text = "hello world";
-    let mut s = ArrayString::<[_; 16]>::new();
+    let mut s = ArrayString::<16>::new();
     s.try_push_str(text).unwrap();
     assert_eq!(&s, text);
     assert_eq!(text, &s);
@@ -493,7 +493,7 @@ fn test_string() {
     map.insert(s, 1);
     assert_eq!(map[text], 1);
 
-    let mut t = ArrayString::<[_; 2]>::new();
+    let mut t = ArrayString::<2>::new();
     assert!(t.try_push_str(text).is_err());
     assert_eq!(&t, "");
 
@@ -504,7 +504,7 @@ fn test_string() {
 
     // Test Error trait / try
     let t = || -> Result<(), Box<dyn Error>> {
-        let mut t = ArrayString::<[_; 2]>::new();
+        let mut t = ArrayString::<2>::new();
         t.try_push_str(text)?;
         Ok(())
     }();
@@ -515,7 +515,7 @@ fn test_string() {
 fn test_string_from() {
     let text = "hello world";
 	// Test `from` constructor
-    let u = ArrayString::<[_; 11]>::from(text).unwrap();
+    let u = ArrayString::<11>::from(text).unwrap();
     assert_eq!(&u, text);
     assert_eq!(u.len(), text.len());
 }
@@ -523,7 +523,7 @@ fn test_string_from() {
 #[test]
 fn test_string_parse_from_str() {
     let text = "hello world";
-    let u: ArrayString<[_; 11]> = text.parse().unwrap();
+    let u: ArrayString<11> = text.parse().unwrap();
     assert_eq!(&u, text);
     assert_eq!(u.len(), text.len());
 }
@@ -539,9 +539,9 @@ fn test_string_from_bytes() {
 #[test]
 fn test_string_clone() {
     let text = "hi";
-    let mut s = ArrayString::<[_; 4]>::new();
+    let mut s = ArrayString::<4>::new();
     s.push_str("abcd");
-    let t = ArrayString::<[_; 4]>::from(text).unwrap();
+    let t = ArrayString::<4>::from(text).unwrap();
     s.clone_from(&t);
     assert_eq!(&t, &s);
 }
@@ -549,7 +549,7 @@ fn test_string_clone() {
 #[test]
 fn test_string_push() {
     let text = "abcαβγ";
-    let mut s = ArrayString::<[_; 8]>::new();
+    let mut s = ArrayString::<8>::new();
     for c in text.chars() {
         if let Err(_) = s.try_push(c) {
             break;
@@ -645,7 +645,7 @@ fn test_sizes() {
 #[test]
 fn test_default() {
     use std::net;
-    let s: ArrayString<[u8; 4]> = Default::default();
+    let s: ArrayString<4> = Default::default();
     // Something without `Default` implementation.
     let v: ArrayVec<net::TcpStream,  4> = Default::default();
     assert_eq!(s.len(), 0);
@@ -689,6 +689,6 @@ fn test_extend_zst() {
 #[test]
 fn test_try_from_argument() {
     use core::convert::TryFrom;
-    let v = ArrayString::<[u8; 16]>::try_from(format_args!("Hello {}", 123)).unwrap();
+    let v = ArrayString::<16>::try_from(format_args!("Hello {}", 123)).unwrap();
     assert_eq!(&v, "Hello 123");
 }
