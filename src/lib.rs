@@ -26,7 +26,7 @@
 //!
 #![doc(html_root_url="https://docs.rs/arrayvec/0.5/")]
 #![cfg_attr(not(feature="std"), no_std)]
-#![cfg_attr(feature="unstable-const-fn", feature(const_fn))]
+#![cfg_attr(feature="unstable-const-fn", feature(const_fn, const_maybe_uninit_assume_init))]
 
 #[cfg(feature="serde")]
 extern crate serde;
