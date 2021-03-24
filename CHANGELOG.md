@@ -10,7 +10,11 @@ Recent Changes (arrayvec)
 
   The New type syntax is `ArrayVec<T, CAP>` where `CAP` is the arrayvec capacity.
   For arraystring the syntax is `ArrayString<CAP>`.
-  Change by @bluss.
+
+  Length is stored internally as u32; this limits the maximum capacity. The size
+  of the `ArrayVec` or `ArrayString` structs for the same capacity may grow
+  slightly compared with the previous version (depending on padding requirements
+  for the element type). Change by @bluss.
 
 - Arrayvec's `.extend()` and `FromIterator`/`.collect()` to arrayvec now
   **panic** if the capacity of the arrayvec is exceeded. Change by @bluss.

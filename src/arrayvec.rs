@@ -20,6 +20,7 @@ use std::mem::MaybeUninit;
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
+use crate::LenUint;
 use crate::errors::CapacityError;
 use crate::arrayvec_impl::ArrayVecImpl;
 
@@ -29,17 +30,18 @@ use crate::arrayvec_impl::ArrayVecImpl;
 /// the number of initialized elements. The `ArrayVec<T, CAP>` is parameterized
 /// by `T` for the element type and `CAP` for the maximum capacity.
 ///
+/// `CAP` is of type `usize` but is range limited to `u32::MAX`; attempting to create larger
+/// arrayvecs with larger capacity will panic.
+///
 /// The vector is a contiguous value (storing the elements inline) that you can store directly on
 /// the stack if needed.
 ///
-/// It offers a simple API but also dereferences to a slice, so
-/// that the full slice API is available.
-///
-/// ArrayVec can be converted into a by value iterator.
+/// It offers a simple API but also dereferences to a slice, so that the full slice API is
+/// available. The ArrayVec can be converted into a by value iterator.
 pub struct ArrayVec<T, const CAP: usize> {
     // the `len` first elements of the array are initialized
     xs: [MaybeUninit<T>; CAP],
-    len: usize,
+    len: LenUint,
 }
 
 impl<T, const CAP: usize> Drop for ArrayVec<T, CAP> {
@@ -76,6 +78,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// ```
     #[cfg(not(feature="unstable-const-fn"))]
     pub fn new() -> ArrayVec<T, CAP> {
+        assert_capacity_limit!(CAP);
         unsafe {
             ArrayVec { xs: MaybeUninit::uninit().assume_init(), len: 0 }
         }
@@ -83,6 +86,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 
     #[cfg(feature="unstable-const-fn")]
     pub const fn new() -> ArrayVec<T, CAP> {
+        assert_capacity_limit!(CAP);
         unsafe {
             ArrayVec { xs: MaybeUninit::uninit().assume_init(), len: 0 }
         }
@@ -97,7 +101,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// array.pop();
     /// assert_eq!(array.len(), 2);
     /// ```
-    #[inline]
+    #[inline(always)]
     pub fn len(&self) -> usize { self.len as usize }
 
     /// Returns whether the `ArrayVec` is empty.
@@ -475,8 +479,9 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// This method uses *debug assertions* to check that `length` is
     /// not greater than the capacity.
     pub unsafe fn set_len(&mut self, length: usize) {
+        // type invariant that capacity always fits in LenUint
         debug_assert!(length <= self.capacity());
-        self.len = length;
+        self.len = length as LenUint;
     }
 
     /// Copy all elements from the slice and append to the `ArrayVec`.
@@ -569,7 +574,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 
         // Calling `set_len` creates a fresh and thus unique mutable references, making all
         // older aliases we created invalid. So we cannot call that function.
-        self.len = start;
+        self.len = start as LenUint;
 
         unsafe {
             Drain {
@@ -626,7 +631,7 @@ impl<T, const CAP: usize> ArrayVecImpl for ArrayVec<T, CAP> {
 
     unsafe fn set_len(&mut self, length: usize) {
         debug_assert!(length <= CAP);
-        self.len = length;
+        self.len = length as LenUint;
     }
 
     fn as_ptr(&self) -> *const Self::Item {
@@ -769,7 +774,7 @@ impl<T, const CAP: usize> Iterator for IntoIter<T, CAP> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.index == self.v.len {
+        if self.index == self.v.len() {
             None
         } else {
             unsafe {
@@ -788,7 +793,7 @@ impl<T, const CAP: usize> Iterator for IntoIter<T, CAP> {
 
 impl<T, const CAP: usize> DoubleEndedIterator for IntoIter<T, CAP> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        if self.index == self.v.len {
+        if self.index == self.v.len() {
             None
         } else {
             unsafe {
@@ -963,7 +968,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
             value: &mut self.len,
             data: len,
             f: move |&len, self_len| {
-                **self_len = len;
+                **self_len = len as LenUint;
             }
         };
         let mut iter = iterable.into_iter();

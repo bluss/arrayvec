@@ -1,4 +1,4 @@
-//! **arrayvec** provides the types `ArrayVec` and `ArrayString`: 
+//! **arrayvec** provides the types [`ArrayVec`] and [`ArrayString`]: 
 //! array-backed vector and string types, which store their contents inline.
 //!
 //! The arrayvec package has the following cargo features:
@@ -21,15 +21,27 @@
 //!
 //! This version of arrayvec requires Rust 1.51 or later.
 //!
-#![doc(html_root_url="https://docs.rs/arrayvec/0.5/")]
+#![doc(html_root_url="https://docs.rs/arrayvec/0.6/")]
 #![cfg_attr(not(feature="std"), no_std)]
-#![cfg_attr(feature="unstable-const-fn", feature(const_fn, const_maybe_uninit_assume_init))]
+#![cfg_attr(feature="unstable-const-fn", feature(const_fn, const_maybe_uninit_assume_init, const_panic))]
 
 #[cfg(feature="serde")]
 extern crate serde;
 
 #[cfg(not(feature="std"))]
 extern crate core as std;
+
+pub(crate) type LenUint = u32;
+
+macro_rules! assert_capacity_limit {
+    ($cap:expr) => {
+        if std::mem::size_of::<usize>() > std::mem::size_of::<LenUint>() {
+            if CAP > LenUint::MAX as usize {
+                panic!("ArrayVec: largest supported capacity is u32::MAX")
+            }
+        }
+    }
+}
 
 mod arrayvec_impl;
 mod arrayvec;
