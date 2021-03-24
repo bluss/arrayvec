@@ -127,7 +127,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     #[inline(always)]
     pub fn capacity(&self) -> usize { CAP }
 
-    /// Return ture if the `ArrayVec` is completely filled to its capacity, false otherwise.
+    /// Return true if the `ArrayVec` is completely filled to its capacity, false otherwise.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
