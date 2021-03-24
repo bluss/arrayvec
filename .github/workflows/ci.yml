@@ -9,6 +9,7 @@ name: Continuous integration
 env:
   CARGO_TERM_COLOR: always
   CARGO_INCREMENTAL: 0
+  RUSTUP_DIST_SERVER: https://dev-static.rust-lang.org
 
 jobs:
   tests:
