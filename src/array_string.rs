@@ -12,15 +12,20 @@ use std::str::FromStr;
 use std::str::Utf8Error;
 
 use crate::CapacityError;
+use crate::LenUint;
 use crate::char::encode_utf8;
 
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
+
 /// A string with a fixed capacity.
 ///
 /// The `ArrayString` is a string backed by a fixed size array. It keeps track
-/// of its length.
+/// of its length, and is parameterized by `CAP` for the maximum capacity.
+///
+/// `CAP` is of type `usize` but is range limited to `u32::MAX`; attempting to create larger
+/// arrayvecs with larger capacity will panic.
 ///
 /// The string is a contiguous value that you can store directly on the stack
 /// if needed.
@@ -28,7 +33,7 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 pub struct ArrayString<const CAP: usize> {
     // the `len` first elements of the array are initialized
     xs: [MaybeUninit<u8>; CAP],
-    len: usize,
+    len: LenUint,
 }
 
 impl<const CAP: usize> Default for ArrayString<CAP>
@@ -55,6 +60,7 @@ impl<const CAP: usize> ArrayString<CAP>
     /// ```
     #[cfg(not(feature="unstable-const-fn"))]
     pub fn new() -> ArrayString<CAP> {
+        assert_capacity_limit!(CAP);
         unsafe {
             ArrayString { xs: MaybeUninit::uninit().assume_init(), len: 0 }
         }
@@ -62,6 +68,7 @@ impl<const CAP: usize> ArrayString<CAP>
 
     #[cfg(feature="unstable-const-fn")]
     pub const fn new() -> ArrayString<CAP> {
+        assert_capacity_limit!(CAP);
         unsafe {
             ArrayString { xs: MaybeUninit::uninit().assume_init(), len: 0 }
         }
@@ -69,7 +76,7 @@ impl<const CAP: usize> ArrayString<CAP>
 
     /// Return the length of the string.
     #[inline]
-    pub fn len(&self) -> usize { self.len }
+    pub fn len(&self) -> usize { self.len as usize }
 
     /// Returns whether the string is empty.
     #[inline]
@@ -347,8 +354,9 @@ impl<const CAP: usize> ArrayString<CAP>
     /// This method uses *debug assertions* to check the validity of `length`
     /// and may use other debug assertions.
     pub unsafe fn set_len(&mut self, length: usize) {
+        // type invariant that capacity always fits in LenUint
         debug_assert!(length <= self.capacity());
-        self.len = length;
+        self.len = length as LenUint;
     }
 
     /// Return a string slice of the whole `ArrayString`.
@@ -371,7 +379,7 @@ impl<const CAP: usize> Deref for ArrayString<CAP>
     #[inline]
     fn deref(&self) -> &str {
         unsafe {
-            let sl = slice::from_raw_parts(self.as_ptr(), self.len);
+            let sl = slice::from_raw_parts(self.as_ptr(), self.len());
             str::from_utf8_unchecked(sl)
         }
     }
@@ -382,7 +390,8 @@ impl<const CAP: usize> DerefMut for ArrayString<CAP>
     #[inline]
     fn deref_mut(&mut self) -> &mut str {
         unsafe {
-            let sl = slice::from_raw_parts_mut(self.as_mut_ptr(), self.len);
+            let len = self.len();
+            let sl = slice::from_raw_parts_mut(self.as_mut_ptr(), len);
             str::from_utf8_unchecked_mut(sl)
         }
     }

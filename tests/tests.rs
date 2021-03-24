@@ -295,17 +295,17 @@ fn test_compact_size() {
     // 4 bytes + padding + length
     type ByteArray = ArrayVec<u8,  4>;
     println!("{}", mem::size_of::<ByteArray>());
-    assert!(mem::size_of::<ByteArray>() <= 2 * mem::size_of::<usize>());
+    assert!(mem::size_of::<ByteArray>() <= 2 * mem::size_of::<u32>());
 
     // just length
     type EmptyArray = ArrayVec<u8,  0>;
     println!("{}", mem::size_of::<EmptyArray>());
-    assert!(mem::size_of::<EmptyArray>() <= mem::size_of::<usize>());
+    assert!(mem::size_of::<EmptyArray>() <= mem::size_of::<u32>());
 
     // 3 elements + padding + length
     type QuadArray = ArrayVec<u32,  3>;
     println!("{}", mem::size_of::<QuadArray>());
-    assert!(mem::size_of::<QuadArray>() <= 4 * 4 + mem::size_of::<usize>());
+    assert!(mem::size_of::<QuadArray>() <= 4 * 4 + mem::size_of::<u32>());
 }
 
 #[test]
@@ -710,4 +710,20 @@ fn test_try_from_argument() {
     use core::convert::TryFrom;
     let v = ArrayString::<16>::try_from(format_args!("Hello {}", 123)).unwrap();
     assert_eq!(&v, "Hello 123");
+}
+
+#[test]
+fn allow_max_capacity_arrayvec_type() {
+    // this type is allowed to be used (but can't be constructed)
+    let _v: ArrayVec<(), {usize::MAX}>;
+}
+
+#[should_panic(expected="ArrayVec: largest supported")]
+#[test]
+fn deny_max_capacity_arrayvec_value() {
+    if mem::size_of::<usize>() <= mem::size_of::<u32>() {
+        panic!("This test does not work on this platform. 'ArrayVec: largest supported'");
+    }
+    // this type is allowed to be used (but can't be constructed)
+    let _v: ArrayVec<(), {usize::MAX}> = ArrayVec::new();
 }
