@@ -13,18 +13,25 @@ env:
 jobs:
   tests:
     runs-on: ubuntu-latest
-    continue-on-error: true
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
         include:
           - rust: 1.51.0 # MSRV
             features: serde
+            experimental: false
           - rust: stable
             features:
+            experimental: false
           - rust: beta
             features: serde
+            experimental: false
+          - rust: nightly
+            features: serde
+            experimental: false
           - rust: nightly
             features: serde unstable-const-fn
+            experimental: true
 
     steps:
       - uses: actions/checkout@v2
