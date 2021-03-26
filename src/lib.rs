@@ -36,7 +36,7 @@ pub(crate) type LenUint = u32;
 macro_rules! assert_capacity_limit {
     ($cap:expr) => {
         if std::mem::size_of::<usize>() > std::mem::size_of::<LenUint>() {
-            if CAP > LenUint::MAX as usize {
+            if $cap > LenUint::MAX as usize {
                 panic!("ArrayVec: largest supported capacity is u32::MAX")
             }
         }
