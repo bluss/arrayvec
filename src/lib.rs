@@ -11,9 +11,9 @@
 //!   - Optional
 //!   - Enable serialization for ArrayVec and ArrayString using serde 1.x
 //!
-//! - `unstable-const-fn`: **deprecated**,
-//! used to be needed to make [`ArrayVec::new`] and [`ArrayString::new`] `const fn`s,
-//! now they are always `const fn`s.
+//! - `unstable-const-fn`
+//!   - **deprecated** (has no effect)
+//!   - Not needed, [`ArrayVec::new`] and [`ArrayString::new`] are always `const fn` now
 //!
 //! ## Rust Version
 //!
