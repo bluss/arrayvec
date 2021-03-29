@@ -443,22 +443,58 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     pub fn retain<F>(&mut self, mut f: F)
         where F: FnMut(&mut T) -> bool
     {
-        let len = self.len();
-        let mut del = 0;
-        {
-            let v = &mut **self;
+        // Check the implementation of
+        // https://doc.rust-lang.org/std/vec/struct.Vec.html#method.retain
+        // for safety arguments (especially regarding panics in f and when
+        // dropping elements). Implementation closely mirrored here.
 
-            for i in 0..len {
-                if !f(&mut v[i]) {
-                    del += 1;
-                } else if del > 0 {
-                    v.swap(i - del, i);
+        let original_len = self.len();
+        unsafe { self.set_len(0) };
+
+        struct BackshiftOnDrop<'a, T, const CAP: usize> {
+            v: &'a mut ArrayVec<T, CAP>,
+            processed_len: usize,
+            deleted_cnt: usize,
+            original_len: usize,
+        }
+
+        impl<T, const CAP: usize> Drop for BackshiftOnDrop<'_, T, CAP> {
+            fn drop(&mut self) {
+                if self.deleted_cnt > 0 {
+                    unsafe {
+                        ptr::copy(
+                            self.v.as_ptr().add(self.processed_len),
+                            self.v.as_mut_ptr().add(self.processed_len - self.deleted_cnt),
+                            self.original_len - self.processed_len
+                        );
+                    }
+                }
+                unsafe {
+                    self.v.set_len(self.original_len - self.deleted_cnt);
                 }
             }
         }
-        if del > 0 {
-            self.drain(len - del..);
+
+        let mut g = BackshiftOnDrop { v: self, processed_len: 0, deleted_cnt: 0, original_len };
+
+        while g.processed_len < original_len {
+            let cur = unsafe { g.v.as_mut_ptr().add(g.processed_len) };
+            if !f(unsafe { &mut *cur }) {
+                g.processed_len += 1;
+                g.deleted_cnt += 1;
+                unsafe { ptr::drop_in_place(cur) };
+                continue;
+            }
+            if g.deleted_cnt > 0 {
+                unsafe {
+                    let hole_slot = g.v.as_mut_ptr().add(g.processed_len - g.deleted_cnt);
+                    ptr::copy_nonoverlapping(cur, hole_slot, 1);
+                }
+            }
+            g.processed_len += 1;
         }
+
+        drop(g);
     }
 
     /// Set the vector’s length without dropping or moving out elements
