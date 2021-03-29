@@ -59,8 +59,27 @@ impl<const CAP: usize> ArrayString<CAP>
     /// assert_eq!(&string[..], "foo");
     /// assert_eq!(string.capacity(), 16);
     /// ```
-    pub const fn new() -> ArrayString<CAP> {
+    pub fn new() -> ArrayString<CAP> {
         assert_capacity_limit!(CAP);
+        unsafe {
+            ArrayString { xs: MaybeUninit::uninit().assume_init(), len: 0 }
+        }
+    }
+
+    /// Create a new empty `ArrayString` (const fn).
+    ///
+    /// Capacity is inferred from the type parameter.
+    ///
+    /// ```
+    /// use arrayvec::ArrayString;
+    ///
+    /// let mut string = ArrayString::<16>::new();
+    /// string.push_str("foo");
+    /// assert_eq!(&string[..], "foo");
+    /// assert_eq!(string.capacity(), 16);
+    /// ```
+    pub const fn new_const() -> ArrayString<CAP> {
+        assert_capacity_limit_const!(CAP);
         ArrayString { xs: MakeMaybeUninit::ARRAY, len: 0 }
     }
 
