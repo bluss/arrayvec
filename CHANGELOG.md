@@ -1,6 +1,16 @@
 Recent Changes (arrayvec)
 =========================
 
+## 0.6.1
+
+- The ``ArrayVec::new`` and ``ArrayString::new`` constructors are properly
+  const fns on stable and the feature flag ``unstable-const-fn`` is now deprecated.
+  by @rodrimati1992
+
+- Small fix to the capacity check macro by @Xaeroxe
+- Typo fix in documentation by @cuviper
+- Small code cleanup by @bluss
+
 ## 0.6.0
 
 - The **const generics** release 🎉. Arrayvec finally implements what it
