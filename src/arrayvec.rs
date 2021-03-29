@@ -77,8 +77,28 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert_eq!(&array[..], &[1, 2]);
     /// assert_eq!(array.capacity(), 16);
     /// ```
-    pub const fn new() -> ArrayVec<T, CAP> {
+    pub fn new() -> ArrayVec<T, CAP> {
         assert_capacity_limit!(CAP);
+        unsafe {
+            ArrayVec { xs: MaybeUninit::uninit().assume_init(), len: 0 }
+        }
+    }
+
+    /// Create a new empty `ArrayVec` (const fn).
+    ///
+    /// The maximum capacity is given by the generic parameter `CAP`.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::<_, 16>::new();
+    /// array.push(1);
+    /// array.push(2);
+    /// assert_eq!(&array[..], &[1, 2]);
+    /// assert_eq!(array.capacity(), 16);
+    /// ```
+    pub const fn new_const() -> ArrayVec<T, CAP> {
+        assert_capacity_limit_const!(CAP);
         ArrayVec { xs: MakeMaybeUninit::ARRAY, len: 0 }
     }
 
