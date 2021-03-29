@@ -14,6 +14,7 @@ use std::str::Utf8Error;
 use crate::CapacityError;
 use crate::LenUint;
 use crate::char::encode_utf8;
+use crate::utils::MakeMaybeUninit;
 
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
@@ -58,20 +59,9 @@ impl<const CAP: usize> ArrayString<CAP>
     /// assert_eq!(&string[..], "foo");
     /// assert_eq!(string.capacity(), 16);
     /// ```
-    #[cfg(not(feature="unstable-const-fn"))]
-    pub fn new() -> ArrayString<CAP> {
-        assert_capacity_limit!(CAP);
-        unsafe {
-            ArrayString { xs: MaybeUninit::uninit().assume_init(), len: 0 }
-        }
-    }
-
-    #[cfg(feature="unstable-const-fn")]
     pub const fn new() -> ArrayString<CAP> {
         assert_capacity_limit!(CAP);
-        unsafe {
-            ArrayString { xs: MaybeUninit::uninit().assume_init(), len: 0 }
-        }
+        ArrayString { xs: MakeMaybeUninit::ARRAY, len: 0 }
     }
 
     /// Return the length of the string.

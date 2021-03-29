@@ -718,12 +718,37 @@ fn allow_max_capacity_arrayvec_type() {
     let _v: ArrayVec<(), {usize::MAX}>;
 }
 
-#[should_panic(expected="ArrayVec: largest supported")]
+#[should_panic(expected="index out of bounds")]
 #[test]
 fn deny_max_capacity_arrayvec_value() {
     if mem::size_of::<usize>() <= mem::size_of::<u32>() {
-        panic!("This test does not work on this platform. 'ArrayVec: largest supported'");
+        panic!("This test does not work on this platform. 'index out of bounds'");
     }
     // this type is allowed to be used (but can't be constructed)
     let _v: ArrayVec<(), {usize::MAX}> = ArrayVec::new();
 }
+
+#[test]
+fn test_arrayvec_const_constructible() {
+    const OF_U8: ArrayVec<Vec<u8>, 10> = ArrayVec::new();
+
+    let mut var = OF_U8;
+    assert!(var.is_empty());
+    assert_eq!(var, ArrayVec::new());
+    var.push(vec![3, 5, 8]);
+    assert_eq!(var[..], [vec![3, 5, 8]]);
+}
+
+
+#[test]
+fn test_arraystring_const_constructible() {
+    const AS: ArrayString<10> = ArrayString::new();
+
+    let mut var = AS;
+    assert!(var.is_empty());
+    assert_eq!(var, ArrayString::new());
+    var.push_str("hello");
+    assert_eq!(var, *"hello");
+}
+
+

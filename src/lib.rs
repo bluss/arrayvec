@@ -12,10 +12,8 @@
 //!   - Enable serialization for ArrayVec and ArrayString using serde 1.x
 //!
 //! - `unstable-const-fn`
-//!   - Optional
-//!   - Makes [`ArrayVec::new`] and [`ArrayString::new`] `const fn`s,
-//!     using the nightly `const_fn` feature.
-//!   - Unstable and requires nightly.
+//!   - **deprecated** (has no effect)
+//!   - Not needed, [`ArrayVec::new`] and [`ArrayString::new`] are always `const fn` now
 //!
 //! ## Rust Version
 //!
@@ -23,7 +21,6 @@
 //!
 #![doc(html_root_url="https://docs.rs/arrayvec/0.6/")]
 #![cfg_attr(not(feature="std"), no_std)]
-#![cfg_attr(feature="unstable-const-fn", feature(const_fn, const_maybe_uninit_assume_init, const_panic))]
 
 #[cfg(feature="serde")]
 extern crate serde;
@@ -37,7 +34,7 @@ macro_rules! assert_capacity_limit {
     ($cap:expr) => {
         if std::mem::size_of::<usize>() > std::mem::size_of::<LenUint>() {
             if $cap > LenUint::MAX as usize {
-                panic!("ArrayVec: largest supported capacity is u32::MAX")
+                [/*ArrayVec: largest supported capacity is u32::MAX*/][$cap]
             }
         }
     }
@@ -48,6 +45,7 @@ mod arrayvec;
 mod array_string;
 mod char;
 mod errors;
+mod utils;
 
 pub use crate::array_string::ArrayString;
 pub use crate::errors::CapacityError;

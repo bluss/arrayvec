@@ -23,6 +23,7 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use crate::LenUint;
 use crate::errors::CapacityError;
 use crate::arrayvec_impl::ArrayVecImpl;
+use crate::utils::MakeMaybeUninit;
 
 /// A vector with a fixed capacity.
 ///
@@ -76,20 +77,9 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert_eq!(&array[..], &[1, 2]);
     /// assert_eq!(array.capacity(), 16);
     /// ```
-    #[cfg(not(feature="unstable-const-fn"))]
-    pub fn new() -> ArrayVec<T, CAP> {
-        assert_capacity_limit!(CAP);
-        unsafe {
-            ArrayVec { xs: MaybeUninit::uninit().assume_init(), len: 0 }
-        }
-    }
-
-    #[cfg(feature="unstable-const-fn")]
     pub const fn new() -> ArrayVec<T, CAP> {
         assert_capacity_limit!(CAP);
-        unsafe {
-            ArrayVec { xs: MaybeUninit::uninit().assume_init(), len: 0 }
-        }
+        ArrayVec { xs: MakeMaybeUninit::ARRAY, len: 0 }
     }
 
     /// Return the number of elements in the `ArrayVec`.

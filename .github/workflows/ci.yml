@@ -29,9 +29,6 @@ jobs:
           - rust: nightly
             features: serde
             experimental: false
-          - rust: nightly
-            features: serde unstable-const-fn
-            experimental: true
 
     steps:
       - uses: actions/checkout@v2
