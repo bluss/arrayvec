@@ -451,14 +451,14 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         let original_len = self.len();
         unsafe { self.set_len(0) };
 
-        struct BackshiftOnDrop<'a, A: Array> {
-            v: &'a mut ArrayVec<A>,
+        struct BackshiftOnDrop<'a, T, const CAP: usize> {
+            v: &'a mut ArrayVec<T, CAP>,
             processed_len: usize,
             deleted_cnt: usize,
             original_len: usize,
         }
 
-        impl<A: Array> Drop for BackshiftOnDrop<'_, A> {
+        impl<T, const CAP: usize> Drop for BackshiftOnDrop<'_, T, CAP> {
             fn drop(&mut self) {
                 if self.deleted_cnt > 0 {
                     unsafe {
