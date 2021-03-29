@@ -73,10 +73,7 @@ impl<const CAP: usize> ArrayString<CAP>
     /// ```
     /// use arrayvec::ArrayString;
     ///
-    /// let mut string = ArrayString::<16>::new();
-    /// string.push_str("foo");
-    /// assert_eq!(&string[..], "foo");
-    /// assert_eq!(string.capacity(), 16);
+    /// static ARRAY: ArrayString<1024> = ArrayString::new_const();
     /// ```
     pub const fn new_const() -> ArrayString<CAP> {
         assert_capacity_limit_const!(CAP);

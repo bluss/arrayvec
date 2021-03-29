@@ -11,10 +11,6 @@
 //!   - Optional
 //!   - Enable serialization for ArrayVec and ArrayString using serde 1.x
 //!
-//! - `unstable-const-fn`
-//!   - **deprecated** (has no effect)
-//!   - Not needed, [`ArrayVec::new`] and [`ArrayString::new`] are always `const fn` now
-//!
 //! ## Rust Version
 //!
 //! This version of arrayvec requires Rust 1.51 or later.

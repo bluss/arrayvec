@@ -1,6 +1,15 @@
 Recent Changes (arrayvec)
 =========================
 
+## 0.7.0
+
+- `fn new_const` is now the way to const-construct arrayvec and arraystring,
+  and `fn new` has been reverted to a regular "non-const" function.
+  This works around performance issue #182, where the const fn version did not
+  optimize well. Change by @bluss with thanks to @rodrimati1992 and @niklasf
+  for analyzing the problem.
+- The deprecated feature flag `unstable-const-fn` was removed, since it's not needed
+
 ## 0.6.1
 
 - The ``ArrayVec::new`` and ``ArrayString::new`` constructors are properly

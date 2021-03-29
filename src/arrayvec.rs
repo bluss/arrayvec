@@ -91,11 +91,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// ```
     /// use arrayvec::ArrayVec;
     ///
-    /// let mut array = ArrayVec::<_, 16>::new();
-    /// array.push(1);
-    /// array.push(2);
-    /// assert_eq!(&array[..], &[1, 2]);
-    /// assert_eq!(array.capacity(), 16);
+    /// static ARRAY: ArrayVec<u8, 1024> = ArrayVec::new_const();
     /// ```
     pub const fn new_const() -> ArrayVec<T, CAP> {
         assert_capacity_limit_const!(CAP);
