@@ -12,7 +12,7 @@ Recent Changes (arrayvec)
 - The deprecated feature flag `unstable-const-fn` was removed, since it's not needed
 
 - Optimize `.retain()` by using the same algorithm as in std, change by @niklasf,
-  issue #174.
+  issue #174. Original optimization in Rust std by @oxalica in rust-lang/rust/pull/81126
 
 ## 0.6.1
 
