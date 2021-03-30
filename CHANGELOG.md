@@ -8,7 +8,11 @@ Recent Changes (arrayvec)
   This works around performance issue #182, where the const fn version did not
   optimize well. Change by @bluss with thanks to @rodrimati1992 and @niklasf
   for analyzing the problem.
+
 - The deprecated feature flag `unstable-const-fn` was removed, since it's not needed
+
+- Optimize `.retain()` by using the same algorithm as in std, change by @niklasf,
+  issue #174.
 
 ## 0.6.1
 
