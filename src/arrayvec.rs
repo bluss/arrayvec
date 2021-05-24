@@ -1079,9 +1079,7 @@ impl<T, const CAP: usize> Clone for ArrayVec<T, CAP>
 
         if prefix < self.len() {
             // rhs was shorter
-            for _ in 0..self.len() - prefix {
-                self.pop();
-            }
+            self.truncate(prefix);
         } else {
             let rhs_elems = &rhs[self.len()..];
             self.extend_from_slice(rhs_elems);
