@@ -636,12 +636,27 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         if self.len() < self.capacity() {
             Err(self)
         } else {
-            unsafe {
-                let self_ = ManuallyDrop::new(self);
-                let array = ptr::read(self_.as_ptr() as *const [T; CAP]);
-                Ok(array)
-            }
+            unsafe { Ok(self.into_inner_unchecked()) }
         }
+    }
+
+    pub unsafe fn into_inner_unchecked(self) -> [T; CAP] {
+        let self_ = ManuallyDrop::new(self);
+        let array = ptr::read(self_.as_ptr() as *const [T; CAP]);
+        array
+    }
+
+    pub fn take(&mut self) -> Option<[T; CAP]>  {
+        if self.len() < self.capacity() {
+            None
+        } else {
+            unsafe { Some(self.take_unchecked()) }
+        }
+    }
+
+    pub unsafe fn take_unchecked(&mut self) -> [T; CAP] {
+        let data = std::mem::replace(self, Self::new());
+        data.into_inner_unchecked()
     }
 
     /// Return a slice containing all elements of the vector.
