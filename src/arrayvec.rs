@@ -646,17 +646,8 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         array
     }
 
-    pub fn take(&mut self) -> Option<[T; CAP]>  {
-        if self.len() < self.capacity() {
-            None
-        } else {
-            unsafe { Some(self.take_unchecked()) }
-        }
-    }
-
-    pub unsafe fn take_unchecked(&mut self) -> [T; CAP] {
-        let data = std::mem::replace(self, Self::new());
-        data.into_inner_unchecked()
+    pub fn take(&mut self) -> Self  {
+        mem::replace(self, Self::new())
     }
 
     /// Return a slice containing all elements of the vector.
