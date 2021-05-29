@@ -153,6 +153,21 @@ fn test_drop() {
         assert_eq!(flag.get(), 3);
     }
 
+    // test take
+    flag.set(0);
+    {
+        let mut array1 = ArrayVec::<_,  3>::new();
+        array1.push(Bump(flag));
+        array1.push(Bump(flag));
+        array1.push(Bump(flag));
+        let array2 = array1.take();
+        assert_eq!(flag.get(), 0);
+        drop(array1);
+        assert_eq!(flag.get(), 0);
+        drop(array2);
+        assert_eq!(flag.get(), 3);
+    }
+
     // test cloning into_iter
     flag.set(0);
     {
@@ -459,6 +474,15 @@ fn test_into_inner_3() {
     let mut v = ArrayVec::<i32,  4>::new();
     v.extend(1..=4);
     assert_eq!(v.into_inner().unwrap(), [1, 2, 3, 4]);
+}
+
+#[test]
+fn test_take() {
+    let mut v1 = ArrayVec::<i32,  4>::new();
+    v1.extend(1..=4);
+    let v2 = v1.take();
+    assert!(v1.into_inner().is_err());
+    assert_eq!(v2.into_inner().unwrap(), [1, 2, 3, 4]);
 }
 
 #[cfg(feature="std")]
