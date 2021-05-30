@@ -645,6 +645,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// Safety:
     /// This operation is safe if and only if length equals capacity.
     pub unsafe fn into_inner_unchecked(self) -> [T; CAP] {
+        debug_assert_eq!(self.len(), self.capacity());
         let self_ = ManuallyDrop::new(self);
         let array = ptr::read(self_.as_ptr() as *const [T; CAP]);
         array
