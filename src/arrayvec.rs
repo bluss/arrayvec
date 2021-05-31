@@ -636,12 +636,32 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         if self.len() < self.capacity() {
             Err(self)
         } else {
-            unsafe {
-                let self_ = ManuallyDrop::new(self);
-                let array = ptr::read(self_.as_ptr() as *const [T; CAP]);
-                Ok(array)
-            }
+            unsafe { Ok(self.into_inner_unchecked()) }
         }
+    }
+
+    /// Return the inner fixed size array.
+    ///
+    /// Safety:
+    /// This operation is safe if and only if length equals capacity.
+    pub unsafe fn into_inner_unchecked(self) -> [T; CAP] {
+        debug_assert_eq!(self.len(), self.capacity());
+        let self_ = ManuallyDrop::new(self);
+        let array = ptr::read(self_.as_ptr() as *const [T; CAP]);
+        array
+    }
+
+    /// Returns the ArrayVec, replacing the original with a new empty ArrayVec.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut v = ArrayVec::from([0, 1, 2, 3]);
+    /// assert_eq!([0, 1, 2, 3], v.take().into_inner().unwrap());
+    /// assert!(v.is_empty());
+    /// ```
+    pub fn take(&mut self) -> Self  {
+        mem::replace(self, Self::new())
     }
 
     /// Return a slice containing all elements of the vector.
