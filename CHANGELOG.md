@@ -1,6 +1,11 @@
 Recent Changes (arrayvec)
 =========================
 
+## 0.7.1
+
+- Add new ArrayVec methods `.take()` and `.into_inner_unchecked()` by @conradludgate
+- `clone_from` now uses `truncate` when needed by @a1phyr
+
 ## 0.7.0
 
 - `fn new_const` is now the way to const-construct arrayvec and arraystring,

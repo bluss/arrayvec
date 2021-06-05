@@ -15,7 +15,7 @@
 //!
 //! This version of arrayvec requires Rust 1.51 or later.
 //!
-#![doc(html_root_url="https://docs.rs/arrayvec/0.6/")]
+#![doc(html_root_url="https://docs.rs/arrayvec/0.7/")]
 #![cfg_attr(not(feature="std"), no_std)]
 
 #[cfg(feature="serde")]
