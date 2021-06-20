@@ -370,6 +370,11 @@ impl<const CAP: usize> ArrayString<CAP>
         self
     }
 
+    /// Return a mutable string slice of the whole `ArrayString`.
+    pub fn as_mut_str(&mut self) -> &mut str {
+        self
+    }
+
     fn as_ptr(&self) -> *const u8 {
         self.xs.as_ptr() as *const u8
     }
