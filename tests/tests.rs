@@ -10,6 +10,7 @@ use std::collections::HashMap;
 
 
 #[test]
+#[cfg(not(feature="copy"))]
 fn test_simple() {
     use std::ops::Add;
 
@@ -97,6 +98,7 @@ fn test_iter() {
 }
 
 #[test]
+#[cfg(not(feature="copy"))]
 fn test_drop() {
     use std::cell::Cell;
 
@@ -189,6 +191,7 @@ fn test_drop() {
 }
 
 #[test]
+#[cfg(not(feature="copy"))]
 fn test_drop_panics() {
     use std::cell::Cell;
     use std::panic::catch_unwind;
@@ -299,6 +302,7 @@ fn test_extend_capacity_panic_2() {
 }
 
 #[test]
+#[cfg(not(feature="copy"))]
 fn test_is_send_sync() {
     let data = ArrayVec::<Vec<i32>,  5>::new();
     &data as &dyn Send;
@@ -398,6 +402,7 @@ fn test_drain_oob() {
 
 #[test]
 #[should_panic]
+#[cfg(not(feature="copy"))]
 fn test_drop_panic() {
     struct DropPanic;
 
@@ -413,6 +418,7 @@ fn test_drop_panic() {
 
 #[test]
 #[should_panic]
+#[cfg(not(feature="copy"))]
 fn test_drop_panic_into_iter() {
     struct DropPanic;
 
@@ -460,6 +466,7 @@ fn test_into_inner_1() {
 }
 
 #[test]
+#[cfg(not(feature="copy"))]
 fn test_into_inner_2() {
     let mut v = ArrayVec::<String,  4>::new();
     v.push("a".into());
@@ -498,6 +505,7 @@ fn test_write() {
 }
 
 #[test]
+#[cfg(not(feature="copy"))]
 fn array_clone_from() {
     let mut v = ArrayVec::<_,  4>::new();
     v.push(vec![1, 2]);
@@ -633,6 +641,7 @@ fn test_insert_out_of_bounds() {
 */
 
 #[test]
+#[cfg(not(feature="copy"))]
 fn test_drop_in_insert() {
     use std::cell::Cell;
 
@@ -664,6 +673,7 @@ fn test_drop_in_insert() {
 }
 
 #[test]
+#[cfg(not(feature="copy"))]
 fn test_pop_at() {
     let mut v = ArrayVec::<String,  4>::new();
     let s = String::from;
@@ -686,6 +696,7 @@ fn test_sizes() {
 }
 
 #[test]
+#[cfg(not(feature="copy"))]
 fn test_default() {
     use std::net;
     let s: ArrayString<4> = Default::default();
@@ -754,6 +765,7 @@ fn deny_max_capacity_arrayvec_value() {
 
 #[should_panic(expected="index out of bounds")]
 #[test]
+#[cfg(not(feature="copy"))]
 fn deny_max_capacity_arrayvec_value_const() {
     if mem::size_of::<usize>() <= mem::size_of::<u32>() {
         panic!("This test does not work on this platform. 'index out of bounds'");
@@ -763,6 +775,7 @@ fn deny_max_capacity_arrayvec_value_const() {
 }
 
 #[test]
+#[cfg(not(feature="copy"))]
 fn test_arrayvec_const_constructible() {
     const OF_U8: ArrayVec<Vec<u8>, 10> = ArrayVec::new_const();
 
