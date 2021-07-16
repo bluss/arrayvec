@@ -23,7 +23,6 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use crate::LenUint;
 use crate::errors::CapacityError;
 use crate::arrayvec_impl::ArrayVecImpl;
-#[cfg(not(feature="copy"))]
 use crate::utils::MakeMaybeUninit;
 
 /// All types implement this when the `copy` feature is disabled.
@@ -58,17 +57,19 @@ impl<T> ValidValue for T {}
 ///
 /// It offers a simple API but also dereferences to a slice, so that the full slice API is
 /// available. The ArrayVec can be converted into a by value iterator.
-pub struct ArrayVec<T: ValidValue, const CAP: usize> {
+pub struct ArrayVec<T, const CAP: usize> {
     // the `len` first elements of the array are initialized
     xs: [MaybeUninit<T>; CAP],
     len: LenUint,
 }
 
+// Safety: when the `copy` feature is enabled the only way
+// to construct an `ArrayVec` is if `T: ValidValue`.
 #[cfg(feature="copy")]
-impl<T: ValidValue, const CAP: usize> Copy for ArrayVec<T, CAP> {}
+impl<T: Copy, const CAP: usize> Copy for ArrayVec<T, CAP> {}
 
 #[cfg(not(feature="copy"))]
-impl<T: ValidValue, const CAP: usize> Drop for ArrayVec<T, CAP> {
+impl<T, const CAP: usize> Drop for ArrayVec<T, CAP> {
     fn drop(&mut self) {
         self.clear();
 
@@ -83,7 +84,6 @@ macro_rules! panic_oob {
     }
 }
 
-#[cfg(not(feature="copy"))]
 impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// Create a new empty `ArrayVec` (const fn).
     ///
