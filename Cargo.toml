@@ -37,6 +37,7 @@ harness = false
 [features]
 default = ["std"]
 std = []
+copy = []
 
 [profile.bench]
 debug = true
