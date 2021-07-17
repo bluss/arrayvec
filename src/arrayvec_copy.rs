@@ -44,6 +44,8 @@ pub struct ArrayVecCopy<T: Copy, const CAP: usize> {
     len: LenUint,
 }
 
+impl<T: Copy, const CAP: usize> Copy for ArrayVecCopy<T, CAP> {}
+
 macro_rules! panic_oob {
     ($method_name:expr, $index:expr, $len:expr) => {
         panic!(concat!("ArrayVecCopy::", $method_name, ": index {} is out of bounds in vector of length {}"),
