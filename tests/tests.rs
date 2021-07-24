@@ -520,6 +520,46 @@ fn array_clone_from() {
     assert_eq!(&t, &reference[..]);
 }
 
+#[test]
+fn array_index_usize() {
+    let v = ArrayVec::from([1, 2, 3]);
+    assert_eq!(v[1], 2);
+}
+
+#[should_panic(expected="index out of bounds: the len is 3 but the index is 3")]
+#[test]
+fn array_index_usize_out_of_bounds() {
+    let v = ArrayVec::from([1, 2, 3]);
+    let _ = v[3]; // out of bounds
+}
+
+#[test]
+fn array_index_range() {
+    let v = ArrayVec::from([1, 2, 3]);
+    assert_eq!(&v[1..3], [2, 3].as_ref());
+}
+
+#[should_panic(expected="range end index 4 out of range for slice of length 3")]
+#[test]
+fn array_index_range_out_of_bounds() {
+    let v = ArrayVec::from([1, 2, 3]);
+    let _ = v[1..4]; // out of bounds
+}
+
+#[test]
+fn array_indexmut_usize() {
+    let mut v = ArrayVec::from([1, 2, 3]);
+    v[1] = 0;
+    assert_eq!(v, ArrayVec::from([1, 0, 3]));
+}
+
+#[should_panic(expected="index out of bounds: the len is 3 but the index is 3")]
+#[test]
+fn array_indexmut_usize_out_of_bounds() {
+    let mut v = ArrayVec::from([1, 2, 3]);
+    v[3] = 0; // out of bounds
+}
+
 #[cfg(feature="std")]
 #[test]
 fn test_string() {
