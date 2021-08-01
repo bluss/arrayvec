@@ -152,6 +152,19 @@ impl<const CAP: usize> ArrayString<CAP>
     /// ```
     pub fn is_full(&self) -> bool { self.len() == self.capacity() }
 
+    /// Returns the capacity left in the `ArrayString`.
+    ///
+    /// ```
+    /// use arrayvec::ArrayString;
+    ///
+    /// let mut string = ArrayString::<3>::from("abc").unwrap();
+    /// string.pop();
+    /// assert_eq!(string.remaining_capacity(), 1);
+    /// ```
+    pub const fn remaining_capacity(&self) -> usize {
+        self.capacity() - self.len()
+    }
+
     /// Adds the given char to the end of the string.
     ///
     /// ***Panics*** if the backing array is not large enough to fit the additional char.
