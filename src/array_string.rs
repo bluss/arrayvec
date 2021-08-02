@@ -365,6 +365,102 @@ impl<const CAP: usize> ArrayString<CAP>
         self.len = length as LenUint;
     }
 
+    /// Converts `self` into an allocated byte-vector with the given capacity.
+    ///
+    /// # Safety
+    ///
+    /// The caller is responsible for ensuring that `capacity >= self.len()`.
+    pub unsafe fn into_bytes_with_capacity(self, capacity: usize) -> Vec<u8> {
+        debug_assert!(capacity >= self.len());
+
+        let mut vec = Vec::with_capacity(capacity);
+        let me = core::mem::ManuallyDrop::new(self);
+        let len = me.len();
+         
+        // SAFETY: The caller ensures that we own a region of memory at least as large as `len`
+        // at the location pointed to by `vec`.
+        me.as_ptr().copy_to_nonoverlapping(vec.as_mut_ptr(), len);
+        vec.set_len(len);
+
+        vec
+    }
+        
+    /// Converts `self` into an allocated vector of bytes.
+    ///
+    /// # Allocation
+    ///
+    /// This method allocates a vector with capacity equal to the capacity of the original
+    /// `ArrayString`.
+    /// 
+    /// To only allocate exactly enough space for the string stored in `self`, use the
+    /// [`into_boxed_str`](Self::into_boxed_str) method.
+    ///
+    /// To allocate a specific amount of space, see the
+    /// [`into_bytes_with_capacity`](Self::into_bytes_with_capacity) method.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use arrayvec::ArrayString;
+    ///
+    /// let s = ArrayString::<5>::from("hello").unwrap();
+    /// let bytes = s.into_bytes();
+    ///
+    /// assert_eq!(&[104, 101, 108, 108, 111][..], &bytes[..]);
+    /// ```
+    #[inline]
+    pub fn into_bytes(self) -> Vec<u8> {
+        // SAFETY: The capacity of `self` is at least as large as the length of `self`.
+        unsafe { 
+            self.into_bytes_with_capacity(CAP)
+        }
+    }
+        
+    /// Converts this `ArrayString` into a [`Box`]`<`[`str`]`>`.
+    ///
+    /// This will drop any excess capacity.
+    ///
+    /// [`str`]: prim@str
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use arrayvec::ArrayString;
+    ///
+    /// let s = ArrayString::<5>::from("hello").unwrap();
+    ///
+    /// let b = s.into_boxed_str();
+    /// ```
+    #[inline]
+    pub fn into_boxed_str(self) -> Box<str> {
+        let len = self.len();
+        // SAFETY: We only require the memory capacity equal to the length of the initialized data region in `self`.
+        unsafe {
+            str::from_boxed_utf8_unchecked(self.into_bytes_with_capacity(len).into_boxed_slice())
+        }
+    }
+
+    /// Create a new `ArrayString` by consuming a boxed string, moving the heap-allocated `str` to a
+    /// stack-allocated array.
+    ///
+    /// # Safety
+    ///
+    /// The caller is responsible for ensuring that the string has a length no larger than the
+    /// capacity of `ArrayString`.
+    pub unsafe fn from_boxed_str_unchecked(boxed_string: Box<str>) -> Self {
+        debug_assert!(CAP >= boxed_string.len());
+        assert_capacity_limit!(CAP);
+        let len = boxed_string.len() as LenUint;
+        Self {
+            xs: *Box::from_raw(Box::into_raw(boxed_string) as *mut [MaybeUninit<u8>; CAP]) ,
+            len,
+        }
+    }
+
     /// Return a string slice of the whole `ArrayString`.
     pub fn as_str(&self) -> &str {
         self
@@ -578,6 +674,48 @@ impl<'de, const CAP: usize> Deserialize<'de> for ArrayString<CAP>
         }
 
         deserializer.deserialize_str(ArrayStringVisitor(PhantomData))
+    }
+}
+
+impl<const CAP: usize> From<ArrayString<CAP>> for Box<str> {
+    #[inline]
+    fn from(array: ArrayString<CAP>) -> Self {
+        array.into_boxed_str()
+    }
+}
+
+impl<const CAP: usize> TryFrom<Box<str>> for ArrayString<CAP> {
+    type Error = CapacityError;
+
+    fn try_from(string: Box<str>) -> Result<Self, Self::Error> {
+        if CAP < string.len() {
+            Err(CapacityError::new(()))
+        } else {
+            Ok(unsafe { Self::from_boxed_str_unchecked(string) })
+        }
+    }
+}
+
+impl<const CAP: usize> From<ArrayString<CAP>> for Vec<u8> {
+    #[inline]
+    fn from(array: ArrayString<CAP>) -> Self {
+        array.into_bytes()
+    }
+}
+
+impl<const CAP: usize> From<ArrayString<CAP>> for String {
+    #[inline]
+    fn from(array: ArrayString<CAP>) -> Self {
+        array.to_string()
+    }
+}
+
+impl<const CAP: usize> TryFrom<String> for ArrayString<CAP> {
+    type Error = CapacityError;
+    
+    #[inline]
+    fn try_from(string: String) -> Result<Self, Self::Error> {
+        Self::try_from(string.into_boxed_str())
     }
 }
 

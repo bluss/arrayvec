@@ -75,6 +75,18 @@ fn test_try_from_slice_error() {
 }
 
 #[test]
+fn test_try_from_vec() {
+    use arrayvec::ArrayVec;
+    use std::convert::TryInto as _;
+    
+    let ok: Result<ArrayVec<_, 4>, _> = vec![1, 2, 3].try_into();
+    assert_matches!(ok, Ok(_));
+
+    let err: Result<ArrayVec<_, 2>, _> = vec![1, 2, 3].try_into();
+    assert_matches!(err, Err(_));
+}
+
+#[test]
 fn test_u16_index() {
     const N: usize = 4096;
     let mut vec: ArrayVec<_,  N> = ArrayVec::new();
