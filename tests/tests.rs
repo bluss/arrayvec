@@ -786,7 +786,7 @@ fn test_arraystring_const_constructible() {
 
 
 #[test]
-fn test_arraystring_has_some_sanity_checks() {
+fn test_arraystring_zero_filled_has_some_sanity_checks() {
     let string = ArrayString::<4>::zero_filled();
     assert_eq!(string.as_str(), "\0\0\0\0");
     assert_eq!(string.len(), 4);
