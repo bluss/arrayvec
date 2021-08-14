@@ -129,6 +129,28 @@ impl<const CAP: usize> ArrayString<CAP>
         Ok(vec)
     }
 
+    /// Create a new `ArrayString` value fully filled with ASCII NULL characters (`\0`). Useful
+    /// to be used as a buffer to collect external data or as a buffer for intermediate processing.
+    ///
+    /// ```
+    /// use arrayvec::ArrayString;
+    ///
+    /// let string = ArrayString::<16>::zero_filled();
+    /// assert_eq!(string.len(), 16);
+    /// ```
+    #[inline]
+    pub fn zero_filled() -> Self {
+        assert_capacity_limit!(CAP);
+        // SAFETY: `assert_capacity_limit` asserts that `len` won't overflow and
+        // `zeroed` fully fills the array with nulls.
+        unsafe {
+            ArrayString {
+                xs: MaybeUninit::zeroed().assume_init(),
+                len: CAP as _
+            }
+        }
+    }
+
     /// Return the capacity of the `ArrayString`.
     ///
     /// ```
