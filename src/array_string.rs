@@ -129,7 +129,7 @@ impl<const CAP: usize> ArrayString<CAP>
         Ok(vec)
     }
 
-    /// Creates a new `ArrayString` instance fully filled with ASCII NULL characters (`\0`). Useful
+    /// Create a new `ArrayString` value fully filled with ASCII NULL characters (`\0`). Useful
     /// to be used as a buffer to collect external data or as a buffer for intermediate processing.
     ///
     /// ```
