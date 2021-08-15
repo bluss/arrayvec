@@ -1017,7 +1017,7 @@ where
     /// # Panics
     /// Panics if index is out of bounds.
     fn index(&self, index: I) -> &Self::Output {
-        self.deref().index(index)
+        &(**self)[index]
     }
 }
 
@@ -1034,7 +1034,7 @@ where
     /// # Panics
     /// Panics if index is out of bounds.
     fn index_mut(&mut self, index: I) -> &mut Self::Output {
-        self.deref_mut().index_mut(index)
+        &mut (**self)[index]
     }
 }
 
