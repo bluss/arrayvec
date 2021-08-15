@@ -1008,9 +1008,9 @@ impl<T, const CAP: usize> Extend<T> for ArrayVec<T, CAP> {
 /// Panics if index is out of bounds.
 impl<I, T, const CAP: usize> Index<I> for ArrayVec<T, CAP>
 where
-    I: slice::SliceIndex<[T]>,
+    [T]: Index<I>,
 {
-    type Output = <I as slice::SliceIndex<[T]>>::Output;
+    type Output = <[T] as Index<I>>::Output;
 
     /// Performs the indexing (`container[index]`) operation.
     ///
@@ -1027,7 +1027,7 @@ where
 /// Panics if index is out of bounds.
 impl<I, T, const CAP: usize> IndexMut<I> for ArrayVec<T, CAP>
 where
-    I: slice::SliceIndex<[T]>,
+    [T]: IndexMut<I>,
 {
     /// Perform the mutable indexing (`container[index]`) operation.
     ///
