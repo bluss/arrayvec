@@ -1002,37 +1002,21 @@ impl<T, const CAP: usize> Extend<T> for ArrayVec<T, CAP> {
     }
 }
 
-/// Perform the indexing (`container[index]`) operation.
-///
-/// # Panics
-/// Panics if index is out of bounds.
 impl<I, T, const CAP: usize> Index<I> for ArrayVec<T, CAP>
 where
     [T]: Index<I>,
 {
     type Output = <[T] as Index<I>>::Output;
 
-    /// Performs the indexing (`container[index]`) operation.
-    ///
-    /// # Panics
-    /// Panics if index is out of bounds.
     fn index(&self, index: I) -> &Self::Output {
         &(**self)[index]
     }
 }
 
-/// Perform the mutable indexing (`container[index]`) operation.
-///
-/// # Panics
-/// Panics if index is out of bounds.
 impl<I, T, const CAP: usize> IndexMut<I> for ArrayVec<T, CAP>
 where
     [T]: IndexMut<I>,
 {
-    /// Perform the mutable indexing (`container[index]`) operation.
-    ///
-    /// # Panics
-    /// Panics if index is out of bounds.
     fn index_mut(&mut self, index: I) -> &mut Self::Output {
         &mut (**self)[index]
     }
