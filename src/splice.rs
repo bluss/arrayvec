@@ -3,7 +3,7 @@ use core::slice;
 
 use crate::Drain;
 
-/// A splicing iterator adapter for `ArrayVec` from `Vec`.
+/// A splicing iterator adapted for `ArrayVec` from `Vec`.
 pub struct Splice<
     'a,
     I: Iterator + 'a,
