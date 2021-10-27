@@ -82,11 +82,11 @@ impl<const CAP: usize> ArrayString<CAP>
 
     /// Return the length of the string.
     #[inline]
-    pub fn len(&self) -> usize { self.len as usize }
+    pub const fn len(&self) -> usize { self.len as usize }
 
     /// Returns whether the string is empty.
     #[inline]
-    pub fn is_empty(&self) -> bool { self.len() == 0 }
+    pub const fn is_empty(&self) -> bool { self.len() == 0 }
 
     /// Create a new `ArrayString` from a `str`.
     ///
@@ -160,7 +160,7 @@ impl<const CAP: usize> ArrayString<CAP>
     /// assert_eq!(string.capacity(), 3);
     /// ```
     #[inline(always)]
-    pub fn capacity(&self) -> usize { CAP }
+    pub const fn capacity(&self) -> usize { CAP }
 
     /// Return if the `ArrayString` is completely filled.
     ///
@@ -172,7 +172,20 @@ impl<const CAP: usize> ArrayString<CAP>
     /// string.push_str("A");
     /// assert!(string.is_full());
     /// ```
-    pub fn is_full(&self) -> bool { self.len() == self.capacity() }
+    pub const fn is_full(&self) -> bool { self.len() == self.capacity() }
+
+    /// Returns the capacity left in the `ArrayString`.
+    ///
+    /// ```
+    /// use arrayvec::ArrayString;
+    ///
+    /// let mut string = ArrayString::<3>::from("abc").unwrap();
+    /// string.pop();
+    /// assert_eq!(string.remaining_capacity(), 1);
+    /// ```
+    pub const fn remaining_capacity(&self) -> usize {
+        self.capacity() - self.len()
+    }
 
     /// Adds the given char to the end of the string.
     ///

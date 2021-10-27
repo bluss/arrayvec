@@ -108,7 +108,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert_eq!(array.len(), 2);
     /// ```
     #[inline(always)]
-    pub fn len(&self) -> usize { self.len as usize }
+    pub const fn len(&self) -> usize { self.len as usize }
 
     /// Returns whether the `ArrayVec` is empty.
     ///
@@ -120,7 +120,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert_eq!(array.is_empty(), true);
     /// ```
     #[inline]
-    pub fn is_empty(&self) -> bool { self.len() == 0 }
+    pub const fn is_empty(&self) -> bool { self.len() == 0 }
 
     /// Return the capacity of the `ArrayVec`.
     ///
@@ -131,7 +131,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert_eq!(array.capacity(), 3);
     /// ```
     #[inline(always)]
-    pub fn capacity(&self) -> usize { CAP }
+    pub const fn capacity(&self) -> usize { CAP }
 
     /// Return true if the `ArrayVec` is completely filled to its capacity, false otherwise.
     ///
@@ -143,7 +143,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// array.push(1);
     /// assert!(array.is_full());
     /// ```
-    pub fn is_full(&self) -> bool { self.len() == self.capacity() }
+    pub const fn is_full(&self) -> bool { self.len() == self.capacity() }
 
     /// Returns the capacity left in the `ArrayVec`.
     ///
@@ -154,7 +154,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// array.pop();
     /// assert_eq!(array.remaining_capacity(), 1);
     /// ```
-    pub fn remaining_capacity(&self) -> usize {
+    pub const fn remaining_capacity(&self) -> usize {
         self.capacity() - self.len()
     }
 
