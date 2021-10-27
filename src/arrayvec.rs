@@ -493,21 +493,38 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 
         let mut g = BackshiftOnDrop { v: self, processed_len: 0, deleted_cnt: 0, original_len };
 
-        while g.processed_len < original_len {
+        #[inline(always)]
+        fn process_one<F: FnMut(&mut T) -> bool, T, const CAP: usize, const DELETED: bool>(
+            f: &mut F,
+            g: &mut BackshiftOnDrop<'_, T, CAP>
+        ) -> bool {
             let cur = unsafe { g.v.as_mut_ptr().add(g.processed_len) };
             if !f(unsafe { &mut *cur }) {
                 g.processed_len += 1;
                 g.deleted_cnt += 1;
                 unsafe { ptr::drop_in_place(cur) };
-                continue;
+                return false;
             }
-            if g.deleted_cnt > 0 {
+            if DELETED {
                 unsafe {
                     let hole_slot = g.v.as_mut_ptr().add(g.processed_len - g.deleted_cnt);
                     ptr::copy_nonoverlapping(cur, hole_slot, 1);
                 }
             }
             g.processed_len += 1;
+            true
+        }
+
+        // Stage 1: Nothing was deleted.
+        while g.processed_len != original_len {
+            if !process_one::<F, T, CAP, false>(&mut f, &mut g) {
+                break;
+            }
+        }
+
+        // Stage 2: Some elements were deleted.
+        while g.processed_len != original_len {
+            process_one::<F, T, CAP, true>(&mut f, &mut g);
         }
 
         drop(g);
