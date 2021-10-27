@@ -18,11 +18,19 @@
 #![doc(html_root_url="https://docs.rs/arrayvec/0.7/")]
 #![cfg_attr(not(feature="std"), no_std)]
 
+#[cfg(not(feature="std"))]
+extern crate alloc;
+
 #[cfg(feature="serde")]
 extern crate serde;
 
 #[cfg(not(feature="std"))]
 extern crate core as std;
+
+#[cfg(feature="std")]
+pub use std::vec::Vec as Vec;
+#[cfg(not(feature="std"))]
+pub use alloc::vec::Vec as Vec;
 
 pub(crate) type LenUint = u32;
 

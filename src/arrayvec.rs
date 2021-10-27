@@ -772,6 +772,32 @@ impl<T, const CAP: usize> std::convert::TryFrom<&[T]> for ArrayVec<T, CAP>
 }
 
 
+/// Try to create an `ArrayVec` from a vector. This will return an error if the slice was too big to
+/// fit.
+///
+/// ```
+/// use arrayvec::ArrayVec;
+/// use std::convert::TryInto as _;
+///
+/// let array: ArrayVec<_, 4> = vec![1, 2, 3].try_into().unwrap();
+/// assert_eq!(array.len(), 3);
+/// assert_eq!(array.capacity(), 4);
+/// ```
+impl<T, const CAP: usize> std::convert::TryFrom<crate::Vec<T>> for ArrayVec<T, CAP> {
+    type Error = CapacityError;
+
+    fn try_from(vec: crate::Vec<T>) -> Result<Self, Self::Error> {
+        if Self::CAPACITY < vec.len() {
+            Err(CapacityError::new(()))
+        } else {
+            let mut array = Self::new();
+            // SAFETY: Vector length has already been checked
+            unsafe { array.extend_from_iter::<_, false>(vec); }
+            Ok(array)
+        }
+    }
+}
+
 /// Iterate the `ArrayVec` with references to each element.
 ///
 /// ```

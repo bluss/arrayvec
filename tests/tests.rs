@@ -6,9 +6,6 @@ use arrayvec::ArrayString;
 use std::mem;
 use arrayvec::CapacityError;
 
-use std::collections::HashMap;
-
-
 #[test]
 fn test_simple() {
     use std::ops::Add;
@@ -523,6 +520,7 @@ fn array_clone_from() {
 #[cfg(feature="std")]
 #[test]
 fn test_string() {
+    use std::collections::HashMap;
     use std::error::Error;
 
     let text = "hello world";
@@ -790,4 +788,11 @@ fn test_arraystring_zero_filled_has_some_sanity_checks() {
     let string = ArrayString::<4>::zero_filled();
     assert_eq!(string.as_str(), "\0\0\0\0");
     assert_eq!(string.len(), 4);
+}
+
+#[test]
+fn try_from_vec_returns_correct_values() {
+    use core::convert::TryFrom;
+    assert!(ArrayVec::<_, 1>::try_from(vec![1]).is_ok());
+    assert!(ArrayVec::<_, 1>::try_from(vec![1, 2]).is_err());
 }
