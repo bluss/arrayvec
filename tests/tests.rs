@@ -109,7 +109,6 @@ fn test_splice_works_when_it_should() {
     assert_eq!(&array_popped, &vec_popped);
 }
 
-
 #[test]
 #[should_panic]
 fn test_splice_fails_on_overflowing_range() {
