@@ -576,7 +576,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// use arrayvec::ArrayVec;
     ///
     /// let mut vec: ArrayVec<usize, 4> = ArrayVec::from_iter((0..4));
-    /// let elements_popped: Vec<_> = vec.splice(1..3, [7, 9]).into_iter().collect();
+    /// let elements_popped: Vec<_> = vec.splice(1..3, vec![7, 9]).into_iter().collect();
     /// assert_eq!(&vec[..], &[0, 7, 9, 3]);
     /// assert_eq!(&elements_popped[..], &[1, 2]);
     /// ```
