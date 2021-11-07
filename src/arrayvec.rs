@@ -760,6 +760,57 @@ impl<T, const CAP: usize> From<[T; CAP]> for ArrayVec<T, CAP> {
     }
 }
 
+// Generic version of from_slice_const not possible at this time
+macro_rules! impl_from_const {
+    ($($t:ty)+) => {
+$(
+impl<const CAP: usize> ArrayVec<$t, CAP> {
+    /// Create a new `ArrayVec` from a slice, suitable for const context
+    ///
+    /// Capacity is inferred from the type parameter.
+    ///
+    /// **Panics** or causes a **const error** if the backing array is not large enough to fit the
+    /// slice.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// const V: ArrayVec<u8, 3> = ArrayVec::<u8, 3>::from_slice_const(&[1, 2, 3]);
+    /// ```
+    ///
+    /// A compile-time error will occur - in constants - if the input is too long:
+    ///
+    /// ```compile_fail
+    /// # use arrayvec::ArrayVec;
+    /// const S1: ArrayVec<u8, 3> = ArrayVec::<u8, 3>::from_slice_const(&[1, 2, 3, 4]);
+    /// ```
+    pub const fn from_slice_const(values: &[$t]) -> Self {
+        let len = values.len();
+        assert_length_lt_capacity_const!(len, CAP);
+
+        let mut vec = Self::new_const();
+        let mut i = 0;
+        while i < len {
+            vec.xs[i] = MaybeUninit::new(values[i]);
+            i += 1;
+        }
+
+        // Safety: we know len <= CAP and elements < len are initialized
+        vec.len = len as u32;
+        vec
+    }
+}
+)+
+
+    };
+}
+
+impl_from_const!(u8 u16 u32 u64 usize i8 i16 i32 i64 isize char);
+#[cfg(feature = "floats")]
+impl_from_const!(f32 f64);
+#[cfg(feature = "u128")]
+impl_from_const!(u128 i128);
+
 
 /// Try to create an `ArrayVec` from a slice. This will return an error if the slice was too big to
 /// fit.

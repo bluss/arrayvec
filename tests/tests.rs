@@ -774,6 +774,19 @@ fn test_arrayvec_const_constructible() {
 }
 
 #[test]
+fn test_arrayvec_from_slice_const() {
+    const V: ArrayVec<u8, 10> = ArrayVec::<u8, 10>::from_slice_const(b"0123456789");
+
+    let mut var = V;
+    assert_eq!(&*var, b"0123456789");
+    assert!(var.try_push(0).is_err());
+    var.clear();
+    var.push(1);
+    var.push(2);
+    assert_eq!(&*var, &[1, 2]);
+}
+
+#[test]
 fn test_arraystring_const_constructible() {
     const AS: ArrayString<10> = ArrayString::new_const();
 

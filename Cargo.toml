@@ -35,8 +35,14 @@ name = "arraystring"
 harness = false
 
 [features]
-default = ["std"]
+default = ["std", "u128", "floats"]
+# enable stdlib
 std = []
+
+# enable i128, u128 specific impls
+u128 = []
+# enable f32, f64 specific impls
+floats = []
 
 [profile.bench]
 debug = true
