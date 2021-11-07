@@ -784,6 +784,19 @@ fn test_arraystring_const_constructible() {
     assert_eq!(var, *"hello");
 }
 
+#[test]
+fn test_arraystring_from_str_const() {
+    const AS: ArrayString<10> = ArrayString::from_str_const("0123456789");
+
+    let mut var = AS;
+    assert_eq!(&*var, "0123456789");
+    assert!(var.try_push_str("1").is_err());
+
+    var.clear();
+    var.push_str("9876543210");
+    assert_eq!(&*var, "9876543210");
+}
+
 
 #[test]
 fn test_arraystring_zero_filled_has_some_sanity_checks() {

@@ -19,7 +19,6 @@ use crate::utils::MakeMaybeUninit;
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
-
 /// A string with a fixed capacity.
 ///
 /// The `ArrayString` is a string backed by a fixed size array. It keeps track
@@ -106,6 +105,42 @@ impl<const CAP: usize> ArrayString<CAP>
         let mut arraystr = Self::new();
         arraystr.try_push_str(s)?;
         Ok(arraystr)
+    }
+
+    /// Create a new `ArrayString` from a `str`, suitable for const context
+    ///
+    /// Capacity is inferred from the type parameter.
+    ///
+    /// **Panics** or causes a **const error** if the backing array is not large enough to fit the
+    /// string.
+    ///
+    /// ```
+    /// use arrayvec::ArrayString;
+    ///
+    /// const S: ArrayString<3> = ArrayString::from_str_const("");
+    /// ```
+    ///
+    /// A compile-time error will occur - in constants - if the input is too long:
+    ///
+    /// ```compile_fail
+    /// # use arrayvec::ArrayString;
+    /// const S1: ArrayString<3> = ArrayString::from_str_const("too long for the capacity");
+    /// ```
+    pub const fn from_str_const(s: &str) -> Self {
+        let bytes = s.as_bytes();
+        let len = bytes.len();
+        assert_length_lt_capacity_const!(len, CAP);
+
+        let mut vec = Self::new_const();
+        let mut i = 0;
+        while i < len {
+            vec.xs[i] = MaybeUninit::new(bytes[i]);
+            i += 1;
+        }
+
+        // Safety: we know len <= CAP and elements < len are initialized
+        vec.len = len as u32;
+        vec
     }
 
     /// Create a new `ArrayString` from a byte string literal.
