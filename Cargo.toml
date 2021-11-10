@@ -35,8 +35,9 @@ name = "arraystring"
 harness = false
 
 [features]
-default = ["std"]
+default = ["std", "copy", "serde"]
 std = []
+copy = []
 
 [profile.bench]
 debug = true
