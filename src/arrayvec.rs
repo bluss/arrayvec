@@ -21,6 +21,7 @@ use std::mem::MaybeUninit;
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
 use crate::LenUint;
+#[cfg(feature="copy")]
 use crate::arrayvec_copy::ArrayVecCopy;
 use crate::errors::CapacityError;
 use crate::arrayvec_impl::ArrayVecImpl;
