@@ -493,39 +493,38 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 
         let mut g = BackshiftOnDrop { v: self, processed_len: 0, deleted_cnt: 0, original_len };
 
-        #[inline(always)]
-        fn process_one<F: FnMut(&mut T) -> bool, T, const CAP: usize, const DELETED: bool>(
+        fn process_loop<F: FnMut(&mut T) -> bool, T, const CAP: usize, const DELETED: bool>(
+            original_len: usize,
             f: &mut F,
             g: &mut BackshiftOnDrop<'_, T, CAP>
-        ) -> bool {
-            let cur = unsafe { g.v.as_mut_ptr().add(g.processed_len) };
-            if !f(unsafe { &mut *cur }) {
-                g.processed_len += 1;
-                g.deleted_cnt += 1;
-                unsafe { ptr::drop_in_place(cur) };
-                return false;
-            }
-            if DELETED {
-                unsafe {
-                    let hole_slot = g.v.as_mut_ptr().add(g.processed_len - g.deleted_cnt);
-                    ptr::copy_nonoverlapping(cur, hole_slot, 1);
+        ) {
+            while g.processed_len != original_len {
+                let cur = unsafe { g.v.as_mut_ptr().add(g.processed_len) };
+                if !f(unsafe { &mut *cur }) {
+                    g.processed_len += 1;
+                    g.deleted_cnt += 1;
+                    unsafe { ptr::drop_in_place(cur) };
+                    if DELETED {
+                        continue;
+                    } else {
+                        break;
+                    }
                 }
+                if DELETED {
+                    unsafe {
+                        let hole_slot = g.v.as_mut_ptr().add(g.processed_len - g.deleted_cnt);
+                        ptr::copy_nonoverlapping(cur, hole_slot, 1);
+                    }
+                }
+                g.processed_len += 1;
             }
-            g.processed_len += 1;
-            true
         }
 
         // Stage 1: Nothing was deleted.
-        while g.processed_len != original_len {
-            if !process_one::<F, T, CAP, false>(&mut f, &mut g) {
-                break;
-            }
-        }
+        process_loop::<F, T, CAP, false>(original_len, &mut f, &mut g);
 
         // Stage 2: Some elements were deleted.
-        while g.processed_len != original_len {
-            process_one::<F, T, CAP, true>(&mut f, &mut g);
-        }
+        process_loop::<F, T, CAP, true>(original_len, &mut f, &mut g);
 
         drop(g);
     }
