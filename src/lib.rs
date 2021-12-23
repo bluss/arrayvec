@@ -11,6 +11,20 @@
 //!   - Optional
 //!   - Enable serialization for ArrayVec and ArrayString using serde 1.x
 //!
+//! ## Example
+//! ```rust
+//! use arrayvec::{ArrayVec, CapacityError};
+//! 
+//! // Creates a new ArrayVec with a capacity of 3 and contents [1, 2, 3].
+//! let mut stack = ArrayVec::from([1, 2, 3]);
+//! assert_eq!(stack.pop(), Some(3));
+//! stack.push(4);
+//! 
+//! // Now the stack is full:
+//! assert!(stack.is_full());
+//! assert_eq!(stack.try_push(5), Err(CapacityError::new(5)))
+//! ```
+//! 
 //! ## Rust Version
 //!
 //! This version of arrayvec requires Rust 1.51 or later.
