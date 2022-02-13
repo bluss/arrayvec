@@ -61,11 +61,13 @@ pub(crate) trait ArrayVecImpl {
         if self.len() == 0 {
             return None;
         }
-        unsafe {
-            let new_len = self.len() - 1;
-            self.set_len(new_len);
-            Some(ptr::read(self.as_ptr().add(new_len)))
-        }
+        unsafe { Some(self.pop_unchecked()) }
+    }
+
+    unsafe fn pop_unchecked(&mut self) -> Self::Item {
+        let new_len = self.len() - 1;
+        self.set_len(new_len);
+        ptr::read(self.as_ptr().add(new_len))
     }
 
     fn clear(&mut self) {
