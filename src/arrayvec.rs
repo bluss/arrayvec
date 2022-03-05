@@ -1132,21 +1132,27 @@ impl<T, const CAP: usize> Hash for ArrayVec<T, CAP>
     }
 }
 
-impl<T, const CAP: usize> PartialEq for ArrayVec<T, CAP>
-    where T: PartialEq
-{
-    fn eq(&self, other: &Self) -> bool {
-        **self == **other
-    }
+macro_rules! impl_slice_eq {
+    ([$($vars:tt)*] $lhs:ty, $rhs:ty) => {
+        impl<T, U, $($vars)*> PartialEq<$rhs> for $lhs
+        where T: PartialEq<U> {
+            #[inline]
+            fn eq(&self, other: &$rhs) -> bool {
+                self[..] == other[..]
+            }
+        }
+    };
 }
 
-impl<T, const CAP: usize> PartialEq<[T]> for ArrayVec<T, CAP>
-    where T: PartialEq
-{
-    fn eq(&self, other: &[T]) -> bool {
-        **self == *other
-    }
-}
+impl_slice_eq!([const C0: usize, const C1: usize] ArrayVec<T, C0>, ArrayVec<U, C1>);
+impl_slice_eq!([const C: usize] ArrayVec<T, C>, &[U]);
+impl_slice_eq!([const C: usize] ArrayVec<T, C>, &mut [U]);
+impl_slice_eq!([const C: usize] &[T], ArrayVec<U, C>);
+impl_slice_eq!([const C: usize] &mut [T], ArrayVec<U, C>);
+impl_slice_eq!([const C: usize] [T], ArrayVec<U, C>);
+impl_slice_eq!([const C: usize] ArrayVec<T, C>, [U]);
+impl_slice_eq!([const C: usize, const N: usize] ArrayVec<T, C>, [U; N]);
+impl_slice_eq!([const C: usize, const N: usize] ArrayVec<T, C>, &[U; N]);
 
 impl<T, const CAP: usize> Eq for ArrayVec<T, CAP> where T: Eq { }
 
