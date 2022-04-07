@@ -479,6 +479,11 @@ impl<const CAP: usize> Borrow<str> for ArrayString<CAP>
     fn borrow(&self) -> &str { self }
 }
 
+impl<const CAP: usize> AsMut<str> for ArrayString<CAP>
+{
+    fn as_mut(&mut self) -> &mut str { self }
+}
+
 impl<const CAP: usize> AsRef<str> for ArrayString<CAP>
 {
     fn as_ref(&self) -> &str { self }
