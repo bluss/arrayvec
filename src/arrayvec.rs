@@ -856,9 +856,9 @@ impl<T, const CAP: usize> Iterator for IntoIter<T, CAP> {
         if self.index == self.v.len() {
             None
         } else {
+            let index = self.index;
+            self.index = index + 1;
             unsafe {
-                let index = self.index;
-                self.index = index + 1;
                 Some(ptr::read(self.v.get_unchecked_ptr(index)))
             }
         }
@@ -1071,8 +1071,8 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     {
         let take = self.capacity() - self.len();
         debug_assert!(slice.len() <= take);
+        let slice = if take < slice.len() { &slice[..take] } else { slice };
         unsafe {
-            let slice = if take < slice.len() { &slice[..take] } else { slice };
             self.extend_from_iter::<_, false>(slice.iter().cloned());
         }
     }

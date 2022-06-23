@@ -61,8 +61,8 @@ pub(crate) trait ArrayVecImpl {
         if self.len() == 0 {
             return None;
         }
+        let new_len = self.len() - 1;
         unsafe {
-            let new_len = self.len() - 1;
             self.set_len(new_len);
             Some(ptr::read(self.as_ptr().add(new_len)))
         }
@@ -73,8 +73,8 @@ pub(crate) trait ArrayVecImpl {
     }
 
     fn truncate(&mut self, new_len: usize) {
+        let len = self.len();
         unsafe {
-            let len = self.len();
             if new_len < len {
                 self.set_len(new_len);
                 let tail = slice::from_raw_parts_mut(self.as_mut_ptr().add(new_len), len - new_len);
