@@ -1148,8 +1148,8 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     {
         let take = self.capacity() - self.len();
         let len = self.len();
-        let mut ptr = raw_ptr_add(self.as_mut_ptr(), len);
-        let end_ptr = raw_ptr_add(ptr, take);
+        let mut ptr = self.as_mut_ptr().add(len);
+
         // Keep the length in a separate variable, write it back on scope
         // exit. To help the compiler with alias analysis and stuff.
         // We update the length to handle panic in the iteration of the
@@ -1161,20 +1161,22 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
                 **self_len = len as LenUint;
             },
         };
-        let mut iter = iterable.into_iter();
-        loop {
-            if let Some(elt) = iter.next() {
-                if ptr == end_ptr && CHECK {
-                    extend_panic();
-                }
-                debug_assert_ne!(ptr, end_ptr);
-                ptr.write(elt);
-                ptr = raw_ptr_add(ptr, 1);
-                guard.data += 1;
-            } else {
-                return; // success
+        let iter = iterable.into_iter();
+        let mut current_offset = 0;
+        // Use `for_each` because it is more optimal for some iterators
+        // than calling `Iterator::next` in a loop.
+        // For example, `Chain`s extra branch is `next()` isn't optimized away.
+        iter.for_each(|elt| {
+            if CHECK && current_offset == take {
+                extend_panic();
             }
-        }
+            debug_assert_ne!(current_offset, take);
+            current_offset += 1;
+
+            ptr.write(elt);
+            ptr = ptr.add(1);
+            guard.data += 1;
+        });
     }
 
     /// Extend the ArrayVec with clones of elements from the slice;
@@ -1193,16 +1195,6 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
             };
             self.extend_from_iter::<_, false>(slice.iter().cloned());
         }
-    }
-}
-
-/// Rawptr add but uses arithmetic distance for ZST
-unsafe fn raw_ptr_add<T>(ptr: *mut T, offset: usize) -> *mut T {
-    if mem::size_of::<T>() == 0 {
-        // Special case for ZST
-        (ptr as usize).wrapping_add(offset) as _
-    } else {
-        ptr.add(offset)
     }
 }
 
