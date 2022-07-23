@@ -412,6 +412,78 @@ fn test_retain() {
 }
 
 #[test]
+fn test_retain_on_panics() {
+    static DROP_COUNTER: AtomicUsize = AtomicUsize::new(0);
+    DROP_COUNTER.store(0, AtomicOrdering::Relaxed);
+
+    struct CountOnDrop;
+
+    impl Drop for CountOnDrop {
+        fn drop(&mut self) {
+            DROP_COUNTER.fetch_add(1, AtomicOrdering::Relaxed);
+        }
+    }
+
+    let max_i = AtomicUsize::new(0);
+    let mut v = ArrayVec::from([(); 20].map(|_| CountOnDrop));
+    // Check what happens if predicate panics.
+    std::panic::catch_unwind({
+        let max_i = &max_i;
+        move || {
+            let mut i = 0;
+            v.retain(|_| {
+                i += 1;
+                max_i.store(i, AtomicOrdering::Relaxed);
+                if i == 10 {
+                    panic!("We want to!");
+                }
+                i & 1 == 0
+            });
+        }
+    })
+    .expect_err("We explicitly panic");
+
+    assert_eq!(max_i.load(AtomicOrdering::Relaxed), 10);
+    // No leaks and no double frees.
+    assert_eq!(DROP_COUNTER.load(AtomicOrdering::Relaxed), 20);
+
+    DROP_COUNTER.store(0, AtomicOrdering::Relaxed);
+
+    struct PanicOnDrop(usize);
+
+    impl Drop for PanicOnDrop {
+        fn drop(&mut self) {
+            if self.0 == 10 {
+                panic!("We want to!");
+            }
+        }
+    }
+
+    let max_i = AtomicUsize::new(0);
+    let mut i = 0;
+    let mut v = ArrayVec::from([(); 20].map(|_| {
+        let j = i;
+        i += 1;
+        (CountOnDrop, PanicOnDrop(j))
+    }));
+    // Check what happens if drop panics.
+    std::panic::catch_unwind({
+        let max_i = &max_i;
+        move || {
+            v.retain(|v| {
+                max_i.store(v.1 .0, AtomicOrdering::Relaxed);
+                v.1 .0 & 1 != 0
+            });
+        }
+    })
+    .expect_err("We explicitly panic");
+
+    assert_eq!(max_i.load(AtomicOrdering::Relaxed), 10);
+    // No double frees and no leaks.
+    assert_eq!(DROP_COUNTER.load(AtomicOrdering::Relaxed), 20);
+}
+
+#[test]
 #[should_panic]
 fn test_drain_oob() {
     let mut v = ArrayVec::from([0; 8]);

@@ -494,13 +494,12 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 
         impl<T, const CAP: usize> Drop for BackshiftOnDrop<'_, T, CAP> {
             fn drop(&mut self) {
-                if self.deleted_cnt > 0 {
+                if self.deleted_cnt > 0 && self.original_len != self.processed_len {
                     unsafe {
+                        let p = self.v.as_mut_ptr();
                         ptr::copy(
-                            self.v.as_ptr().add(self.processed_len),
-                            self.v
-                                .as_mut_ptr()
-                                .add(self.processed_len - self.deleted_cnt),
+                            p.add(self.processed_len),
+                            p.add(self.processed_len - self.deleted_cnt),
                             self.original_len - self.processed_len,
                         );
                     }
@@ -518,39 +517,50 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
             original_len,
         };
 
-        #[inline(always)]
-        fn process_one<F: FnMut(&mut T) -> bool, T, const CAP: usize, const DELETED: bool>(
+        fn process_loop<F, T, const DELETED: bool, const CAP: usize>(
+            original_len: usize,
             f: &mut F,
             g: &mut BackshiftOnDrop<'_, T, CAP>,
-        ) -> bool {
-            let cur = unsafe { g.v.as_mut_ptr().add(g.processed_len) };
-            if !f(unsafe { &mut *cur }) {
-                g.processed_len += 1;
-                g.deleted_cnt += 1;
-                unsafe { ptr::drop_in_place(cur) };
-                return false;
-            }
-            if DELETED {
-                unsafe {
-                    let hole_slot = g.v.as_mut_ptr().add(g.processed_len - g.deleted_cnt);
-                    ptr::copy_nonoverlapping(cur, hole_slot, 1);
+        ) where
+            F: FnMut(&mut T) -> bool,
+        {
+            while g.processed_len != original_len {
+                // We differ from `std::vec::Vec` here because
+                // we need to borrow whole slice in `as_mut_ptr` call
+                // which violates Stacked Borrows if we already used `cur`.
+                let slice_ptr = g.v.as_mut_ptr();
+                // SAFETY: Unchecked element must be valid.
+                let cur = unsafe { &mut *slice_ptr.add(g.processed_len) };
+                if !f(cur) {
+                    // Advance early to avoid double drop if `drop_in_place` panicked.
+                    g.processed_len += 1;
+                    g.deleted_cnt += 1;
+                    // SAFETY: We never touch this element again after dropped.
+                    unsafe { ptr::drop_in_place(cur) };
+                    // We already advanced the counter.
+                    if DELETED {
+                        continue;
+                    } else {
+                        break;
+                    }
                 }
+                if DELETED {
+                    // SAFETY: `deleted_cnt` > 0, so the hole slot must not overlap with current element.
+                    // We use copy for move, and never touch this element again.
+                    unsafe {
+                        let hole_slot = slice_ptr.add(g.processed_len - g.deleted_cnt);
+                        ptr::copy_nonoverlapping(cur, hole_slot, 1);
+                    }
+                }
+                g.processed_len += 1;
             }
-            g.processed_len += 1;
-            true
         }
 
         // Stage 1: Nothing was deleted.
-        while g.processed_len != original_len {
-            if !process_one::<F, T, CAP, false>(&mut f, &mut g) {
-                break;
-            }
-        }
+        process_loop::<F, T, false, CAP>(original_len, &mut f, &mut g);
 
         // Stage 2: Some elements were deleted.
-        while g.processed_len != original_len {
-            process_one::<F, T, CAP, true>(&mut f, &mut g);
-        }
+        process_loop::<F, T, true, CAP>(original_len, &mut f, &mut g);
 
         drop(g);
     }
