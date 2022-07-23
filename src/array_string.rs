@@ -380,15 +380,16 @@ impl<const CAP: usize> ArrayString<CAP> {
             None => panic!("cannot remove a char from the end of a string"),
         };
 
-        let next = idx + ch.len_utf8();
         let len = self.len();
+        let removed_len = ch.len_utf8();
+        let next = idx + removed_len;
+        let tail_len = len - next;
         unsafe {
-            ptr::copy(
-                self.as_ptr().add(next),
-                self.as_mut_ptr().add(idx),
-                len - next,
-            );
-            self.set_len(len - (next - idx));
+            // SAFETY: `idx` is in bounds because we just checked that.
+            // `next` is in bounds because we cannot contain character partially.
+            let p = self.as_mut_ptr();
+            ptr::copy(p.add(next), p.add(idx), tail_len);
+            self.set_len(len - removed_len);
         }
         ch
     }
