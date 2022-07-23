@@ -1,3 +1,5 @@
+use core::convert::TryInto;
+use core::ptr::NonNull;
 use std::cmp;
 use std::iter;
 use std::mem;
@@ -639,10 +641,14 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         let start = match range.start_bound() {
             Bound::Unbounded => 0,
             Bound::Included(&i) => i,
+            // You cannot have array bigger than usize anyway
+            // so saturating add wouldn't break anything here.
             Bound::Excluded(&i) => i.saturating_add(1),
         };
         let end = match range.end_bound() {
             Bound::Excluded(&j) => j,
+            // You cannot have array bigger than usize anyway
+            // so saturating add wouldn't break anything here.
             Bound::Included(&j) => j.saturating_add(1),
             Bound::Unbounded => len,
         };
@@ -650,21 +656,35 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     }
 
     fn drain_range(&mut self, start: usize, end: usize) -> Drain<T, CAP> {
-        let len = self.len();
-
         // bounds check happens here (before length is changed!)
-        let range_slice: *const _ = &self[start..end];
+        let _ = &self[start..end];
 
+        // Eagerly reduce len to prevent double frees in case of `drop::<T>` panics.
         // Calling `set_len` creates a fresh and thus unique mutable references, making all
         // older aliases we created invalid. So we cannot call that function.
+        let old_len: usize = self.len.try_into().unwrap();
         self.len = start as LenUint;
 
+        let start_ptr: *mut T = self.xs.as_mut_ptr().cast();
+
+        let tail_len = (old_len - end) as LenUint;
+        self.len = start.try_into().unwrap();
         unsafe {
+            // SAFETY: length is valid because we made bounds check earlier.
+            let to_yield = end.saturating_sub(start);
+            let taken_start = start_ptr.add(start);
+            let tail_start = taken_start.add(to_yield);
+
+            let taken_start = NonNull::new(taken_start).unwrap();
+            let tail_start = NonNull::new(tail_start).unwrap();
+
             Drain {
-                tail_start: end,
-                tail_len: len - end,
-                iter: (*range_slice).iter(),
-                vec: self as *mut _,
+                vec_len: &mut self.len,
+                taken_start: taken_start,
+                to_yield: to_yield as LenUint,
+                current_ptr: taken_start,
+                tail_start: tail_start,
+                tail_len,
             }
         }
     }
@@ -946,15 +966,31 @@ where
     }
 }
 
+// Note: We cannot implement this same way as `std::vec::Drain`
+// because keeping pointer to vec would violate Stacked Borrows
+// because this pointer alias with pointers to our inner slice
+// which get invalidated.
+// `std::vec::Vec` doesn't have same problem because its buffer
+// and object itself doesn't overlap.
+
 /// A draining iterator for `ArrayVec`.
 pub struct Drain<'a, T: 'a, const CAP: usize> {
-    /// Index of tail to preserve
-    tail_start: usize,
+    /// Reference to `len` field of vec
+    vec_len: &'a mut LenUint,
+
+    /// Pointer to position which we started to drain.
+    taken_start: ptr::NonNull<T>,
+    /// How much items we need yield.
+    /// Use integer instead of pointer to track this
+    /// because it simplifies working with ZSTs.
+    to_yield: LenUint,
+    /// Points to next item to yield.
+    current_ptr: ptr::NonNull<T>,
+
+    /// Points to item right after drained range.
+    tail_start: ptr::NonNull<T>,
     /// Length of tail
-    tail_len: usize,
-    /// Current remaining range to remove
-    iter: slice::Iter<'a, T>,
-    vec: *mut ArrayVec<T, CAP>,
+    tail_len: LenUint,
 }
 
 unsafe impl<'a, T: Sync, const CAP: usize> Sync for Drain<'a, T, CAP> {}
@@ -964,21 +1000,57 @@ impl<'a, T: 'a, const CAP: usize> Iterator for Drain<'a, T, CAP> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.iter
-            .next()
-            .map(|elt| unsafe { ptr::read(elt as *const _) })
+        if self.to_yield == 0 {
+            None
+        } else {
+            let current = self.current_ptr.as_ptr();
+            self.to_yield -= 1;
+            self.current_ptr = NonNull::new(
+                // SAFETY: we just checked that we are in range.
+                // We just shortened range.
+                unsafe { current.add(1) },
+            )
+            // Note: rustc optimizes check here even with `-Copt-level=1`
+            // https://godbolt.org/z/br6eevnbx
+            .unwrap();
+
+            Some(
+                // SAFETY: we just checked that we are in range.
+                // Range must be valid by construction.
+                // We visit every item in drained range exactly once
+                // so they are read exactly once.
+                // Alignment is valid because it points to item in slice.
+                unsafe { current.read() },
+            )
+        }
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        self.iter.size_hint()
+        let remaining: usize = self.to_yield.try_into().unwrap();
+        (remaining, Some(remaining))
     }
 }
 
 impl<'a, T: 'a, const CAP: usize> DoubleEndedIterator for Drain<'a, T, CAP> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.iter
-            .next_back()
-            .map(|elt| unsafe { ptr::read(elt as *const _) })
+        if self.to_yield == 0 {
+            None
+        } else {
+            let to_yield: usize = self.to_yield.try_into().unwrap();
+            self.to_yield -= 1;
+
+            // SAFETY: We just checked our range.
+            // We just shortened range.
+            let src = unsafe { self.current_ptr.as_ptr().add(to_yield - 1) };
+            Some(
+                // SAFETY: we just checked that we are in range.
+                // Range must be valid by construction.
+                // We visit every item in drained range exactly once
+                // so they are read exactly once.
+                // Alignment is valid because it points to item in slice.
+                unsafe { src.read() },
+            )
+        }
     }
 }
 
@@ -988,19 +1060,30 @@ impl<'a, T: 'a, const CAP: usize> Drop for Drain<'a, T, CAP> {
     fn drop(&mut self) {
         // len is currently 0 so panicking while dropping will not cause a double drop.
 
-        // exhaust self first
-        while let Some(_) = self.next() {}
+        // Drop inner values first.
+        // Use slice `drop_in_place` because it is faster than iteration over self.
+        unsafe {
+            let remaining_start = self.current_ptr.as_ptr();
+            let remaining_len: usize = self.to_yield.try_into().unwrap();
+            self.to_yield = 0;
+            // SAFETY: It is safe because we dropping only unyielded items
+            // which must be initialized by `Drain` invariant.
+            ptr::drop_in_place(core::slice::from_raw_parts_mut(
+                remaining_start,
+                remaining_len,
+            ));
+        }
 
         if self.tail_len > 0 {
             unsafe {
-                let source_vec = &mut *self.vec;
+                let dst = self.taken_start.as_ptr();
+                let src = self.tail_start.as_ptr() as *const _;
+                let tail_len: usize = self.tail_len.try_into().unwrap();
                 // memmove back untouched tail, update to new length
-                let start = source_vec.len();
-                let tail = self.tail_start;
-                let src = source_vec.as_ptr().add(tail);
-                let dst = source_vec.as_mut_ptr().add(start);
-                ptr::copy(src, dst, self.tail_len);
-                source_vec.set_len(start + self.tail_len);
+                ptr::copy(src, dst, tail_len);
+                // Set len of vec.
+                // Safe because our tail contains exactly `tail_len` living items.
+                *self.vec_len += self.tail_len;
             }
         }
     }

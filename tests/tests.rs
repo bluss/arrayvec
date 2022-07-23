@@ -8,6 +8,7 @@ use arrayvec::CapacityError;
 use std::mem;
 
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicUsize, Ordering as AtomicOrdering};
 
 #[test]
 fn test_simple() {
@@ -366,6 +367,31 @@ fn test_drain_range_inclusive() {
 fn test_drain_range_inclusive_oob() {
     let mut v = ArrayVec::from([0; 0]);
     v.drain(0..=0);
+}
+
+#[test]
+fn test_drain_panic_in_the_middle() {
+    static DROP_COUNTER: AtomicUsize = AtomicUsize::new(0);
+    DROP_COUNTER.store(0, AtomicOrdering::Relaxed);
+
+    struct CountOnDrop;
+
+    impl Drop for CountOnDrop {
+        fn drop(&mut self) {
+            DROP_COUNTER.fetch_add(1, AtomicOrdering::Relaxed);
+        }
+    }
+
+    let mut v = ArrayVec::from([(); 6].map(|_| CountOnDrop));
+
+    std::panic::catch_unwind(move || {
+        let mut d = v.drain(1..4);
+        d.next();
+        panic!("We want to!");
+    })
+    .expect_err("We explicitly panic");
+    // No double drops and no leaks.
+    assert_eq!(DROP_COUNTER.load(AtomicOrdering::Relaxed), 6);
 }
 
 #[test]
