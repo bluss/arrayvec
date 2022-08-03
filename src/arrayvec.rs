@@ -880,6 +880,17 @@ pub struct IntoIter<T, const CAP: usize> {
     index: usize,
     v: ArrayVec<T, CAP>,
 }
+impl<T, const CAP: usize> IntoIter<T, CAP> {
+    /// Returns the remaining items of this iterator as a slice.
+    pub fn as_slice(&self) -> &[T] {
+        &self.v[self.index..]
+    }
+
+    /// Returns the remaining items of this iterator as a mutable slice.
+    pub fn as_mut_slice(&mut self) -> &mut [T] {
+        &mut self.v[self.index..]
+    }
+}
 
 impl<T, const CAP: usize> Iterator for IntoIter<T, CAP> {
     type Item = T;
