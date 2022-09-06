@@ -507,7 +507,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
             }
             if DELETED {
                 unsafe {
-                    let hole_slot = g.v.as_mut_ptr().add(g.processed_len - g.deleted_cnt);
+                    let hole_slot = cur.sub(g.deleted_cnt);
                     ptr::copy_nonoverlapping(cur, hole_slot, 1);
                 }
             }
@@ -978,9 +978,8 @@ impl<'a, T: 'a, const CAP: usize> Drop for Drain<'a, T, CAP> {
                 // memmove back untouched tail, update to new length
                 let start = source_vec.len();
                 let tail = self.tail_start;
-                let src = source_vec.as_ptr().add(tail);
-                let dst = source_vec.as_mut_ptr().add(start);
-                ptr::copy(src, dst, self.tail_len);
+                let ptr = source_vec.as_mut_ptr();
+                ptr::copy(ptr.add(tail), ptr.add(start), self.tail_len);
                 source_vec.set_len(start + self.tail_len);
             }
         }
@@ -1082,7 +1081,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 unsafe fn raw_ptr_add<T>(ptr: *mut T, offset: usize) -> *mut T {
     if mem::size_of::<T>() == 0 {
         // Special case for ZST
-        (ptr as usize).wrapping_add(offset) as _
+        ptr.cast::<u8>().wrapping_add(offset).cast()
     } else {
         ptr.add(offset)
     }
