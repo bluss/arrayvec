@@ -204,10 +204,12 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 
     /// Push `element` to the end of the vector without checking the capacity.
     ///
+    /// This method uses *debug assertions* to check that the arrayvec is not full.
+    /// 
+    /// # Safety
+    /// 
     /// It is up to the caller to ensure the capacity of the vector is
     /// sufficiently large.
-    ///
-    /// This method uses *debug assertions* to check that the arrayvec is not full.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
@@ -532,11 +534,14 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 
     /// Set the vector’s length without dropping or moving out elements
     ///
-    /// This method is `unsafe` because it changes the notion of the
-    /// number of “valid” elements in the vector. Use with care.
-    ///
     /// This method uses *debug assertions* to check that `length` is
     /// not greater than the capacity.
+    /// 
+    /// # Safety
+    /// 
+    /// This method is `unsafe` because it changes the notion of the
+    /// number of “valid” elements in the vector. Use with care.
+
     pub unsafe fn set_len(&mut self, length: usize) {
         // type invariant that capacity always fits in LenUint
         debug_assert!(length <= self.capacity());
@@ -657,15 +662,92 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         }
     }
 
+    /// Return the possibly uninitialized tail of the vector.
+    /// 
+    /// If the length of the of the [ArrayVec] equals to the capacity,
+    /// return zero-length slice. 
+    pub fn maybe_uninit_tail_mut(&mut self) -> &mut [MaybeUninit<T>] {
+        let len = self.len();
+        let inner_slice = self.xs.as_mut_slice();
+
+        debug_assert!(len <= CAP);
+
+        // in order to avoid possible bounds checking, we do the arithmetics
+        let maybe_uninit_start_idx = match len {
+            // idx is the index after the index of the last element that is
+            // guaranteed to be initialized, i.e. idx equals to the length
+            // as long as it is less than the capacity
+            idx if core::cmp::min(len, CAP) < CAP => idx,
+            // this is safe because len < CAP
+            _ if core::cmp::min(len, CAP) > CAP => {
+                #[cfg(debug_assertions)]
+                unreachable!();
+                #[cfg(not(debug_assertions))]
+                unsafe { core::hint::unreachable_unchecked() }
+            },
+            // since length equals to the capacity
+            _ => return &mut [],
+        };
+
+        // the range is not inclusive because `CAP`th zero-based index goes out of bounds
+        // for a CAP-sized buffer
+        let maybe_uninit_idx_range = maybe_uninit_start_idx .. CAP;
+
+        // this is safe because the range is by construction within bounds:
+        // its right index is strictly less than the capacity and its left index is
+        // constrained by the right index.
+        unsafe { inner_slice.get_unchecked_mut(maybe_uninit_idx_range) }
+    }
+
+    /// Return the inner fixed size array, zeroing out the possibly uninitialized tail.
+    /// 
+    /// Internally, even padding bytes of the tail get zeroed, unlike when using [core::mem::zeroed].
+    /// 
+    /// # Safety
+    /// 
+    /// Zeroed byte pattern should represent a valid value of type `T`. Similarly to [core::mem::zeroed],
+    /// the function call may result in undefine behavior if `T` is
+    /// * a reference type,
+    /// * a function pointer,
+    /// * one of non-zero types from [core::num] or [std::num],
+    /// * or any other type whose byte-pattern can't be all zeroes.
+    pub unsafe fn into_inner_zeroed_tail(mut self) -> [T; CAP] {
+        let maybe_uninit_tail = match self.maybe_uninit_tail_mut() {
+            // this is safe because self.maybe_uninit_tail_mut() returns None only when length equals capacity
+            empty_tail if empty_tail.is_empty() => return unsafe { self.into_inner_unchecked() },
+            nonempty_tail => nonempty_tail,
+        };
+
+        let (dst, count) = (
+            maybe_uninit_tail.as_mut_ptr(),
+            maybe_uninit_tail.len()
+        );
+        
+        // `dst` is properly aligned by construction
+        // `dst` is valid for writes of `count` * size_of::<T>() bytes because
+        // that's exactly the byte length of the mutable slice into the contiguous buffer
+        // of the `ArrayVec`
+        unsafe { core::ptr::write_bytes(dst, 0u8, count) };
+
+        // now even the tail is initialized, so we can set length to the capacity
+        // it is needed in order to bypass debug assertions
+        #[cfg(debug_assertions)]
+        unsafe { self.set_len(self.capacity()) };
+
+        // This is safe because the tail that could be not initialized
+        // has been zeroed and it is assumed to be a valid initialization
+        unsafe { self.into_inner_unchecked() }
+    }
+
     /// Return the inner fixed size array.
     ///
-    /// Safety:
+    /// # Safety
+    /// 
     /// This operation is safe if and only if length equals capacity.
     pub unsafe fn into_inner_unchecked(self) -> [T; CAP] {
         debug_assert_eq!(self.len(), self.capacity());
         let self_ = ManuallyDrop::new(self);
-        let array = ptr::read(self_.as_ptr() as *const [T; CAP]);
-        array
+        ptr::read::<[T; CAP]>(self_.as_ptr() as *const [T; CAP])
     }
 
     /// Returns the ArrayVec, replacing the original with a new empty ArrayVec.
@@ -970,7 +1052,7 @@ impl<'a, T: 'a, const CAP: usize> Drop for Drain<'a, T, CAP> {
         // len is currently 0 so panicking while dropping will not cause a double drop.
 
         // exhaust self first
-        while let Some(_) = self.next() { }
+        for _ in self.by_ref() { }
 
         if self.tail_len > 0 {
             unsafe {

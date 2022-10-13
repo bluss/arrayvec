@@ -791,3 +791,44 @@ fn test_arraystring_zero_filled_has_some_sanity_checks() {
     assert_eq!(string.as_str(), "\0\0\0\0");
     assert_eq!(string.len(), 4);
 }
+
+#[test]
+fn test_maybe_uninit_tail_mut() {
+    let mut vec: ArrayVec<Vec<i32>,  5> = ArrayVec::new();
+
+    vec.push(vec![1, 2, 3, 4]);
+    vec.push(vec![10]);
+    vec.push(vec![-1, 13, -2]);
+
+    let uninit_tail = vec.maybe_uninit_tail_mut();
+    assert_eq!(uninit_tail.len(), 2);
+
+    uninit_tail[0] = std::mem::MaybeUninit::new(vec![1, 2, 3, 4]);
+    drop(uninit_tail);
+
+    assert!(vec.len() + 1 <= vec.capacity());
+    unsafe { vec.set_len(vec.len() + 1) };
+
+    assert!(vec.last().unwrap() == &vec![1, 2, 3, 4]);
+    assert_eq!(vec.maybe_uninit_tail_mut().len(), 1);
+
+    vec.push(vec![-1, 13, -2]);
+    assert_eq!(vec.maybe_uninit_tail_mut().len(), 0);
+}
+
+#[test]
+fn test_into_inner_zeroed_tail() {
+    use std::mem::MaybeUninit;
+
+    let mut vec: ArrayVec<usize,  4> = ArrayVec::new();
+    vec.maybe_uninit_tail_mut()[0] = MaybeUninit::new(1);
+    vec.maybe_uninit_tail_mut()[1] = MaybeUninit::new(2);
+    vec.maybe_uninit_tail_mut()[2] = MaybeUninit::new(2);
+    vec.maybe_uninit_tail_mut()[3] = MaybeUninit::new(3);
+
+    assert_eq!(unsafe { vec.get_unchecked(0..vec.capacity()) }, &[1,2,2,3]);
+
+    // This is safe for integers
+    let arr = unsafe { vec.into_inner_zeroed_tail() };
+    assert_eq!(arr, [0,0,0,0]);
+}

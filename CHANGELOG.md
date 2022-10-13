@@ -1,6 +1,11 @@
 Recent Changes (arrayvec)
 =========================
 
+## 0.7.3
+
+- Add `.maybe_uninit_tail_mut()` and unsafe `.into_inner_zeroed_tail()` to `ArrayVec` by @JohnScience
+- Small code cleanup by @JohnScience
+
 ## 0.7.2
 
 - Add `.as_mut_str()` to `ArrayString` by @clarfonthey

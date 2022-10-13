@@ -389,11 +389,13 @@ impl<const CAP: usize> ArrayString<CAP>
 
     /// Set the strings’s length.
     ///
-    /// This function is `unsafe` because it changes the notion of the
-    /// number of “valid” bytes in the string. Use with care.
-    ///
     /// This method uses *debug assertions* to check the validity of `length`
     /// and may use other debug assertions.
+    /// 
+    /// # Safety
+    /// 
+    /// This function is `unsafe` because it changes the notion of the
+    /// number of “valid” bytes in the string. Use with care.
     pub unsafe fn set_len(&mut self, length: usize) {
         // type invariant that capacity always fits in LenUint
         debug_assert!(length <= self.capacity());
@@ -634,7 +636,7 @@ impl<'a, const CAP: usize> TryFrom<fmt::Arguments<'a>> for ArrayString<CAP>
     fn try_from(f: fmt::Arguments<'a>) -> Result<Self, Self::Error> {
         use fmt::Write;
         let mut v = Self::new();
-        v.write_fmt(f).map_err(|e| CapacityError::new(e))?;
+        v.write_fmt(f).map_err(CapacityError::new)?;
         Ok(v)
     }
 }
