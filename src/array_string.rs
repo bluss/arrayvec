@@ -1,4 +1,4 @@
-use std::borrow::Borrow;
+use std::borrow::{Borrow, BorrowMut};
 use std::cmp;
 use std::convert::TryFrom;
 use std::fmt;
@@ -477,6 +477,11 @@ impl<const CAP: usize> Hash for ArrayString<CAP>
 impl<const CAP: usize> Borrow<str> for ArrayString<CAP>
 {
     fn borrow(&self) -> &str { self }
+}
+
+impl<const CAP: usize> BorrowMut<str> for ArrayString<CAP>
+{
+    fn borrow_mut(&mut self) -> &mut str { self }
 }
 
 impl<const CAP: usize> AsRef<str> for ArrayString<CAP>
