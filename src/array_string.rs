@@ -371,10 +371,12 @@ impl<const CAP: usize> ArrayString<CAP>
 
         let next = idx + ch.len_utf8();
         let len = self.len();
+        let ptr = self.as_mut_ptr();
         unsafe {
-            ptr::copy(self.as_ptr().add(next),
-                      self.as_mut_ptr().add(idx),
-                      len - next);
+            ptr::copy(
+                ptr.add(next),
+                ptr.add(idx),
+                len - next);
             self.set_len(len - (next - idx));
         }
         ch
