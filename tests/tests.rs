@@ -545,7 +545,13 @@ fn test_string() {
     let tmut: &mut str = &mut t;
     assert_eq!(tmut, "ab");
 
+    // test ArrayString -> &str in const
+    const CONST_T: ArrayString<2> = ArrayString::<2>::new_const();
+    const CONST_S: &str = CONST_T.as_str_const();
+    assert_eq!(CONST_S, "");
+
     // Test Error trait / try
+
     let t = || -> Result<(), Box<dyn Error>> {
         let mut t = ArrayString::<2>::new();
         t.try_push_str(text)?;
