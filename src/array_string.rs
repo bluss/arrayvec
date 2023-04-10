@@ -201,6 +201,7 @@ impl<const CAP: usize> ArrayString<CAP>
     ///
     /// assert_eq!(&string[..], "ab");
     /// ```
+    #[track_caller]
     pub fn push(&mut self, c: char) {
         self.try_push(c).unwrap();
     }
@@ -252,6 +253,7 @@ impl<const CAP: usize> ArrayString<CAP>
     ///
     /// assert_eq!(&string[..], "ad");
     /// ```
+    #[track_caller]
     pub fn push_str(&mut self, s: &str) {
         self.try_push_str(s).unwrap()
     }

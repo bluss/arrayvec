@@ -77,6 +77,8 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert_eq!(&array[..], &[1, 2]);
     /// assert_eq!(array.capacity(), 16);
     /// ```
+    #[inline]
+    #[track_caller]
     pub fn new() -> ArrayVec<T, CAP> {
         assert_capacity_limit!(CAP);
         unsafe {
@@ -172,6 +174,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     ///
     /// assert_eq!(&array[..], &[1, 2]);
     /// ```
+    #[track_caller]
     pub fn push(&mut self, element: T) {
         ArrayVecImpl::push(self, element)
     }
@@ -277,6 +280,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert_eq!(&array[..], &["y", "x"]);
     ///
     /// ```
+    #[track_caller]
     pub fn insert(&mut self, index: usize, element: T) {
         self.try_insert(index, element).unwrap()
     }
@@ -748,6 +752,7 @@ impl<T, const CAP: usize> DerefMut for ArrayVec<T, CAP> {
 /// assert_eq!(array.capacity(), 3);
 /// ```
 impl<T, const CAP: usize> From<[T; CAP]> for ArrayVec<T, CAP> {
+    #[track_caller]
     fn from(array: [T; CAP]) -> Self {
         let array = ManuallyDrop::new(array);
         let mut vec = <ArrayVec<T, CAP>>::new();
@@ -1011,6 +1016,7 @@ impl<T, const CAP: usize> Extend<T> for ArrayVec<T, CAP> {
     /// Extend the `ArrayVec` with an iterator.
     /// 
     /// ***Panics*** if extending the vector exceeds its capacity.
+    #[track_caller]
     fn extend<I: IntoIterator<Item=T>>(&mut self, iter: I) {
         unsafe {
             self.extend_from_iter::<_, true>(iter)
@@ -1020,6 +1026,7 @@ impl<T, const CAP: usize> Extend<T> for ArrayVec<T, CAP> {
 
 #[inline(never)]
 #[cold]
+#[track_caller]
 fn extend_panic() {
     panic!("ArrayVec: capacity exceeded in extend/from_iter");
 }
@@ -1031,6 +1038,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     ///
     /// Unsafe because if CHECK is false, the length of the input is not checked.
     /// The caller must ensure the length of the input fits in the capacity.
+    #[track_caller]
     pub(crate) unsafe fn extend_from_iter<I, const CHECK: bool>(&mut self, iterable: I)
         where I: IntoIterator<Item = T>
     {
