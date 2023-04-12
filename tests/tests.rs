@@ -13,7 +13,7 @@ use std::collections::HashMap;
 fn test_simple() {
     use std::ops::Add;
 
-    let mut vec: ArrayVec<Vec<i32>,  3> = ArrayVec::new();
+    let mut vec: ArrayVec<Vec<_>,  3> = ArrayVec::new();
 
     vec.push(vec![1, 2, 3, 4]);
     vec.push(vec![10]);
@@ -87,7 +87,7 @@ fn test_u16_index() {
 
 #[test]
 fn test_iter() {
-    let mut iter = ArrayVec::from([1, 2, 3]).into_iter();
+    let mut iter = ArrayVec::<_, 3>::from([1, 2, 3]).into_iter();
     assert_eq!(iter.size_hint(), (3, Some(3)));
     assert_eq!(iter.next_back(), Some(3));
     assert_eq!(iter.next(), Some(1));
@@ -333,7 +333,7 @@ fn test_still_works_with_option_arrayvec() {
 
 #[test]
 fn test_drain() {
-    let mut v = ArrayVec::from([0; 8]);
+    let mut v = ArrayVec::<_, 8>::from([0; 8]);
     v.pop();
     v.drain(0..7);
     assert_eq!(&v[..], &[]);
@@ -350,7 +350,7 @@ fn test_drain() {
 
 #[test]
 fn test_drain_range_inclusive() {
-    let mut v = ArrayVec::from([0; 8]);
+    let mut v = ArrayVec::<_, 8>::from([0; 8]);
     v.drain(0..=7);
     assert_eq!(&v[..], &[]);
 
@@ -367,13 +367,13 @@ fn test_drain_range_inclusive() {
 #[test]
 #[should_panic]
 fn test_drain_range_inclusive_oob() {
-    let mut v = ArrayVec::from([0; 0]);
+    let mut v = ArrayVec::<_, 0>::from([0; 0]);
     v.drain(0..=0);
 }
 
 #[test]
 fn test_retain() {
-    let mut v = ArrayVec::from([0; 8]);
+    let mut v = ArrayVec::<_, 8>::from([0; 8]);
     for (i, elt) in v.iter_mut().enumerate() {
         *elt = i;
     }
@@ -391,7 +391,7 @@ fn test_retain() {
 #[test]
 #[should_panic]
 fn test_drain_oob() {
-    let mut v = ArrayVec::from([0; 8]);
+    let mut v = ArrayVec::<_, 8>::from([0; 8]);
     v.pop();
     v.drain(0..8);
 }
@@ -429,7 +429,7 @@ fn test_drop_panic_into_iter() {
 
 #[test]
 fn test_insert() {
-    let mut v = ArrayVec::from([]);
+    let mut v = ArrayVec::<_, 0>::from([]);
     assert_matches!(v.try_push(1), Err(_));
 
     let mut v = ArrayVec::<_,  3>::new();
@@ -445,7 +445,7 @@ fn test_insert() {
     assert_eq!(&v[..], &[0, 1, 2]);
     assert_matches!(ret2, Err(_));
 
-    let mut v = ArrayVec::from([2]);
+    let mut v = ArrayVec::<_, 1>::from([2]);
     assert_matches!(v.try_insert(0, 1), Err(CapacityError { .. }));
     assert_matches!(v.try_insert(1, 1), Err(CapacityError { .. }));
     //assert_matches!(v.try_insert(2, 1), Err(CapacityError { .. }));
@@ -453,7 +453,7 @@ fn test_insert() {
 
 #[test]
 fn test_into_inner_1() {
-    let mut v = ArrayVec::from([1, 2]);
+    let mut v = ArrayVec::<_, 2>::from([1, 2]);
     v.pop();
     let u = v.clone();
     assert_eq!(v.into_inner(), Err(u));
@@ -681,7 +681,8 @@ fn test_pop_at() {
 
 #[test]
 fn test_sizes() {
-    let v = ArrayVec::from([0u8; 1 << 16]);
+    const LEN: usize = 1 << 16;
+    let v = ArrayVec::<_, LEN>::from([0u8; LEN]);
     assert_eq!(vec![0u8; v.len()], &v[..]);
 }
 
