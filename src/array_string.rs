@@ -30,6 +30,24 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 ///
 /// The string is a contiguous value that you can store directly on the stack
 /// if needed.
+/// 
+/// ## Example
+/// ```rust
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// use arrayvec::ArrayString;
+/// 
+/// // Create a new ArrayString with a capacity of 12
+/// let mut hello = ArrayString::<12>::from("Hello")?;
+/// 
+/// let mut hello_world = hello.clone();
+/// hello_world.push_str(" world!");
+/// assert_eq!(hello_world.as_str(), "Hello world!");
+/// 
+/// // Too long!
+/// assert!(hello.try_push_str(" to the world and the universe!").is_err());
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Copy)]
 pub struct ArrayString<const CAP: usize> {
     // the `len` first elements of the array are initialized
