@@ -848,6 +848,32 @@ impl<T, const CAP: usize> IntoIterator for ArrayVec<T, CAP> {
 }
 
 
+#[cfg(feature = "zeroize")]
+/// "Best efforts" zeroing of the `ArrayVec`'s buffer when the `zeroize` feature is enabled.
+///
+/// The length is set to 0, and the buffer is dropped and zeroized.
+/// Cannot ensure that previous moves of the `ArrayVec` did not leave values on the stack.
+///
+/// ```
+/// use arrayvec::ArrayVec;
+/// use zeroize::Zeroize;
+/// let mut array = ArrayVec::from([1, 2, 3]);
+/// array.zeroize();
+/// assert_eq!(array.len(), 0);
+/// let data = unsafe { core::slice::from_raw_parts(array.as_ptr(), array.capacity()) };
+/// assert_eq!(data, [0, 0, 0]);
+/// ```
+impl<Z: zeroize::Zeroize, const CAP: usize> zeroize::Zeroize for ArrayVec<Z, CAP> {
+    fn zeroize(&mut self) {
+        // Zeroize all the contained elements.
+        self.iter_mut().zeroize();
+        // Drop all the elements and set the length to 0.
+        self.clear();
+        // Zeroize the backing array.
+        self.xs.zeroize();
+    }
+}
+
 /// By-value iterator for `ArrayVec`.
 pub struct IntoIter<T, const CAP: usize> {
     index: usize,

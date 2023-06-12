@@ -647,3 +647,27 @@ impl<'a, const CAP: usize> TryFrom<fmt::Arguments<'a>> for ArrayString<CAP>
         Ok(v)
     }
 }
+
+#[cfg(feature = "zeroize")]
+/// "Best efforts" zeroing of the `ArrayString`'s buffer when the `zeroize` feature is enabled.
+///
+/// The length is set to 0, and the buffer is dropped and zeroized.
+/// Cannot ensure that previous moves of the `ArrayString` did not leave values on the stack.
+///
+/// ```
+/// use arrayvec::ArrayString;
+/// use zeroize::Zeroize;
+/// let mut string = ArrayString::<6>::from("foobar").unwrap();
+/// string.zeroize();
+/// assert_eq!(string.len(), 0);
+/// unsafe { string.set_len(string.capacity()) };
+/// assert_eq!(&*string, "\0\0\0\0\0\0");
+/// ```
+impl<const CAP: usize> zeroize::Zeroize for ArrayString<CAP> {
+    fn zeroize(&mut self) {
+        // There are no elements to drop
+        self.clear();
+        // Zeroize the backing array.
+        self.xs.zeroize();
+    }
+}
