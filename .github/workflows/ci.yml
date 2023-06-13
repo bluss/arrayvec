@@ -22,12 +22,13 @@ jobs:
             experimental: false
           - rust: stable
             features:
+            bench: true
             experimental: false
           - rust: beta
             features: serde
             experimental: false
           - rust: nightly
-            features: serde
+            features: serde, zeroize
             experimental: false
 
     steps:
@@ -57,4 +58,4 @@ jobs:
           rustup override set nightly
           cargo miri setup
       - name: Test with Miri
-        run: cargo miri test
+        run: cargo miri test --all-features
