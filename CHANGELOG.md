@@ -1,6 +1,10 @@
 Recent Changes (arrayvec)
 =========================
 
+## 0.7.4
+
+- Add feature zeroize to support the `Zeroize` trait by @elichai
+
 ## 0.7.3
 
 - Use track_caller on multiple methods like push and similar, for capacity
