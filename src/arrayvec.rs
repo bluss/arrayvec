@@ -1,5 +1,5 @@
-
 use std::cmp;
+use std::convert::TryFrom;
 use std::iter;
 use std::mem;
 use std::ops::{Bound, Deref, DerefMut, RangeBounds};
@@ -61,9 +61,6 @@ macro_rules! panic_oob {
 }
 
 impl<T, const CAP: usize> ArrayVec<T, CAP> {
-    /// Capacity
-    const CAPACITY: usize = CAP;
-
     /// Create a new empty `ArrayVec`.
     ///
     /// The maximum capacity is given by the generic parameter `CAP`.
@@ -663,13 +660,82 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 
     /// Return the inner fixed size array.
     ///
-    /// Safety:
+    /// # Safety
+    ///
     /// This operation is safe if and only if length equals capacity.
     pub unsafe fn into_inner_unchecked(self) -> [T; CAP] {
         debug_assert_eq!(self.len(), self.capacity());
         let self_ = ManuallyDrop::new(self);
         let array = ptr::read(self_.as_ptr() as *const [T; CAP]);
         array
+    }
+    
+    /// Converts `self` into an allocated vector with the given capacity.
+    ///
+    /// # Safety
+    ///
+    /// The caller is responsible for ensuring that `capacity >= self.len()`.
+    pub unsafe fn into_vec_with_capacity(self, capacity: usize) -> Vec<T> {
+        debug_assert!(capacity >= self.len());
+
+        let mut vec = Vec::with_capacity(capacity);
+        let me = ManuallyDrop::new(self);
+        let len = me.len();
+         
+        // SAFETY: The caller ensures that we own a region of memory at least as large as `len`
+        // at the location pointed to by `vec`.
+        me.as_ptr().copy_to_nonoverlapping(vec.as_mut_ptr(), len);
+        vec.set_len(len);
+
+        vec
+    }
+        
+    /// Converts `self` into an allocated vector.
+    ///
+    /// # Allocation
+    ///
+    /// This method allocates a vector with capacity equal to the capacity of the original `ArrayVec`.
+    /// 
+    /// To only allocate exactly enough space for the elements stored in `self`, use the
+    /// [`into_boxed_slice`](Self::into_boxed_slice) method.
+    ///
+    /// To allocate a specific amount of space, see the
+    /// [`into_vec_with_capacity`](Self::into_vec_with_capacity) method.
+    #[inline]
+    pub fn into_vec(self) -> Vec<T> {
+        // SAFETY: The capacity of `self` is at least as large as the length of `self`.
+        unsafe { 
+            self.into_vec_with_capacity(CAP)
+        }
+    }
+        
+    /// Converts the `ArrayVec` into `Box<[T]>`.
+    ///
+    /// Note that this will drop any excess capacity.
+    #[inline]
+    pub fn into_boxed_slice(self) -> Box<[T]> {
+        let len = self.len();
+        // SAFETY: We only require the memory capacity equal to the length of the initialized data region in `self`.
+        unsafe {
+            self.into_vec_with_capacity(len).into_boxed_slice()
+        }
+    }
+
+    /// Create a new `ArrayVec` by consuming a boxed slice, moving the heap-allocated slice to a
+    /// stack-allocated array.
+    ///
+    /// # Safety
+    ///
+    /// The caller is responsible for ensuring that the slice has a length no larger than the
+    /// capacity of `ArrayVec`.
+    pub unsafe fn from_boxed_slice_unchecked(boxed_slice: Box<[T]>) -> Self {
+        debug_assert!(CAP >= boxed_slice.len());
+        assert_capacity_limit!(CAP);
+        let len = boxed_slice.len() as LenUint;
+        Self {
+            xs: *Box::from_raw(Box::into_raw(boxed_slice) as *mut [MaybeUninit<T>; CAP]) ,
+            len,
+        }
     }
 
     /// Returns the ArrayVec, replacing the original with a new empty ArrayVec.
@@ -765,7 +831,6 @@ impl<T, const CAP: usize> From<[T; CAP]> for ArrayVec<T, CAP> {
     }
 }
 
-
 /// Try to create an `ArrayVec` from a slice. This will return an error if the slice was too big to
 /// fit.
 ///
@@ -777,13 +842,13 @@ impl<T, const CAP: usize> From<[T; CAP]> for ArrayVec<T, CAP> {
 /// assert_eq!(array.len(), 3);
 /// assert_eq!(array.capacity(), 4);
 /// ```
-impl<T, const CAP: usize> std::convert::TryFrom<&[T]> for ArrayVec<T, CAP>
+impl<T, const CAP: usize> TryFrom<&[T]> for ArrayVec<T, CAP>
     where T: Clone,
 {
     type Error = CapacityError;
 
     fn try_from(slice: &[T]) -> Result<Self, Self::Error> {
-        if Self::CAPACITY < slice.len() {
+        if CAP < slice.len() {
             Err(CapacityError::new(()))
         } else {
             let mut array = Self::new();
@@ -793,6 +858,106 @@ impl<T, const CAP: usize> std::convert::TryFrom<&[T]> for ArrayVec<T, CAP>
     }
 }
 
+/// Create a `Box<[T]>` from an `ArrayVec<T>`.
+///
+/// ```
+/// use arrayvec::ArrayVec;
+///
+/// let array = ArrayVec::from([1, 2, 3]);
+/// let slice = Box::<[_]>::from(array.clone());
+/// assert_eq!(array.as_slice(), slice.as_ref());
+/// ```
+impl<T, const CAP: usize> From<ArrayVec<T, CAP>> for Box<[T]> {
+    #[inline]
+    fn from(array: ArrayVec<T, CAP>) -> Self {
+        array.into_boxed_slice()
+    }
+}
+
+/// Try to create an `ArrayVec` from a `Box<[_]>`. This will return an error if the boxed slice was too big to
+/// fit.
+///
+/// ```
+/// use arrayvec::ArrayVec;
+/// use std::convert::TryInto as _;
+///
+/// let slice: Box<[_]> = Box::new([1, 2, 3]);
+/// let array: ArrayVec<_, 4> = slice.clone().try_into().unwrap();
+/// assert_eq!(array.len(), 3);
+/// assert_eq!(array.capacity(), 4);
+/// ```
+impl<T, const CAP: usize> TryFrom<Box<[T]>> for ArrayVec<T, CAP> {
+    type Error = CapacityError;
+
+    fn try_from(slice: Box<[T]>) -> Result<Self, Self::Error> {
+        if CAP < slice.len() {
+            Err(CapacityError::new(()))
+        } else {
+            Ok(unsafe { Self::from_boxed_slice_unchecked(slice) })
+        }
+    }
+}
+
+/// Try to create an `ArrayVec` from a `Box<[_; N]>`. This will return an error if the boxed array was too big to
+/// fit.
+///
+/// ```
+/// use arrayvec::ArrayVec;
+/// use std::convert::TryInto as _;
+///
+/// let slice: Box<[_; 3]> = Box::new([1, 2, 3]);
+/// let array: ArrayVec<_, 4> = slice.clone().try_into().unwrap();
+/// assert_eq!(array.len(), 3);
+/// assert_eq!(array.capacity(), 4);
+/// ```
+impl<T, const N: usize, const CAP: usize> TryFrom<Box<[T; N]>> for ArrayVec<T, CAP> {
+    type Error = CapacityError;
+    
+    #[inline]
+    fn try_from(array: Box<[T; N]>) -> Result<Self, Self::Error> {
+        Self::try_from(array as Box<[_]>)
+    }
+}
+
+/// Create a `Vec<T>` from an `ArrayVec<T>`.
+///
+/// ```
+/// use arrayvec::ArrayVec;
+/// use std::convert::TryInto as _;
+///
+/// let array: ArrayVec<_, 4> = vec![1, 2, 3].try_into().unwrap();
+/// let vector = Vec::from(array.clone());
+/// assert_eq!(array.capacity(), vector.capacity());
+/// assert_eq!(array.as_slice(), vector.as_slice());
+/// ```
+impl<T, const CAP: usize> From<ArrayVec<T, CAP>> for Vec<T> {
+    #[inline]
+    fn from(array: ArrayVec<T, CAP>) -> Self {
+        array.into_vec()
+    }
+}
+
+/// Try to create an `ArrayVec` from a `Vec`. This will return an error if the vector was too big to
+/// fit.
+///
+/// ```
+/// use arrayvec::ArrayVec;
+/// use std::convert::TryInto as _;
+///
+/// let vec = vec![1, 2, 3];
+/// let array: ArrayVec<_, 4> = vec.clone().try_into().unwrap();
+/// assert_eq!(array.len(), 3);
+/// assert_eq!(array.capacity(), 4);
+/// assert_eq!(vec.as_slice(), array.as_slice());
+/// ```
+impl<T, const CAP: usize> TryFrom<Vec<T>> for ArrayVec<T, CAP> {
+    type Error = CapacityError;
+    
+    #[inline]
+    fn try_from(vec: Vec<T>) -> Result<Self, Self::Error> {
+        Self::try_from(vec.into_boxed_slice())
+    }
+}
 
 /// Iterate the `ArrayVec` with references to each element.
 ///
