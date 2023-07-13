@@ -118,7 +118,7 @@ Recent Changes (arrayvec)
   users outside the crate.
 - Add `FromStr` impl for `ArrayString` by @despawnerer
 - Add method `try_extend_from_slice` to `ArrayVec`, which is always
-  effecient by @Thomasdezeeuw.
+  efficient by @Thomasdezeeuw.
 - Add method `remaining_capacity` by @Thomasdezeeuw
 - Improve performance of the `extend` method.
 - The index type of zero capacity vectors is now itself zero size, by
@@ -169,7 +169,7 @@ Recent Changes (arrayvec)
 
   - Fix future compat warning about raw pointer casts
   - Use `drop_in_place` when dropping the arrayvec by-value iterator
-  - Decrease mininum Rust version (see docs) by @jeehoonkang
+  - Decrease minimum Rust version (see docs) by @jeehoonkang
 
 - 0.3.25
 
