@@ -66,6 +66,78 @@ fn test_extend_from_slice_error() {
 }
 
 #[test]
+fn test_splice_works_when_it_should() {
+    // Comparing behavior with std::vec::Vec to make sure it's analogous
+    let mut vec: Vec<_> = (0..5).collect();
+    let mut array: ArrayVec<_,  5> = (0..5).collect();
+    assert_eq!(&vec[..], &[0, 1, 2, 3, 4]);
+    assert_eq!(&array[..], &[0, 1, 2, 3, 4]);
+    // Typical case
+    let vec_popped: Vec<_> = vec.splice( 1..4, vec![11, 12, 13]).into_iter().collect();
+    assert_eq!(&vec[..], &[0, 11, 12, 13, 4]);
+    assert_eq!(&vec_popped, &[1, 2, 3]);
+    let array_popped: Vec<_> = array.splice( 1..4, vec![11, 12, 13]).into_iter().collect();
+    assert_eq!(&array[..], &vec[..]);
+    assert_eq!(&array_popped, &vec_popped);
+    // `replace_with` shorter than `range`
+    let vec_popped: Vec<_> = vec.splice( 2..5, vec![21, 22]).into_iter().collect();
+    assert_eq!(&vec[..], &[0, 11, 21, 22]);
+    assert_eq!(&vec_popped, &[12, 13, 4]);
+    let array_popped: Vec<_> = array.splice( 2..5, vec![21, 22]).into_iter().collect();
+    assert_eq!(&array[..], &vec[..]);
+    assert_eq!(&array_popped, &vec_popped);
+    // `range` shorter than `replace_with`
+    let vec_popped: Vec<_> = vec.splice( 3..4, vec![31, 32]).into_iter().collect();
+    assert_eq!(&vec[..], &[0, 11, 21, 31, 32]);
+    assert_eq!(&vec_popped, &[22]);
+    let array_popped: Vec<_> = array.splice( 3..4, vec![31, 32]).into_iter().collect();
+    assert_eq!(&array[..], &vec[..]);
+    assert_eq!(&array_popped, &vec_popped);
+    //`replace_with` shorter than open `range`
+    let vec_popped: Vec<_> = vec.splice( 1.., vec![41, 42]).into_iter().collect();
+    assert_eq!(&vec[..], &[0, 41, 42]);
+    assert_eq!(&vec_popped, &[11, 21, 31, 32]);
+    let array_popped: Vec<_> = array.splice( 1.., vec![41, 42]).into_iter().collect();
+    assert_eq!(&array[..], &vec[..]);
+    assert_eq!(&array_popped, &vec_popped);
+    // `range` shorter than open `replace_with`
+    let vec_popped: Vec<_> = vec.splice( 3.., vec![51, 52]).into_iter().collect();
+    assert_eq!(&vec[..], &[0, 41, 42, 51, 52]);
+    assert_eq!(&vec_popped, &[]);
+    let array_popped: Vec<_> = array.splice( 3.., vec![51, 52]).into_iter().collect();
+    assert_eq!(&array[..], &vec[..]);
+    assert_eq!(&array_popped, &vec_popped);
+}
+
+#[test]
+#[should_panic]
+fn test_splice_fails_on_overflowing_range() {
+    // Comparing behavior with std::vec::Vec to make sure it's analogous
+    let mut vec: Vec<_> = (0..5).collect();
+    let mut array: ArrayVec<_,  5> = (0..5).collect();
+    let vec_popped: Vec<_> = vec.splice( 4..6, vec![11]).into_iter().collect();
+    // This is actually less than 5!
+    // Maybe this would be fine, but we don't want to allow using overflowing ranges with ArrayVec anyway
+    assert_eq!(&vec[..], &[0, 1, 2, 11]);
+    assert_eq!(&vec_popped, &[3, 4]);
+    array.splice(4..6, vec![11]);
+}
+
+#[test]
+#[should_panic]
+fn test_splice_fails_if_operation_would_enlarge_vec() {
+    // Comparing behavior with std::vec::Vec to make sure it's analogous
+    let mut vec: Vec<_> = (0..5).collect();
+    let mut array: ArrayVec<_,  5> = (0..5).collect();
+    let vec_popped: Vec<_> = vec.splice( 4..5, vec![11, 12, 13]).into_iter().collect();
+    // This is now 6 instead of 5!
+    // No way for this ArrayVec to fit this in
+    assert_eq!(&vec[..], &[0, 1, 2, 11, 12, 13]);
+    assert_eq!(&vec_popped, &[3, 4]);
+    array.splice(4..5, vec![11, 12, 13]);
+}
+
+#[test]
 fn test_try_from_slice_error() {
     use arrayvec::ArrayVec;
     use std::convert::TryInto as _;

@@ -23,6 +23,7 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use crate::LenUint;
 use crate::errors::CapacityError;
 use crate::arrayvec_impl::ArrayVecImpl;
+use crate::splice::Splice;
 use crate::utils::MakeMaybeUninit;
 
 /// A vector with a fixed capacity.
@@ -41,8 +42,8 @@ use crate::utils::MakeMaybeUninit;
 /// available. The ArrayVec can be converted into a by value iterator.
 pub struct ArrayVec<T, const CAP: usize> {
     // the `len` first elements of the array are initialized
-    xs: [MaybeUninit<T>; CAP],
-    len: LenUint,
+    pub(super) xs: [MaybeUninit<T>; CAP],
+    pub(super) len: LenUint,
 }
 
 impl<T, const CAP: usize> Drop for ArrayVec<T, CAP> {
@@ -256,7 +257,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 
 
     /// Get pointer to where element at `index` would be
-    unsafe fn get_unchecked_ptr(&mut self, index: usize) -> *mut T {
+    pub(super) unsafe fn get_unchecked_ptr(&mut self, index: usize) -> *mut T {
         self.as_mut_ptr().add(index)
     }
 
@@ -582,6 +583,33 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         }
         Ok(())
     }
+
+    /// Creates a splicing iterator that replaces the specified range in the vector with the given `replace_with` iterator and yields the removed items. `replace_with` does not need to be the same length as `range`.
+    ///
+    /// `range` is removed even if the iterator is not consumed until the end.
+    ///
+    /// It is unspecified how many elements are removed from the vector if the `Splice` value is leaked.
+    ///
+    /// The input iterator `replace_with` is only consumed when the `Splice` value is dropped.
+    ///
+    /// ```
+    /// use std::iter::FromIterator;
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut vec: ArrayVec<usize, 4> = ArrayVec::from_iter((0..4));
+    /// let elements_popped: Vec<_> = vec.splice(1..3, vec![7, 9]).into_iter().collect();
+    /// assert_eq!(&vec[..], &[0, 7, 9, 3]);
+    /// assert_eq!(&elements_popped[..], &[1, 2]);
+    /// ```
+    ///
+    /// ***Panics*** if splicing the vector exceeds its capacity.
+    pub fn splice<R, I>(&mut self, range: R, replace_with: I) -> Splice<'_, I::IntoIter, CAP>
+        where
+            R: RangeBounds<usize>,
+            I: IntoIterator<Item = T>,
+        {
+            Splice { drain: self.drain(range), replace_with: replace_with.into_iter() }
+        }
 
     /// Create a draining iterator that removes the specified range in the vector
     /// and yields the removed items from start to end. The element range is
@@ -956,12 +984,12 @@ where
 /// A draining iterator for `ArrayVec`.
 pub struct Drain<'a, T: 'a, const CAP: usize> {
     /// Index of tail to preserve
-    tail_start: usize,
+    pub(super) tail_start: usize,
     /// Length of tail
-    tail_len: usize,
+    pub(super) tail_len: usize,
     /// Current remaining range to remove
-    iter: slice::Iter<'a, T>,
-    vec: *mut ArrayVec<T, CAP>,
+    pub(super) iter: slice::Iter<'a, T>,
+    pub(super) vec: *mut ArrayVec<T, CAP>,
 }
 
 unsafe impl<'a, T: Sync, const CAP: usize> Sync for Drain<'a, T, CAP> {}
