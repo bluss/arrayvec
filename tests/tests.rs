@@ -545,7 +545,19 @@ fn test_string() {
     let tmut: &mut str = &mut t;
     assert_eq!(tmut, "ab");
 
+    // test ArrayString -> &str in const fn
+    let arr_str = ArrayString::<2>::from("ab").unwrap();
+    const fn get_second_char(a: ArrayString<2>) -> char {
+        match a.as_str_const().as_bytes() {
+            [_char1, char2] => (*char2) as char,
+            [_char1] => panic!(),
+            _ => unreachable!(),
+        }
+    }
+    assert_eq!(get_second_char(arr_str), 'b');
+
     // Test Error trait / try
+
     let t = || -> Result<(), Box<dyn Error>> {
         let mut t = ArrayString::<2>::new();
         t.try_push_str(text)?;

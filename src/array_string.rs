@@ -298,7 +298,7 @@ impl<const CAP: usize> ArrayString<CAP>
     ///
     /// ```
     /// use arrayvec::ArrayString;
-    /// 
+    ///
     /// let mut s = ArrayString::<3>::from("foo").unwrap();
     ///
     /// assert_eq!(s.pop(), Some('o'));
@@ -338,7 +338,7 @@ impl<const CAP: usize> ArrayString<CAP>
     pub fn truncate(&mut self, new_len: usize) {
         if new_len <= self.len() {
             assert!(self.is_char_boundary(new_len));
-            unsafe { 
+            unsafe {
                 // In libstd truncate is called on the underlying vector,
                 // which in turns drops each element.
                 // As we know we don't have to worry about Drop,
@@ -358,7 +358,7 @@ impl<const CAP: usize> ArrayString<CAP>
     ///
     /// ```
     /// use arrayvec::ArrayString;
-    /// 
+    ///
     /// let mut s = ArrayString::<3>::from("foo").unwrap();
     ///
     /// assert_eq!(s.remove(0), 'f');
@@ -414,12 +414,22 @@ impl<const CAP: usize> ArrayString<CAP>
         self
     }
 
-    fn as_ptr(&self) -> *const u8 {
+    const fn as_ptr(&self) -> *const u8 {
         self.xs.as_ptr() as *const u8
     }
 
     fn as_mut_ptr(&mut self) -> *mut u8 {
         self.xs.as_mut_ptr() as *mut u8
+    }
+
+    /// Provide a &str in constant contexts where the dereference
+    /// trait is not available.
+    #[inline]
+    pub const fn as_str_const(&self) -> &str {
+        unsafe {
+            let sl = slice::from_raw_parts(self.as_ptr(), self.len());
+            str::from_utf8_unchecked(sl)
+        }
     }
 }
 
@@ -428,10 +438,7 @@ impl<const CAP: usize> Deref for ArrayString<CAP>
     type Target = str;
     #[inline]
     fn deref(&self) -> &str {
-        unsafe {
-            let sl = slice::from_raw_parts(self.as_ptr(), self.len());
-            str::from_utf8_unchecked(sl)
-        }
+        self.as_str_const()
     }
 }
 
@@ -468,7 +475,7 @@ impl<const CAP: usize> PartialEq<ArrayString<CAP>> for str
     }
 }
 
-impl<const CAP: usize> Eq for ArrayString<CAP> 
+impl<const CAP: usize> Eq for ArrayString<CAP>
 { }
 
 impl<const CAP: usize> Hash for ArrayString<CAP>
@@ -589,7 +596,7 @@ impl<const CAP: usize> Serialize for ArrayString<CAP>
 
 #[cfg(feature="serde")]
 /// Requires crate feature `"serde"`
-impl<'de, const CAP: usize> Deserialize<'de> for ArrayString<CAP> 
+impl<'de, const CAP: usize> Deserialize<'de> for ArrayString<CAP>
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where D: Deserializer<'de>
