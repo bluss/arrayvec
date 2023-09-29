@@ -5,7 +5,8 @@ extern crate serde_test;
 mod array_vec {
     use arrayvec::ArrayVec;
 
-    use serde_test::{Token, assert_tokens, assert_de_tokens_error};
+    use serde_test::{assert_de_tokens_error, assert_tokens, Token};
+    use serde_with::{serde_as, DisplayFromStr};
 
     #[test]
     fn test_ser_de_empty() {
@@ -36,12 +37,44 @@ mod array_vec {
 
     #[test]
     fn test_de_too_large() {
-        assert_de_tokens_error::<ArrayVec<u32, 2>>(&[
-            Token::Seq { len: Some(3) },
-            Token::U32(13),
-            Token::U32(42),
-            Token::U32(68),
-        ], "invalid length 3, expected an array with no more than 2 items");
+        assert_de_tokens_error::<ArrayVec<u32, 2>>(
+            &[
+                Token::Seq { len: Some(3) },
+                Token::U32(13),
+                Token::U32(42),
+                Token::U32(68),
+            ],
+            "invalid length 3, expected an array with no more than 2 items",
+        );
+    }
+
+    #[serde_as]
+    #[derive(serde::Serialize, serde::Deserialize, PartialEq, Eq, Debug)]
+    struct SerdeAs {
+        #[serde_as(as = "ArrayVec<DisplayFromStr, 3>")]
+        x: ArrayVec<u32, 3>
+    }
+
+    #[test]
+    fn test_ser_de_as() {
+        let mut serde_as = SerdeAs {x: ArrayVec::<u32, 3>::new()};
+        serde_as.x.push(20);
+        serde_as.x.push(55);
+        serde_as.x.push(123);
+
+        assert_tokens(
+            &serde_as,
+            &[
+                Token::Struct { name: "SerdeAs", len: 1 },
+                Token::Str("x"),
+                Token::Seq { len: Some(3) },
+                Token::Str("20"),
+                Token::Str("55"),
+                Token::Str("123"),
+                Token::SeqEnd,
+                Token::StructEnd,
+            ],
+        );
     }
 }
 

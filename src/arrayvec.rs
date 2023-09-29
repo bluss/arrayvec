@@ -17,8 +17,11 @@ use std::io;
 use std::mem::ManuallyDrop;
 use std::mem::MaybeUninit;
 
-#[cfg(feature="serde")]
-use serde::{Serialize, Deserialize, Serializer, Deserializer};
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+#[cfg(feature = "serde")]
+use serde_with::{de::DeserializeAsWrap, ser::SerializeAsWrap, DeserializeAs, SerializeAs};
 
 use crate::LenUint;
 use crate::errors::CapacityError;
@@ -1262,7 +1265,18 @@ impl<T: Serialize, const CAP: usize> Serialize for ArrayVec<T, CAP> {
     }
 }
 
-#[cfg(feature="serde")]
+#[cfg(feature = "serde")]
+/// Requires crate feature `"serde"`
+impl<T, U: SerializeAs<T>, const CAP: usize> SerializeAs<ArrayVec<T, CAP>> for ArrayVec<U, CAP> {
+    fn serialize_as<S>(source: &ArrayVec<T, CAP>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.collect_seq(source.iter().map(SerializeAsWrap::<T, U>::new))
+    }
+}
+
+#[cfg(feature = "serde")]
 /// Requires crate feature `"serde"`
 impl<'de, T: Deserialize<'de>, const CAP: usize> Deserialize<'de> for ArrayVec<T, CAP> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -1286,7 +1300,7 @@ impl<'de, T: Deserialize<'de>, const CAP: usize> Deserialize<'de> for ArrayVec<T
                 let mut values = ArrayVec::<T, CAP>::new();
 
                 while let Some(value) = seq.next_element()? {
-                    if let Err(_) = values.try_push(value) {
+                    if values.try_push(value).is_err() {
                         return Err(SA::Error::invalid_length(CAP + 1, &self));
                     }
                 }
@@ -1296,5 +1310,53 @@ impl<'de, T: Deserialize<'de>, const CAP: usize> Deserialize<'de> for ArrayVec<T
         }
 
         deserializer.deserialize_seq(ArrayVecVisitor::<T, CAP>(PhantomData))
+    }
+}
+
+#[cfg(feature = "serde")]
+/// Requires crate feature `"serde"`
+impl<'de, T, U, const CAP: usize> DeserializeAs<'de, ArrayVec<T, CAP>> for ArrayVec<U, CAP>
+where
+    U: DeserializeAs<'de, T>,
+{
+    fn deserialize_as<D>(deserializer: D) -> Result<ArrayVec<T, CAP>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        use serde::de::{Error, SeqAccess, Visitor};
+        use std::marker::PhantomData;
+
+        struct ArrayVecVisitor<'de, T, U, const CAP: usize>(PhantomData<(&'de (), U, [T; CAP])>);
+
+        impl<'de, T, U, const CAP: usize> Visitor<'de> for ArrayVecVisitor<'de, T, U, CAP>
+        where
+            U: DeserializeAs<'de, T>,
+        {
+            type Value = ArrayVec<T, CAP>;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                write!(formatter, "an array with no more than {} items", CAP)
+            }
+
+            fn visit_seq<SA>(self, mut seq: SA) -> Result<Self::Value, SA::Error>
+            where
+                SA: SeqAccess<'de>,
+            {
+                let mut values = ArrayVec::<T, CAP>::new();
+
+                while let Some(value) = seq
+                    .next_element()?
+                    .map(|v: DeserializeAsWrap<T, U>| v.into_inner())
+                {
+                    if let Err(_) = values.try_push(value) {
+                        return Err(SA::Error::invalid_length(CAP + 1, &self));
+                    }
+                }
+
+                Ok(values)
+            }
+        }
+
+        deserializer.deserialize_seq(ArrayVecVisitor::<T, U, CAP>(PhantomData))
     }
 }
