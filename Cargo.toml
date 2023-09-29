@@ -42,6 +42,8 @@ harness = false
 [features]
 default = ["std"]
 std = []
+len_u16 = []
+len_u8 = []
 
 [profile.bench]
 debug = true
