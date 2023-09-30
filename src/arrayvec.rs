@@ -583,6 +583,50 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         Ok(())
     }
 
+    /// Returns an `ArrayVec` by applying function `f` to each element of the passed `ArrayVec`.
+    ///
+    /// If you don't need your output as a new `ArrayVec` with the same capacity, consider using
+    /// [`Iterator::map`].
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let x = ArrayVec::from([1, 2, 3]);
+    /// let y = x.map(|v| v + 1);
+    /// assert_eq!(&y[..], &[2, 3, 4]);
+    /// ```
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let x = ArrayVec::from([1, 2, 3]);
+    /// let mut temp = 0;
+    /// let y = x.map(|v| { temp += 1; v * temp });
+    /// assert_eq!(&y[..], &[1, 4, 9]);
+    /// ```
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let x = ArrayVec::from(["Ferris", "Bueller's", "Day", "Off"]);
+    /// let y = x.map(|v| v.len());
+    /// assert_eq!(&y[..], &[6, 9, 3, 3]);
+    /// ```
+    pub fn map<U>(self, mut f: impl FnMut(T) -> U) -> ArrayVec<U, CAP> {
+        let mut new_xs: [MaybeUninit<U>; CAP] = unsafe { MaybeUninit::uninit().assume_init() };
+
+        let len = self.len;
+
+        for (new_element, element) in (&mut new_xs[..]).iter_mut().zip(self.into_iter()) {
+            new_element.write(f(element));
+        }
+
+        ArrayVec {
+            xs: new_xs,
+            len,
+        }
+    }
+
     /// Create a draining iterator that removes the specified range in the vector
     /// and yields the removed items from start to end. The element range is
     /// removed even if the iterator is not consumed until the end.
@@ -933,7 +977,7 @@ impl<T, const CAP: usize> Drop for IntoIter<T, CAP> {
 }
 
 impl<T, const CAP: usize> Clone for IntoIter<T, CAP>
-where T: Clone,
+    where T: Clone,
 {
     fn clone(&self) -> IntoIter<T, CAP> {
         let mut v = ArrayVec::new();
@@ -943,8 +987,8 @@ where T: Clone,
 }
 
 impl<T, const CAP: usize> fmt::Debug for IntoIter<T, CAP>
-where
-    T: fmt::Debug,
+    where
+        T: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_list()
@@ -1036,11 +1080,11 @@ impl<T, Data, F> Drop for ScopeExitGuard<T, Data, F>
 
 
 /// Extend the `ArrayVec` with an iterator.
-/// 
+///
 /// ***Panics*** if extending the vector exceeds its capacity.
 impl<T, const CAP: usize> Extend<T> for ArrayVec<T, CAP> {
     /// Extend the `ArrayVec` with an iterator.
-    /// 
+    ///
     /// ***Panics*** if extending the vector exceeds its capacity.
     #[track_caller]
     fn extend<I: IntoIterator<Item=T>>(&mut self, iter: I) {
@@ -1122,11 +1166,11 @@ unsafe fn raw_ptr_add<T>(ptr: *mut T, offset: usize) -> *mut T {
 }
 
 /// Create an `ArrayVec` from an iterator.
-/// 
+///
 /// ***Panics*** if the number of elements in the iterator exceeds the arrayvec's capacity.
 impl<T, const CAP: usize> iter::FromIterator<T> for ArrayVec<T, CAP> {
     /// Create an `ArrayVec` from an iterator.
-    /// 
+    ///
     /// ***Panics*** if the number of elements in the iterator exceeds the arrayvec's capacity.
     fn from_iter<I: IntoIterator<Item=T>>(iter: I) -> Self {
         let mut array = ArrayVec::new();
