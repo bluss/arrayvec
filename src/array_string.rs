@@ -625,6 +625,28 @@ impl<'de, const CAP: usize> Deserialize<'de> for ArrayString<CAP>
     }
 }
 
+#[cfg(feature = "borsh")]
+/// Requires crate feature `"borsh"`
+impl<const CAP: usize> borsh::BorshSerialize for ArrayString<CAP> {
+    fn serialize<W: borsh::io::Write>(&self, writer: &mut W) -> borsh::io::Result<()> {
+        <str as borsh::BorshSerialize>::serialize(&*self, writer)
+    }
+}
+
+#[cfg(feature = "borsh")]
+/// Requires crate feature `"borsh"`
+impl<const CAP: usize> borsh::BorshDeserialize for ArrayString<CAP> {
+    fn deserialize_reader<R: borsh::io::Read>(reader: &mut R) -> borsh::io::Result<Self> {
+        let s = <String as borsh::BorshDeserialize>::deserialize_reader(reader)?;
+        ArrayString::from(&s).map_err(|_| {
+            borsh::io::Error::new(
+                borsh::io::ErrorKind::InvalidData,
+                format!("expected a string no more than {} bytes long", CAP),
+            )
+        })
+    }
+}
+
 impl<'a, const CAP: usize> TryFrom<&'a str> for ArrayString<CAP>
 {
     type Error = CapacityError<&'a str>;
