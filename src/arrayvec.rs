@@ -39,10 +39,11 @@ use crate::utils::MakeMaybeUninit;
 ///
 /// It offers a simple API but also dereferences to a slice, so that the full slice API is
 /// available. The ArrayVec can be converted into a by value iterator.
+#[repr(C)]
 pub struct ArrayVec<T, const CAP: usize> {
+    len: LenUint,
     // the `len` first elements of the array are initialized
     xs: [MaybeUninit<T>; CAP],
-    len: LenUint,
 }
 
 impl<T, const CAP: usize> Drop for ArrayVec<T, CAP> {
