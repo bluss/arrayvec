@@ -23,6 +23,7 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use crate::LenUint;
 use crate::errors::CapacityError;
 use crate::arrayvec_impl::ArrayVecImpl;
+use crate::arrayvec_ref::ArrayVecRefMut;
 use crate::utils::MakeMaybeUninit;
 
 /// A vector with a fixed capacity.
@@ -704,6 +705,11 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// Return a raw mutable pointer to the vector's buffer.
     pub fn as_mut_ptr(&mut self) -> *mut T {
         ArrayVecImpl::as_mut_ptr(self)
+    }
+
+    /// Return an erased unique reference to self
+    pub fn as_ref_mut(&mut self) -> ArrayVecRefMut<T> {
+        ArrayVecRefMut::new(self)
     }
 }
 
