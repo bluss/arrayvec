@@ -62,3 +62,4 @@ pub use crate::array_string::ArrayString;
 pub use crate::errors::CapacityError;
 
 pub use crate::arrayvec::{ArrayVec, IntoIter, Drain};
+pub use crate::arrayvec_ref::ArrayVecRefMut;
