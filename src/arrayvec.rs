@@ -715,7 +715,10 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 
 impl<T, const CAP: usize> ArrayVecImpl for ArrayVec<T, CAP> {
     type Item = T;
-    const CAPACITY: usize = CAP;
+
+    fn capacity(&self) -> usize {
+        CAP
+    }
 
     fn len(&self) -> usize { self.len() }
 

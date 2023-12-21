@@ -7,7 +7,7 @@ use crate::CapacityError;
 /// for length and element access.
 pub(crate) trait ArrayVecImpl {
     type Item;
-    const CAPACITY: usize;
+    fn capacity(&self) -> usize;
 
     fn len(&self) -> usize;
 
@@ -41,7 +41,7 @@ pub(crate) trait ArrayVecImpl {
     }
 
     fn try_push(&mut self, element: Self::Item) -> Result<(), CapacityError<Self::Item>> {
-        if self.len() < Self::CAPACITY {
+        if self.len() < self.capacity() {
             unsafe {
                 self.push_unchecked(element);
             }
@@ -53,7 +53,7 @@ pub(crate) trait ArrayVecImpl {
 
     unsafe fn push_unchecked(&mut self, element: Self::Item) {
         let len = self.len();
-        debug_assert!(len < Self::CAPACITY);
+        debug_assert!(len < self.capacity());
         ptr::write(self.as_mut_ptr().add(len), element);
         self.set_len(len + 1);
     }
