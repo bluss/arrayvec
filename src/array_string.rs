@@ -11,12 +11,12 @@ use std::str;
 use std::str::FromStr;
 use std::str::Utf8Error;
 
-use crate::CapacityError;
+use crate::{CapacityError, DefaultLenUint};
 use crate::LenUint;
 use crate::char::encode_utf8;
 use crate::utils::MakeMaybeUninit;
 
-#[cfg(feature="serde")]
+#[cfg(feature = "serde")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
 
@@ -32,21 +32,21 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 /// if needed.
 #[derive(Copy)]
 #[repr(C)]
-pub struct ArrayString<const CAP: usize> {
+pub struct ArrayString<const CAP: usize, LenType: LenUint = DefaultLenUint> {
     // the `len` first elements of the array are initialized
-    len: LenUint,
+    len: LenType,
     xs: [MaybeUninit<u8>; CAP],
 }
 
-impl<const CAP: usize> Default for ArrayString<CAP>
+impl<const CAP: usize, LenType: LenUint> Default for ArrayString<CAP, LenType>
 {
     /// Return an empty `ArrayString`
-    fn default() -> ArrayString<CAP> {
+    fn default() -> Self {
         ArrayString::new()
     }
 }
 
-impl<const CAP: usize> ArrayString<CAP>
+impl<const CAP: usize, LenType: LenUint> ArrayString<CAP, LenType>
 {
     /// Create a new empty `ArrayString`.
     ///
@@ -60,11 +60,9 @@ impl<const CAP: usize> ArrayString<CAP>
     /// assert_eq!(&string[..], "foo");
     /// assert_eq!(string.capacity(), 16);
     /// ```
-    pub fn new() -> ArrayString<CAP> {
-        assert_capacity_limit!(CAP);
-        unsafe {
-            ArrayString { xs: MaybeUninit::uninit().assume_init(), len: 0 }
-        }
+    pub fn new() -> Self {
+        assert_capacity_limit!(LenType, CAP);
+        ArrayString { len: LenType::from_usize(0), xs: MakeMaybeUninit::ARRAY }
     }
 
     /// Create a new empty `ArrayString` (const fn).
@@ -74,20 +72,20 @@ impl<const CAP: usize> ArrayString<CAP>
     /// ```
     /// use arrayvec::ArrayString;
     ///
-    /// static ARRAY: ArrayString<1024> = ArrayString::new_const();
+    /// const ARRAY: ArrayString<1024> = ArrayString::new_const();
     /// ```
-    pub const fn new_const() -> ArrayString<CAP> {
-        assert_capacity_limit_const!(CAP);
-        ArrayString { xs: MakeMaybeUninit::ARRAY, len: 0 }
+    pub const fn new_const() -> Self {
+        assert_capacity_limit_const!(LenType, CAP);
+        ArrayString { len: LenType::ZERO, xs: MakeMaybeUninit::ARRAY }
     }
 
     /// Return the length of the string.
     #[inline]
-    pub const fn len(&self) -> usize { self.len as usize }
+    pub fn len(&self) -> usize { LenType::to_usize(self.len) }
 
     /// Returns whether the string is empty.
     #[inline]
-    pub const fn is_empty(&self) -> bool { self.len() == 0 }
+    pub fn is_empty(&self) -> bool { self.len == LenType::ZERO }
 
     /// Create a new `ArrayString` from a `str`.
     ///
@@ -141,13 +139,13 @@ impl<const CAP: usize> ArrayString<CAP>
     /// ```
     #[inline]
     pub fn zero_filled() -> Self {
-        assert_capacity_limit!(CAP);
+        assert_capacity_limit!(LenType, CAP);
         // SAFETY: `assert_capacity_limit` asserts that `len` won't overflow and
         // `zeroed` fully fills the array with nulls.
         unsafe {
             ArrayString {
                 xs: MaybeUninit::zeroed().assume_init(),
-                len: CAP as _
+                len: LenType::from_usize(CAP),
             }
         }
     }
@@ -173,7 +171,7 @@ impl<const CAP: usize> ArrayString<CAP>
     /// string.push_str("A");
     /// assert!(string.is_full());
     /// ```
-    pub const fn is_full(&self) -> bool { self.len() == self.capacity() }
+    pub fn is_full(&self) -> bool { self.len() == self.capacity() }
 
     /// Returns the capacity left in the `ArrayString`.
     ///
@@ -184,7 +182,7 @@ impl<const CAP: usize> ArrayString<CAP>
     /// string.pop();
     /// assert_eq!(string.remaining_capacity(), 1);
     /// ```
-    pub const fn remaining_capacity(&self) -> usize {
+    pub fn remaining_capacity(&self) -> usize {
         self.capacity() - self.len()
     }
 
@@ -299,7 +297,7 @@ impl<const CAP: usize> ArrayString<CAP>
     ///
     /// ```
     /// use arrayvec::ArrayString;
-    /// 
+    ///
     /// let mut s = ArrayString::<3>::from("foo").unwrap();
     ///
     /// assert_eq!(s.pop(), Some('o'));
@@ -339,7 +337,7 @@ impl<const CAP: usize> ArrayString<CAP>
     pub fn truncate(&mut self, new_len: usize) {
         if new_len <= self.len() {
             assert!(self.is_char_boundary(new_len));
-            unsafe { 
+            unsafe {
                 // In libstd truncate is called on the underlying vector,
                 // which in turns drops each element.
                 // As we know we don't have to worry about Drop,
@@ -359,7 +357,7 @@ impl<const CAP: usize> ArrayString<CAP>
     ///
     /// ```
     /// use arrayvec::ArrayString;
-    /// 
+    ///
     /// let mut s = ArrayString::<3>::from("foo").unwrap();
     ///
     /// assert_eq!(s.remove(0), 'f');
@@ -402,7 +400,7 @@ impl<const CAP: usize> ArrayString<CAP>
     pub unsafe fn set_len(&mut self, length: usize) {
         // type invariant that capacity always fits in LenUint
         debug_assert!(length <= self.capacity());
-        self.len = length as LenUint;
+        self.len = LenUint::from_usize(length);
     }
 
     /// Return a string slice of the whole `ArrayString`.
@@ -424,7 +422,7 @@ impl<const CAP: usize> ArrayString<CAP>
     }
 }
 
-impl<const CAP: usize> Deref for ArrayString<CAP>
+impl<const CAP: usize, LenType: LenUint> Deref for ArrayString<CAP, LenType>
 {
     type Target = str;
     #[inline]
@@ -436,7 +434,7 @@ impl<const CAP: usize> Deref for ArrayString<CAP>
     }
 }
 
-impl<const CAP: usize> DerefMut for ArrayString<CAP>
+impl<const CAP: usize, LenType: LenUint> DerefMut for ArrayString<CAP, LenType>
 {
     #[inline]
     fn deref_mut(&mut self) -> &mut str {
@@ -448,64 +446,64 @@ impl<const CAP: usize> DerefMut for ArrayString<CAP>
     }
 }
 
-impl<const CAP: usize> PartialEq for ArrayString<CAP>
+impl<const CAP: usize, LenType: LenUint> PartialEq for ArrayString<CAP, LenType>
 {
     fn eq(&self, rhs: &Self) -> bool {
         **self == **rhs
     }
 }
 
-impl<const CAP: usize> PartialEq<str> for ArrayString<CAP>
+impl<const CAP: usize, LenType: LenUint> PartialEq<str> for ArrayString<CAP, LenType>
 {
     fn eq(&self, rhs: &str) -> bool {
         &**self == rhs
     }
 }
 
-impl<const CAP: usize> PartialEq<ArrayString<CAP>> for str
+impl<const CAP: usize, LenType: LenUint> PartialEq<ArrayString<CAP, LenType>> for str
 {
-    fn eq(&self, rhs: &ArrayString<CAP>) -> bool {
+    fn eq(&self, rhs: &ArrayString<CAP, LenType>) -> bool {
         self == &**rhs
     }
 }
 
-impl<const CAP: usize> Eq for ArrayString<CAP> 
-{ }
+impl<const CAP: usize, LenType: LenUint> Eq for ArrayString<CAP, LenType>
+{}
 
-impl<const CAP: usize> Hash for ArrayString<CAP>
+impl<const CAP: usize, LenType: LenUint> Hash for ArrayString<CAP, LenType>
 {
     fn hash<H: Hasher>(&self, h: &mut H) {
         (**self).hash(h)
     }
 }
 
-impl<const CAP: usize> Borrow<str> for ArrayString<CAP>
+impl<const CAP: usize, LenType: LenUint> Borrow<str> for ArrayString<CAP, LenType>
 {
     fn borrow(&self) -> &str { self }
 }
 
-impl<const CAP: usize> BorrowMut<str> for ArrayString<CAP>
+impl<const CAP: usize, LenType: LenUint> BorrowMut<str> for ArrayString<CAP, LenType>
 {
     fn borrow_mut(&mut self) -> &mut str { self }
 }
 
-impl<const CAP: usize> AsRef<str> for ArrayString<CAP>
+impl<const CAP: usize, LenType: LenUint> AsRef<str> for ArrayString<CAP, LenType>
 {
     fn as_ref(&self) -> &str { self }
 }
 
-impl<const CAP: usize> fmt::Debug for ArrayString<CAP>
+impl<const CAP: usize, LenType: LenUint> fmt::Debug for ArrayString<CAP, LenType>
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { (**self).fmt(f) }
 }
 
-impl<const CAP: usize> fmt::Display for ArrayString<CAP>
+impl<const CAP: usize, LenType: LenUint> fmt::Display for ArrayString<CAP, LenType>
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { (**self).fmt(f) }
 }
 
 /// `Write` appends written data to the end of the string.
-impl<const CAP: usize> fmt::Write for ArrayString<CAP>
+impl<const CAP: usize, LenType: LenUint> fmt::Write for ArrayString<CAP, LenType>
 {
     fn write_char(&mut self, c: char) -> fmt::Result {
         self.try_push(c).map_err(|_| fmt::Error)
@@ -516,9 +514,9 @@ impl<const CAP: usize> fmt::Write for ArrayString<CAP>
     }
 }
 
-impl<const CAP: usize> Clone for ArrayString<CAP>
+impl<const CAP: usize, LenType: LenUint> Clone for ArrayString<CAP, LenType>
 {
-    fn clone(&self) -> ArrayString<CAP> {
+    fn clone(&self) -> ArrayString<CAP, LenType> {
         *self
     }
     fn clone_from(&mut self, rhs: &Self) {
@@ -528,7 +526,7 @@ impl<const CAP: usize> Clone for ArrayString<CAP>
     }
 }
 
-impl<const CAP: usize> PartialOrd for ArrayString<CAP>
+impl<const CAP: usize, LenType: LenUint> PartialOrd for ArrayString<CAP, LenType>
 {
     fn partial_cmp(&self, rhs: &Self) -> Option<cmp::Ordering> {
         (**self).partial_cmp(&**rhs)
@@ -539,7 +537,7 @@ impl<const CAP: usize> PartialOrd for ArrayString<CAP>
     fn ge(&self, rhs: &Self) -> bool { **self >= **rhs }
 }
 
-impl<const CAP: usize> PartialOrd<str> for ArrayString<CAP>
+impl<const CAP: usize, LenType: LenUint> PartialOrd<str> for ArrayString<CAP, LenType>
 {
     fn partial_cmp(&self, rhs: &str) -> Option<cmp::Ordering> {
         (**self).partial_cmp(rhs)
@@ -550,25 +548,25 @@ impl<const CAP: usize> PartialOrd<str> for ArrayString<CAP>
     fn ge(&self, rhs: &str) -> bool { &**self >= rhs }
 }
 
-impl<const CAP: usize> PartialOrd<ArrayString<CAP>> for str
+impl<const CAP: usize, LenType: LenUint> PartialOrd<ArrayString<CAP, LenType>> for str
 {
-    fn partial_cmp(&self, rhs: &ArrayString<CAP>) -> Option<cmp::Ordering> {
+    fn partial_cmp(&self, rhs: &ArrayString<CAP, LenType>) -> Option<cmp::Ordering> {
         self.partial_cmp(&**rhs)
     }
-    fn lt(&self, rhs: &ArrayString<CAP>) -> bool { self < &**rhs }
-    fn le(&self, rhs: &ArrayString<CAP>) -> bool { self <= &**rhs }
-    fn gt(&self, rhs: &ArrayString<CAP>) -> bool { self > &**rhs }
-    fn ge(&self, rhs: &ArrayString<CAP>) -> bool { self >= &**rhs }
+    fn lt(&self, rhs: &ArrayString<CAP, LenType>) -> bool { self < &**rhs }
+    fn le(&self, rhs: &ArrayString<CAP, LenType>) -> bool { self <= &**rhs }
+    fn gt(&self, rhs: &ArrayString<CAP, LenType>) -> bool { self > &**rhs }
+    fn ge(&self, rhs: &ArrayString<CAP, LenType>) -> bool { self >= &**rhs }
 }
 
-impl<const CAP: usize> Ord for ArrayString<CAP>
+impl<const CAP: usize, LenType: LenUint> Ord for ArrayString<CAP, LenType>
 {
     fn cmp(&self, rhs: &Self) -> cmp::Ordering {
         (**self).cmp(&**rhs)
     }
 }
 
-impl<const CAP: usize> FromStr for ArrayString<CAP>
+impl<const CAP: usize, LenType: LenUint> FromStr for ArrayString<CAP, LenType>
 {
     type Err = CapacityError;
 
@@ -577,9 +575,9 @@ impl<const CAP: usize> FromStr for ArrayString<CAP>
     }
 }
 
-#[cfg(feature="serde")]
+#[cfg(feature = "serde")]
 /// Requires crate feature `"serde"`
-impl<const CAP: usize> Serialize for ArrayString<CAP>
+impl<const CAP: usize, LenType: LenUint> Serialize for ArrayString<CAP, LenType>
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer
@@ -588,9 +586,9 @@ impl<const CAP: usize> Serialize for ArrayString<CAP>
     }
 }
 
-#[cfg(feature="serde")]
+#[cfg(feature = "serde")]
 /// Requires crate feature `"serde"`
-impl<'de, const CAP: usize> Deserialize<'de> for ArrayString<CAP> 
+impl<'de, const CAP: usize, LenType: LenUint> Deserialize<'de> for ArrayString<CAP, LenType>
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where D: Deserializer<'de>
@@ -598,10 +596,10 @@ impl<'de, const CAP: usize> Deserialize<'de> for ArrayString<CAP>
         use serde::de::{self, Visitor};
         use std::marker::PhantomData;
 
-        struct ArrayStringVisitor<const CAP: usize>(PhantomData<[u8; CAP]>);
+        struct ArrayStringVisitor<const CAP: usize, LenType: LenUint>(PhantomData<([u8; CAP], LenType)>);
 
-        impl<'de, const CAP: usize> Visitor<'de> for ArrayStringVisitor<CAP> {
-            type Value = ArrayString<CAP>;
+        impl<'de, const CAP: usize, LenType: LenUint> Visitor<'de> for ArrayStringVisitor<CAP, LenType> {
+            type Value = ArrayString<CAP, LenType>;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 write!(formatter, "a string no more than {} bytes long", CAP)
@@ -626,7 +624,7 @@ impl<'de, const CAP: usize> Deserialize<'de> for ArrayString<CAP>
     }
 }
 
-impl<'a, const CAP: usize> TryFrom<&'a str> for ArrayString<CAP>
+impl<'a, const CAP: usize, LenType: LenUint> TryFrom<&'a str> for ArrayString<CAP, LenType>
 {
     type Error = CapacityError<&'a str>;
 
@@ -637,7 +635,7 @@ impl<'a, const CAP: usize> TryFrom<&'a str> for ArrayString<CAP>
     }
 }
 
-impl<'a, const CAP: usize> TryFrom<fmt::Arguments<'a>> for ArrayString<CAP>
+impl<'a, const CAP: usize, LenType: LenUint> TryFrom<fmt::Arguments<'a>> for ArrayString<CAP, LenType>
 {
     type Error = CapacityError<fmt::Error>;
 
@@ -664,7 +662,7 @@ impl<'a, const CAP: usize> TryFrom<fmt::Arguments<'a>> for ArrayString<CAP>
 /// unsafe { string.set_len(string.capacity()) };
 /// assert_eq!(&*string, "\0\0\0\0\0\0");
 /// ```
-impl<const CAP: usize> zeroize::Zeroize for ArrayString<CAP> {
+impl<const CAP: usize, LenType: LenUint> zeroize::Zeroize for ArrayString<CAP, LenType> {
     fn zeroize(&mut self) {
         // There are no elements to drop
         self.clear();
