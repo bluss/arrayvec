@@ -13,7 +13,7 @@ use std::io;
 use std::mem::MaybeUninit;
 
 
-use crate::LenUint;
+use crate::{LenUint, CapacityError};
 use crate::arrayvec_impl::ArrayVecImpl;
 
 /// A vector with a fixed capacity that implements Copy.
@@ -38,6 +38,33 @@ pub struct ArrayVecCopy<T: Copy, const CAP: usize> {
 }
 
 impl<T: Copy, const CAP: usize> ArrayVecCopy<T, CAP> {
+    pub const fn const_push(self, element: T) -> Self {
+        if let Ok(s) = self.const_try_push(element) {
+            s
+        } else {
+            panic!("Exceeded max capacity")
+        }
+    }
+
+    pub const fn const_try_push(mut self, element: T) -> Result<Self, CapacityError<T>> {
+        if self.len < Self::CAPACITY as u32 {
+            unsafe {
+                self = self.const_push_unchecked(element);
+            }
+            Ok(self)
+        } else {
+            Err(CapacityError::new(element))
+        }
+    }
+
+    pub const unsafe fn const_push_unchecked(mut self, element: T) -> Self {
+        let len = self.len as usize;
+        debug_assert!(len < Self::CAPACITY);
+        self.xs[len] = MaybeUninit::new(element);
+        self.len += 1;
+        self
+    }
+
     pub(crate) fn drain_range(&mut self, start: usize, end: usize) -> Drain<T, CAP> {
         let len = self.len();
 
