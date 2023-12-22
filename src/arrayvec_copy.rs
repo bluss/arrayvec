@@ -13,6 +13,7 @@ use std::io;
 use std::mem::MaybeUninit;
 
 
+use crate::utils::MakeMaybeUninit;
 use crate::{LenUint, CapacityError};
 use crate::arrayvec_impl::ArrayVecImpl;
 
@@ -38,6 +39,11 @@ pub struct ArrayVecCopy<T: Copy, const CAP: usize> {
 }
 
 impl<T: Copy, const CAP: usize> ArrayVecCopy<T, CAP> {
+    pub const fn new_const() -> Self {
+        assert_capacity_limit_const!(CAP);
+        ArrayVecCopy { xs: MakeMaybeUninit::ARRAY, len: 0 }
+    }
+
     pub const fn const_push(self, element: T) -> Self {
         if let Ok(s) = self.const_try_push(element) {
             s
