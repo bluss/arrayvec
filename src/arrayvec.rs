@@ -1253,7 +1253,7 @@ impl<const CAP: usize> io::Write for ArrayVec<u8, CAP> {
 
 #[cfg(feature = "serde")]
 /// Requires crate feature `"serde"`
-impl<T: Serialize, const CAP: usize> Serialize for ArrayVec<T, CAP> {
+impl<T: Serialize, const CAP: usize, LenType: LenUint> Serialize for ArrayVec<T, CAP, LenType> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer
     {
@@ -1263,17 +1263,17 @@ impl<T: Serialize, const CAP: usize> Serialize for ArrayVec<T, CAP> {
 
 #[cfg(feature = "serde")]
 /// Requires crate feature `"serde"`
-impl<'de, T: Deserialize<'de>, const CAP: usize> Deserialize<'de> for ArrayVec<T, CAP> {
+impl<'de, T: Deserialize<'de>, const CAP: usize, LenType: LenUint> Deserialize<'de> for ArrayVec<T, CAP, LenType> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where D: Deserializer<'de>
     {
         use serde::de::{Visitor, SeqAccess, Error};
         use std::marker::PhantomData;
 
-        struct ArrayVecVisitor<'de, T: Deserialize<'de>, const CAP: usize>(PhantomData<(&'de (), [T; CAP])>);
+        struct ArrayVecVisitor<'de, T: Deserialize<'de>, const CAP: usize, LenType: LenUint>(PhantomData<(&'de (), [T; CAP], LenType)>);
 
-        impl<'de, T: Deserialize<'de>, const CAP: usize> Visitor<'de> for ArrayVecVisitor<'de, T, CAP> {
-            type Value = ArrayVec<T, CAP>;
+        impl<'de, T: Deserialize<'de>, const CAP: usize, LenType: LenUint> Visitor<'de> for ArrayVecVisitor<'de, T, CAP, LenType> {
+            type Value = ArrayVec<T, CAP, LenType>;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 write!(formatter, "an array with no more than {} items", CAP)
@@ -1282,7 +1282,7 @@ impl<'de, T: Deserialize<'de>, const CAP: usize> Deserialize<'de> for ArrayVec<T
             fn visit_seq<SA>(self, mut seq: SA) -> Result<Self::Value, SA::Error>
                 where SA: SeqAccess<'de>,
             {
-                let mut values = ArrayVec::<T, CAP>::new();
+                let mut values = ArrayVec::<T, CAP, LenType>::new();
 
                 while let Some(value) = seq.next_element()? {
                     if let Err(_) = values.try_push(value) {
@@ -1294,6 +1294,6 @@ impl<'de, T: Deserialize<'de>, const CAP: usize> Deserialize<'de> for ArrayVec<T
             }
         }
 
-        deserializer.deserialize_seq(ArrayVecVisitor::<T, CAP>(PhantomData))
+        deserializer.deserialize_seq(ArrayVecVisitor::<T, CAP, LenType>(PhantomData))
     }
 }
