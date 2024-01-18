@@ -637,13 +637,22 @@ impl<const CAP: usize> borsh::BorshSerialize for ArrayString<CAP> {
 /// Requires crate feature `"borsh"`
 impl<const CAP: usize> borsh::BorshDeserialize for ArrayString<CAP> {
     fn deserialize_reader<R: borsh::io::Read>(reader: &mut R) -> borsh::io::Result<Self> {
-        let s = <String as borsh::BorshDeserialize>::deserialize_reader(reader)?;
-        ArrayString::from(&s).map_err(|_| {
-            borsh::io::Error::new(
+        let len = <u32 as borsh::BorshDeserialize>::deserialize_reader(reader)? as usize;
+        if len > CAP {
+            return Err(borsh::io::Error::new(
                 borsh::io::ErrorKind::InvalidData,
-                format!("expected a string no more than {} bytes long", CAP),
-            )
-        })
+                format!("Expected a string no more than {} bytes long", CAP),
+            ))
+        }
+
+        let mut buf = [0u8; CAP];
+        let buf = &mut buf[..len];
+        reader.read_exact(buf)?;
+
+        let s = str::from_utf8(&buf).map_err(|err| {
+            borsh::io::Error::new(borsh::io::ErrorKind::InvalidData, err.to_string())
+        })?;
+        Ok(Self::from(s).unwrap())
     }
 }
 

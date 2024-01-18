@@ -1306,12 +1306,7 @@ where
     T: borsh::BorshSerialize,
 {
     fn serialize<W: borsh::io::Write>(&self, writer: &mut W) -> borsh::io::Result<()> {
-        let vs = self.as_slice();
-        <usize as borsh::BorshSerialize>::serialize(&vs.len(), writer)?;
-        for elem in vs {
-            <T as borsh::BorshSerialize>::serialize(elem, writer)?;
-        }
-        Ok(())
+        <[T] as borsh::BorshSerialize>::serialize(self.as_slice(), writer)
     }
 }
 
@@ -1323,13 +1318,13 @@ where
 {
     fn deserialize_reader<R: borsh::io::Read>(reader: &mut R) -> borsh::io::Result<Self> {
         let mut values = Self::new();
-        let len = <usize as borsh::BorshDeserialize>::deserialize_reader(reader)?;
+        let len = <u32 as borsh::BorshDeserialize>::deserialize_reader(reader)?;
         for _ in 0..len {
             let elem = <T as borsh::BorshDeserialize>::deserialize_reader(reader)?;
             if let Err(_) = values.try_push(elem) {
                 return Err(borsh::io::Error::new(
                     borsh::io::ErrorKind::InvalidData,
-                    format!("expected an array with no more than {} items", CAP),
+                    format!("Expected an array with no more than {} items", CAP),
                 ));
             }
         }
