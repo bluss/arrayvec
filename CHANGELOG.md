@@ -1,6 +1,9 @@
 Recent Changes (arrayvec)
 =========================
 
+## Unreleased
+- Add `as_ptr` and `as_mut_ptr` to `ArrayString` by @YuhanLiin
+
 ## 0.7.4
 
 - Add feature zeroize to support the `Zeroize` trait by @elichai
