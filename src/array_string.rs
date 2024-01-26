@@ -415,11 +415,13 @@ impl<const CAP: usize> ArrayString<CAP>
         self
     }
 
-    fn as_ptr(&self) -> *const u8 {
+    /// Return a raw pointer to the string's buffer.
+    pub fn as_ptr(&self) -> *const u8 {
         self.xs.as_ptr() as *const u8
     }
 
-    fn as_mut_ptr(&mut self) -> *mut u8 {
+    /// Return a raw mutable pointer to the string's buffer.
+    pub fn as_mut_ptr(&mut self) -> *mut u8 {
         self.xs.as_mut_ptr() as *mut u8
     }
 }
