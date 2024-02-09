@@ -13,7 +13,6 @@ use std::hash::{Hash, Hasher};
 #[cfg(feature = "std")]
 use std::io;
 
-use std::mem::ManuallyDrop;
 use std::mem::MaybeUninit;
 
 #[cfg(feature = "serde")]
