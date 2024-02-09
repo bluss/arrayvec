@@ -512,7 +512,6 @@ impl<T: Copy, const CAP: usize> ArrayVecCopy<T, CAP> {
             if !f(unsafe { &mut *cur }) {
                 g.processed_len += 1;
                 g.deleted_cnt += 1;
-                unsafe { ptr::drop_in_place(cur) };
                 continue;
             }
             if g.deleted_cnt > 0 {
@@ -527,7 +526,7 @@ impl<T: Copy, const CAP: usize> ArrayVecCopy<T, CAP> {
         drop(g);
     }
 
-    /// Set the vector’s length without dropping or moving out elements
+    /// Set the vector’s length without moving out elements
     ///
     /// This method is `unsafe` because it changes the notion of the
     /// number of “valid” elements in the vector. Use with care.
@@ -658,8 +657,7 @@ impl<T: Copy, const CAP: usize> ArrayVecCopy<T, CAP> {
     /// This operation is safe if and only if length equals capacity.
     pub unsafe fn into_inner_unchecked(self) -> [T; CAP] {
         debug_assert_eq!(self.len(), self.capacity());
-        let self_ = ManuallyDrop::new(self);
-        let array = ptr::read(self_.as_ptr() as *const [T; CAP]);
+        let array = ptr::read(self.as_ptr() as *const [T; CAP]);
         array
     }
 
@@ -745,10 +743,9 @@ impl<T: Copy, const CAP: usize> DerefMut for ArrayVecCopy<T, CAP> {
 /// ```
 impl<T: Copy, const CAP: usize> From<[T; CAP]> for ArrayVecCopy<T, CAP> {
     fn from(array: [T; CAP]) -> Self {
-        let array = ManuallyDrop::new(array);
         let mut vec = <ArrayVecCopy<T, CAP>>::new();
         unsafe {
-            (&*array as *const [T; CAP] as *const [MaybeUninit<T>; CAP])
+            (&array as *const [T; CAP] as *const [MaybeUninit<T>; CAP])
                 .copy_to_nonoverlapping(&mut vec.xs as *mut [MaybeUninit<T>; CAP], 1);
             vec.set_len(CAP);
         }
@@ -881,19 +878,6 @@ impl<T: Copy, const CAP: usize> DoubleEndedIterator for IntoIter<T, CAP> {
 
 impl<T: Copy, const CAP: usize> ExactSizeIterator for IntoIter<T, CAP> {}
 
-impl<T: Copy, const CAP: usize> Drop for IntoIter<T, CAP> {
-    fn drop(&mut self) {
-        // panic safety: Set length to 0 before dropping elements.
-        let index = self.index;
-        let len = self.v.len();
-        unsafe {
-            self.v.set_len(0);
-            let elements = slice::from_raw_parts_mut(self.v.get_unchecked_ptr(index), len - index);
-            ptr::drop_in_place(elements);
-        }
-    }
-}
-
 impl<T: Copy, const CAP: usize> Clone for IntoIter<T, CAP> {
     fn clone(&self) -> IntoIter<T, CAP> {
         let mut v = ArrayVecCopy::new();
@@ -1018,33 +1002,50 @@ impl<T: Copy, const CAP: usize> ArrayVecCopy<T, CAP> {
     where
         I: IntoIterator<Item = T>,
     {
-        let take = self.capacity() - self.len();
-        let len = self.len();
-        let mut ptr = raw_ptr_add(self.as_mut_ptr(), len);
-        let end_ptr = raw_ptr_add(ptr, take);
-        // Keep the length in a separate variable, write it back on scope
-        // exit. To help the compiler with alias analysis and stuff.
-        // We update the length to handle panic in the iteration of the
-        // user's iterator, without dropping any elements on the floor.
-        let mut guard = ScopeExitGuard {
-            value: &mut self.len,
-            data: len,
-            f: move |&len, self_len| {
-                **self_len = len as LenUint;
-            },
-        };
-        let mut iter = iterable.into_iter();
-        loop {
-            if let Some(elt) = iter.next() {
-                if ptr == end_ptr && CHECK {
-                    extend_panic();
+        if mem::size_of::<T>() == 0 {
+            let capacity = self.capacity();
+
+            let mut iter = iterable.into_iter();
+            loop {
+                if iter.next().is_some() {
+                    if self.len as usize == capacity && CHECK {
+                        extend_panic();
+                    }
+                    debug_assert_ne!(self.len as usize, capacity);
+                    self.len += 1;
+                } else {
+                    return; // success
                 }
-                debug_assert_ne!(ptr, end_ptr);
-                ptr.write(elt);
-                ptr = raw_ptr_add(ptr, 1);
-                guard.data += 1;
-            } else {
-                return; // success
+            }
+        } else {
+            let take = self.capacity() - self.len();
+            let len = self.len();
+            let mut ptr = self.as_mut_ptr().add(len);
+            let end_ptr = ptr.add(take);
+            // Keep the length in a separate variable, write it back on scope
+            // exit. To help the compiler with alias analysis and stuff.
+            // We update the length to handle panic in the iteration of the
+            // user's iterator, without dropping any elements on the floor.
+            let mut guard = ScopeExitGuard {
+                value: &mut self.len,
+                data: len,
+                f: move |&len, self_len| {
+                    **self_len = len as LenUint;
+                },
+            };
+            let mut iter = iterable.into_iter();
+            loop {
+                if let Some(elt) = iter.next() {
+                    if ptr == end_ptr && CHECK {
+                        extend_panic();
+                    }
+                    debug_assert_ne!(ptr, end_ptr);
+                    ptr.write(elt);
+                    ptr = ptr.add(1);
+                    guard.data += 1;
+                } else {
+                    return; // success
+                }
             }
         }
     }
@@ -1062,16 +1063,6 @@ impl<T: Copy, const CAP: usize> ArrayVecCopy<T, CAP> {
             };
             self.extend_from_iter::<_, false>(slice.iter().cloned());
         }
-    }
-}
-
-/// Rawptr add but uses arithmetic distance for ZST
-unsafe fn raw_ptr_add<T>(ptr: *mut T, offset: usize) -> *mut T {
-    if mem::size_of::<T>() == 0 {
-        // Special case for ZST
-        (ptr as usize).wrapping_add(offset) as _
-    } else {
-        ptr.add(offset)
     }
 }
 
