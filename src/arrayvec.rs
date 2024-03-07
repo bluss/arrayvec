@@ -1088,7 +1088,9 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
             if let Some(elt) = iter.next() {
                 if ptr == end_ptr && CHECK { extend_panic(); }
                 debug_assert_ne!(ptr, end_ptr);
-                ptr.write(elt);
+                if mem::size_of::<T>() != 0 {
+                    ptr.write(elt);
+                }
                 ptr = raw_ptr_add(ptr, 1);
                 guard.data += 1;
             } else {
@@ -1115,7 +1117,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 unsafe fn raw_ptr_add<T>(ptr: *mut T, offset: usize) -> *mut T {
     if mem::size_of::<T>() == 0 {
         // Special case for ZST
-        ptr.cast::<u8>().wrapping_add(offset).cast()
+        ptr.cast::<u8>().wrapping_add(offset).cast::<T>()
     } else {
         ptr.add(offset)
     }
