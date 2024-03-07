@@ -1,4 +1,3 @@
-
 use std::cmp;
 use std::iter;
 use std::mem;
@@ -11,16 +10,16 @@ use std::borrow::{Borrow, BorrowMut};
 use std::hash::{Hash, Hasher};
 use std::fmt;
 
-#[cfg(feature="std")]
+#[cfg(feature = "std")]
 use std::io;
 
 use std::mem::ManuallyDrop;
 use std::mem::MaybeUninit;
 
-#[cfg(feature="serde")]
+#[cfg(feature = "serde")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
-use crate::LenUint;
+use crate::{DefaultLenUint, LenUint};
 use crate::errors::CapacityError;
 use crate::arrayvec_impl::ArrayVecImpl;
 use crate::utils::MakeMaybeUninit;
@@ -39,13 +38,14 @@ use crate::utils::MakeMaybeUninit;
 ///
 /// It offers a simple API but also dereferences to a slice, so that the full slice API is
 /// available. The ArrayVec can be converted into a by value iterator.
-pub struct ArrayVec<T, const CAP: usize> {
+#[repr(C)]
+pub struct ArrayVec<T, const CAP: usize, LenType: LenUint = DefaultLenUint> {
+    len: LenType,
     // the `len` first elements of the array are initialized
     xs: [MaybeUninit<T>; CAP],
-    len: LenUint,
 }
 
-impl<T, const CAP: usize> Drop for ArrayVec<T, CAP> {
+impl<T, const CAP: usize, LenType: LenUint> Drop for ArrayVec<T, CAP, LenType> {
     fn drop(&mut self) {
         self.clear();
 
@@ -60,7 +60,7 @@ macro_rules! panic_oob {
     }
 }
 
-impl<T, const CAP: usize> ArrayVec<T, CAP> {
+impl<T, const CAP: usize, LenType: LenUint> ArrayVec<T, CAP, LenType> {
     /// Capacity
     const CAPACITY: usize = CAP;
 
@@ -79,11 +79,9 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// ```
     #[inline]
     #[track_caller]
-    pub fn new() -> ArrayVec<T, CAP> {
-        assert_capacity_limit!(CAP);
-        unsafe {
-            ArrayVec { xs: MaybeUninit::uninit().assume_init(), len: 0 }
-        }
+    pub fn new() -> Self {
+        assert_capacity_limit!(LenType, CAP);
+        ArrayVec { len: LenType::ZERO, xs: MakeMaybeUninit::ARRAY }
     }
 
     /// Create a new empty `ArrayVec` (const fn).
@@ -95,9 +93,9 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     ///
     /// static ARRAY: ArrayVec<u8, 1024> = ArrayVec::new_const();
     /// ```
-    pub const fn new_const() -> ArrayVec<T, CAP> {
-        assert_capacity_limit_const!(CAP);
-        ArrayVec { xs: MakeMaybeUninit::ARRAY, len: 0 }
+    pub const fn new_const() -> Self {
+        assert_capacity_limit_const!(LenType, CAP);
+        ArrayVec { len: LenType::ZERO, xs: MakeMaybeUninit::ARRAY }
     }
 
     /// Return the number of elements in the `ArrayVec`.
@@ -110,7 +108,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert_eq!(array.len(), 2);
     /// ```
     #[inline(always)]
-    pub const fn len(&self) -> usize { self.len as usize }
+    pub fn len(&self) -> usize { self.len.to_usize() }
 
     /// Returns whether the `ArrayVec` is empty.
     ///
@@ -122,7 +120,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert_eq!(array.is_empty(), true);
     /// ```
     #[inline]
-    pub const fn is_empty(&self) -> bool { self.len() == 0 }
+    pub fn is_empty(&self) -> bool { self.len == LenType::ZERO }
 
     /// Return the capacity of the `ArrayVec`.
     ///
@@ -145,7 +143,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// array.push(1);
     /// assert!(array.is_full());
     /// ```
-    pub const fn is_full(&self) -> bool { self.len() == self.capacity() }
+    pub fn is_full(&self) -> bool { self.len() == self.capacity() }
 
     /// Returns the capacity left in the `ArrayVec`.
     ///
@@ -156,7 +154,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// array.pop();
     /// assert_eq!(array.remaining_capacity(), 1);
     /// ```
-    pub const fn remaining_capacity(&self) -> usize {
+    pub fn remaining_capacity(&self) -> usize {
         self.capacity() - self.len()
     }
 
@@ -471,21 +469,21 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         let original_len = self.len();
         unsafe { self.set_len(0) };
 
-        struct BackshiftOnDrop<'a, T, const CAP: usize> {
-            v: &'a mut ArrayVec<T, CAP>,
+        struct BackshiftOnDrop<'a, T, const CAP: usize, LenType: LenUint> {
+            v: &'a mut ArrayVec<T, CAP, LenType>,
             processed_len: usize,
             deleted_cnt: usize,
             original_len: usize,
         }
 
-        impl<T, const CAP: usize> Drop for BackshiftOnDrop<'_, T, CAP> {
+        impl<T, const CAP: usize, LenType: LenUint> Drop for BackshiftOnDrop<'_, T, CAP, LenType> {
             fn drop(&mut self) {
                 if self.deleted_cnt > 0 {
                     unsafe {
                         ptr::copy(
                             self.v.as_ptr().add(self.processed_len),
                             self.v.as_mut_ptr().add(self.processed_len - self.deleted_cnt),
-                            self.original_len - self.processed_len
+                            self.original_len - self.processed_len,
                         );
                     }
                 }
@@ -498,9 +496,9 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         let mut g = BackshiftOnDrop { v: self, processed_len: 0, deleted_cnt: 0, original_len };
 
         #[inline(always)]
-        fn process_one<F: FnMut(&mut T) -> bool, T, const CAP: usize, const DELETED: bool>(
+        fn process_one<F: FnMut(&mut T) -> bool, T, const CAP: usize, const DELETED: bool, LenType: LenUint>(
             f: &mut F,
-            g: &mut BackshiftOnDrop<'_, T, CAP>
+            g: &mut BackshiftOnDrop<'_, T, CAP, LenType>,
         ) -> bool {
             let cur = unsafe { g.v.as_mut_ptr().add(g.processed_len) };
             if !f(unsafe { &mut *cur }) {
@@ -521,14 +519,14 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 
         // Stage 1: Nothing was deleted.
         while g.processed_len != original_len {
-            if !process_one::<F, T, CAP, false>(&mut f, &mut g) {
+            if !process_one::<F, T, CAP, false, LenType>(&mut f, &mut g) {
                 break;
             }
         }
 
         // Stage 2: Some elements were deleted.
         while g.processed_len != original_len {
-            process_one::<F, T, CAP, true>(&mut f, &mut g);
+            process_one::<F, T, CAP, true, LenType>(&mut f, &mut g);
         }
 
         drop(g);
@@ -544,7 +542,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     pub unsafe fn set_len(&mut self, length: usize) {
         // type invariant that capacity always fits in LenUint
         debug_assert!(length <= self.capacity());
-        self.len = length as LenUint;
+        self.len = LenType::from_usize(length);
     }
 
     /// Copy all elements from the slice and append to the `ArrayVec`.
@@ -601,7 +599,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert_eq!(&v1[..], &[3]);
     /// assert_eq!(&v2[..], &[1, 2]);
     /// ```
-    pub fn drain<R>(&mut self, range: R) -> Drain<T, CAP>
+    pub fn drain<R>(&mut self, range: R) -> Drain<T, CAP, LenType>
         where R: RangeBounds<usize>
     {
         // Memory safety
@@ -628,7 +626,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         self.drain_range(start, end)
     }
 
-    fn drain_range(&mut self, start: usize, end: usize) -> Drain<T, CAP>
+    fn drain_range(&mut self, start: usize, end: usize) -> Drain<T, CAP, LenType>
     {
         let len = self.len();
 
@@ -637,7 +635,8 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 
         // Calling `set_len` creates a fresh and thus unique mutable references, making all
         // older aliases we created invalid. So we cannot call that function.
-        self.len = start as LenUint;
+        // safety: we just checked that the start is in bounds
+        self.len = LenType::from_usize(start);
 
         unsafe {
             Drain {
@@ -681,7 +680,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert_eq!([0, 1, 2, 3], v.take().into_inner().unwrap());
     /// assert!(v.is_empty());
     /// ```
-    pub fn take(&mut self) -> Self  {
+    pub fn take(&mut self) -> Self {
         mem::replace(self, Self::new())
     }
 
@@ -706,15 +705,15 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     }
 }
 
-impl<T, const CAP: usize> ArrayVecImpl for ArrayVec<T, CAP> {
+impl<T, const CAP: usize, LenType: LenUint> ArrayVecImpl for ArrayVec<T, CAP, LenType> {
     type Item = T;
     const CAPACITY: usize = CAP;
 
     fn len(&self) -> usize { self.len() }
 
     unsafe fn set_len(&mut self, length: usize) {
-        debug_assert!(length <= CAP);
-        self.len = length as LenUint;
+        debug_assert!(length <= CAP, "length {} exceeds capacity {}", length, CAP);
+        self.len = LenType::from_usize(length);
     }
 
     fn as_ptr(&self) -> *const Self::Item {
@@ -726,7 +725,7 @@ impl<T, const CAP: usize> ArrayVecImpl for ArrayVec<T, CAP> {
     }
 }
 
-impl<T, const CAP: usize> Deref for ArrayVec<T, CAP> {
+impl<T, const CAP: usize, LenType: LenUint> Deref for ArrayVec<T, CAP, LenType> {
     type Target = [T];
     #[inline]
     fn deref(&self) -> &Self::Target {
@@ -734,7 +733,7 @@ impl<T, const CAP: usize> Deref for ArrayVec<T, CAP> {
     }
 }
 
-impl<T, const CAP: usize> DerefMut for ArrayVec<T, CAP> {
+impl<T, const CAP: usize, LenType: LenUint> DerefMut for ArrayVec<T, CAP, LenType> {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.as_mut_slice()
@@ -751,11 +750,11 @@ impl<T, const CAP: usize> DerefMut for ArrayVec<T, CAP> {
 /// assert_eq!(array.len(), 3);
 /// assert_eq!(array.capacity(), 3);
 /// ```
-impl<T, const CAP: usize> From<[T; CAP]> for ArrayVec<T, CAP> {
+impl<T, const CAP: usize, LenType: LenUint> From<[T; CAP]> for ArrayVec<T, CAP, LenType> {
     #[track_caller]
     fn from(array: [T; CAP]) -> Self {
         let array = ManuallyDrop::new(array);
-        let mut vec = <ArrayVec<T, CAP>>::new();
+        let mut vec = Self::new();
         unsafe {
             (&*array as *const [T; CAP] as *const [MaybeUninit<T>; CAP])
                 .copy_to_nonoverlapping(&mut vec.xs as *mut [MaybeUninit<T>; CAP], 1);
@@ -777,7 +776,7 @@ impl<T, const CAP: usize> From<[T; CAP]> for ArrayVec<T, CAP> {
 /// assert_eq!(array.len(), 3);
 /// assert_eq!(array.capacity(), 4);
 /// ```
-impl<T, const CAP: usize> std::convert::TryFrom<&[T]> for ArrayVec<T, CAP>
+impl<T, const CAP: usize, LenType: LenUint> std::convert::TryFrom<&[T]> for ArrayVec<T, CAP, LenType>
     where T: Clone,
 {
     type Error = CapacityError;
@@ -805,7 +804,7 @@ impl<T, const CAP: usize> std::convert::TryFrom<&[T]> for ArrayVec<T, CAP>
 ///     // ...
 /// }
 /// ```
-impl<'a, T: 'a, const CAP: usize> IntoIterator for &'a ArrayVec<T, CAP> {
+impl<'a, T: 'a, const CAP: usize, LenType: LenUint> IntoIterator for &'a ArrayVec<T, CAP, LenType> {
     type Item = &'a T;
     type IntoIter = slice::Iter<'a, T>;
     fn into_iter(self) -> Self::IntoIter { self.iter() }
@@ -822,7 +821,7 @@ impl<'a, T: 'a, const CAP: usize> IntoIterator for &'a ArrayVec<T, CAP> {
 ///     // ...
 /// }
 /// ```
-impl<'a, T: 'a, const CAP: usize> IntoIterator for &'a mut ArrayVec<T, CAP> {
+impl<'a, T: 'a, const CAP: usize, LenType: LenUint> IntoIterator for &'a mut ArrayVec<T, CAP, LenType> {
     type Item = &'a mut T;
     type IntoIter = slice::IterMut<'a, T>;
     fn into_iter(self) -> Self::IntoIter { self.iter_mut() }
@@ -839,11 +838,11 @@ impl<'a, T: 'a, const CAP: usize> IntoIterator for &'a mut ArrayVec<T, CAP> {
 ///     // ...
 /// }
 /// ```
-impl<T, const CAP: usize> IntoIterator for ArrayVec<T, CAP> {
+impl<T, const CAP: usize, LenType: LenUint> IntoIterator for ArrayVec<T, CAP, LenType> {
     type Item = T;
-    type IntoIter = IntoIter<T, CAP>;
-    fn into_iter(self) -> IntoIter<T, CAP> {
-        IntoIter { index: 0, v: self, }
+    type IntoIter = IntoIter<T, CAP, LenType>;
+    fn into_iter(self) -> Self::IntoIter {
+        IntoIter { index: 0, v: self }
     }
 }
 
@@ -863,7 +862,7 @@ impl<T, const CAP: usize> IntoIterator for ArrayVec<T, CAP> {
 /// let data = unsafe { core::slice::from_raw_parts(array.as_ptr(), array.capacity()) };
 /// assert_eq!(data, [0, 0, 0]);
 /// ```
-impl<Z: zeroize::Zeroize, const CAP: usize> zeroize::Zeroize for ArrayVec<Z, CAP> {
+impl<Z: zeroize::Zeroize, const CAP: usize, LenType: LenUint> zeroize::Zeroize for ArrayVec<Z, CAP, LenType> {
     fn zeroize(&mut self) {
         // Zeroize all the contained elements.
         self.iter_mut().zeroize();
@@ -875,12 +874,12 @@ impl<Z: zeroize::Zeroize, const CAP: usize> zeroize::Zeroize for ArrayVec<Z, CAP
 }
 
 /// By-value iterator for `ArrayVec`.
-pub struct IntoIter<T, const CAP: usize> {
+pub struct IntoIter<T, const CAP: usize, LenType: LenUint = DefaultLenUint> {
     index: usize,
-    v: ArrayVec<T, CAP>,
+    v: ArrayVec<T, CAP, LenType>,
 }
 
-impl<T, const CAP: usize> Iterator for IntoIter<T, CAP> {
+impl<T, const CAP: usize, LenType: LenUint> Iterator for IntoIter<T, CAP, LenType> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -901,7 +900,7 @@ impl<T, const CAP: usize> Iterator for IntoIter<T, CAP> {
     }
 }
 
-impl<T, const CAP: usize> DoubleEndedIterator for IntoIter<T, CAP> {
+impl<T, const CAP: usize, LenType: LenUint> DoubleEndedIterator for IntoIter<T, CAP, LenType> {
     fn next_back(&mut self) -> Option<Self::Item> {
         if self.index == self.v.len() {
             None
@@ -915,9 +914,9 @@ impl<T, const CAP: usize> DoubleEndedIterator for IntoIter<T, CAP> {
     }
 }
 
-impl<T, const CAP: usize> ExactSizeIterator for IntoIter<T, CAP> { }
+impl<T, const CAP: usize, LenType: LenUint> ExactSizeIterator for IntoIter<T, CAP, LenType> {}
 
-impl<T, const CAP: usize> Drop for IntoIter<T, CAP> {
+impl<T, const CAP: usize, LenType: LenUint> Drop for IntoIter<T, CAP, LenType> {
     fn drop(&mut self) {
         // panic safety: Set length to 0 before dropping elements.
         let index = self.index;
@@ -932,19 +931,19 @@ impl<T, const CAP: usize> Drop for IntoIter<T, CAP> {
     }
 }
 
-impl<T, const CAP: usize> Clone for IntoIter<T, CAP>
-where T: Clone,
+impl<T, const CAP: usize, LenType: LenUint> Clone for IntoIter<T, CAP, LenType>
+    where T: Clone,
 {
-    fn clone(&self) -> IntoIter<T, CAP> {
+    fn clone(&self) -> Self {
         let mut v = ArrayVec::new();
         v.extend_from_slice(&self.v[self.index..]);
         v.into_iter()
     }
 }
 
-impl<T, const CAP: usize> fmt::Debug for IntoIter<T, CAP>
-where
-    T: fmt::Debug,
+impl<T, const CAP: usize, LenType: LenUint> fmt::Debug for IntoIter<T, CAP, LenType>
+    where
+        T: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_list()
@@ -954,20 +953,21 @@ where
 }
 
 /// A draining iterator for `ArrayVec`.
-pub struct Drain<'a, T: 'a, const CAP: usize> {
+pub struct Drain<'a, T: 'a, const CAP: usize, LenType: LenUint> {
     /// Index of tail to preserve
     tail_start: usize,
     /// Length of tail
     tail_len: usize,
     /// Current remaining range to remove
     iter: slice::Iter<'a, T>,
-    vec: *mut ArrayVec<T, CAP>,
+    vec: *mut ArrayVec<T, CAP, LenType>,
 }
 
-unsafe impl<'a, T: Sync, const CAP: usize> Sync for Drain<'a, T, CAP> {}
-unsafe impl<'a, T: Send, const CAP: usize> Send for Drain<'a, T, CAP> {}
+unsafe impl<'a, T: Sync, const CAP: usize, LenType: LenUint> Sync for Drain<'a, T, CAP, LenType> {}
 
-impl<'a, T: 'a, const CAP: usize> Iterator for Drain<'a, T, CAP> {
+unsafe impl<'a, T: Send, const CAP: usize, LenType: LenUint> Send for Drain<'a, T, CAP, LenType> {}
+
+impl<'a, T: 'a, const CAP: usize, LenType: LenUint> Iterator for Drain<'a, T, CAP, LenType> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -983,7 +983,7 @@ impl<'a, T: 'a, const CAP: usize> Iterator for Drain<'a, T, CAP> {
     }
 }
 
-impl<'a, T: 'a, const CAP: usize> DoubleEndedIterator for Drain<'a, T, CAP>
+impl<'a, T: 'a, const CAP: usize, LenType: LenUint> DoubleEndedIterator for Drain<'a, T, CAP, LenType>
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         self.iter.next_back().map(|elt|
@@ -994,14 +994,14 @@ impl<'a, T: 'a, const CAP: usize> DoubleEndedIterator for Drain<'a, T, CAP>
     }
 }
 
-impl<'a, T: 'a, const CAP: usize> ExactSizeIterator for Drain<'a, T, CAP> {}
+impl<'a, T: 'a, const CAP: usize, LenType: LenUint> ExactSizeIterator for Drain<'a, T, CAP, LenType> {}
 
-impl<'a, T: 'a, const CAP: usize> Drop for Drain<'a, T, CAP> {
+impl<'a, T: 'a, const CAP: usize, LenType: LenUint> Drop for Drain<'a, T, CAP, LenType> {
     fn drop(&mut self) {
         // len is currently 0 so panicking while dropping will not cause a double drop.
 
         // exhaust self first
-        while let Some(_) = self.next() { }
+        while let Some(_) = self.next() {}
 
         if self.tail_len > 0 {
             unsafe {
@@ -1034,13 +1034,12 @@ impl<T, Data, F> Drop for ScopeExitGuard<T, Data, F>
 }
 
 
-
 /// Extend the `ArrayVec` with an iterator.
-/// 
+///
 /// ***Panics*** if extending the vector exceeds its capacity.
-impl<T, const CAP: usize> Extend<T> for ArrayVec<T, CAP> {
+impl<T, const CAP: usize, LenType: LenUint> Extend<T> for ArrayVec<T, CAP, LenType> {
     /// Extend the `ArrayVec` with an iterator.
-    /// 
+    ///
     /// ***Panics*** if extending the vector exceeds its capacity.
     #[track_caller]
     fn extend<I: IntoIterator<Item=T>>(&mut self, iter: I) {
@@ -1057,7 +1056,7 @@ fn extend_panic() {
     panic!("ArrayVec: capacity exceeded in extend/from_iter");
 }
 
-impl<T, const CAP: usize> ArrayVec<T, CAP> {
+impl<T, const CAP: usize, LenType: LenUint> ArrayVec<T, CAP, LenType> {
     /// Extend the arrayvec from the iterable.
     ///
     /// ## Safety
@@ -1066,7 +1065,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// The caller must ensure the length of the input fits in the capacity.
     #[track_caller]
     pub(crate) unsafe fn extend_from_iter<I, const CHECK: bool>(&mut self, iterable: I)
-        where I: IntoIterator<Item = T>
+        where I: IntoIterator<Item=T>
     {
         let take = self.capacity() - self.len();
         let len = self.len();
@@ -1080,8 +1079,8 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
             value: &mut self.len,
             data: len,
             f: move |&len, self_len| {
-                **self_len = len as LenUint;
-            }
+                **self_len = LenUint::from_usize(len);
+            },
         };
         let mut iter = iterable.into_iter();
         loop {
@@ -1124,11 +1123,11 @@ unsafe fn raw_ptr_add<T>(ptr: *mut T, offset: usize) -> *mut T {
 }
 
 /// Create an `ArrayVec` from an iterator.
-/// 
+///
 /// ***Panics*** if the number of elements in the iterator exceeds the arrayvec's capacity.
-impl<T, const CAP: usize> iter::FromIterator<T> for ArrayVec<T, CAP> {
+impl<T, const CAP: usize, LenType: LenUint> iter::FromIterator<T> for ArrayVec<T, CAP, LenType> {
     /// Create an `ArrayVec` from an iterator.
-    /// 
+    ///
     /// ***Panics*** if the number of elements in the iterator exceeds the arrayvec's capacity.
     fn from_iter<I: IntoIterator<Item=T>>(iter: I) -> Self {
         let mut array = ArrayVec::new();
@@ -1137,7 +1136,7 @@ impl<T, const CAP: usize> iter::FromIterator<T> for ArrayVec<T, CAP> {
     }
 }
 
-impl<T, const CAP: usize> Clone for ArrayVec<T, CAP>
+impl<T, const CAP: usize, LenType: LenUint> Clone for ArrayVec<T, CAP, LenType>
     where T: Clone
 {
     fn clone(&self) -> Self {
@@ -1159,7 +1158,7 @@ impl<T, const CAP: usize> Clone for ArrayVec<T, CAP>
     }
 }
 
-impl<T, const CAP: usize> Hash for ArrayVec<T, CAP>
+impl<T, const CAP: usize, LenType: LenUint> Hash for ArrayVec<T, CAP, LenType>
     where T: Hash
 {
     fn hash<H: Hasher>(&self, state: &mut H) {
@@ -1167,7 +1166,7 @@ impl<T, const CAP: usize> Hash for ArrayVec<T, CAP>
     }
 }
 
-impl<T, const CAP: usize> PartialEq for ArrayVec<T, CAP>
+impl<T, const CAP: usize, LenType: LenUint> PartialEq for ArrayVec<T, CAP, LenType>
     where T: PartialEq
 {
     fn eq(&self, other: &Self) -> bool {
@@ -1175,7 +1174,7 @@ impl<T, const CAP: usize> PartialEq for ArrayVec<T, CAP>
     }
 }
 
-impl<T, const CAP: usize> PartialEq<[T]> for ArrayVec<T, CAP>
+impl<T, const CAP: usize, LenType: LenUint> PartialEq<[T]> for ArrayVec<T, CAP, LenType>
     where T: PartialEq
 {
     fn eq(&self, other: &[T]) -> bool {
@@ -1183,36 +1182,36 @@ impl<T, const CAP: usize> PartialEq<[T]> for ArrayVec<T, CAP>
     }
 }
 
-impl<T, const CAP: usize> Eq for ArrayVec<T, CAP> where T: Eq { }
+impl<T, const CAP: usize, LenType: LenUint> Eq for ArrayVec<T, CAP, LenType> where T: Eq {}
 
-impl<T, const CAP: usize> Borrow<[T]> for ArrayVec<T, CAP> {
+impl<T, const CAP: usize, LenType: LenUint> Borrow<[T]> for ArrayVec<T, CAP, LenType> {
     fn borrow(&self) -> &[T] { self }
 }
 
-impl<T, const CAP: usize> BorrowMut<[T]> for ArrayVec<T, CAP> {
+impl<T, const CAP: usize, LenType: LenUint> BorrowMut<[T]> for ArrayVec<T, CAP, LenType> {
     fn borrow_mut(&mut self) -> &mut [T] { self }
 }
 
-impl<T, const CAP: usize> AsRef<[T]> for ArrayVec<T, CAP> {
+impl<T, const CAP: usize, LenType: LenUint> AsRef<[T]> for ArrayVec<T, CAP, LenType> {
     fn as_ref(&self) -> &[T] { self }
 }
 
-impl<T, const CAP: usize> AsMut<[T]> for ArrayVec<T, CAP> {
+impl<T, const CAP: usize, LenType: LenUint> AsMut<[T]> for ArrayVec<T, CAP, LenType> {
     fn as_mut(&mut self) -> &mut [T] { self }
 }
 
-impl<T, const CAP: usize> fmt::Debug for ArrayVec<T, CAP> where T: fmt::Debug {
+impl<T, const CAP: usize, LenType: LenUint> fmt::Debug for ArrayVec<T, CAP, LenType> where T: fmt::Debug {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { (**self).fmt(f) }
 }
 
-impl<T, const CAP: usize> Default for ArrayVec<T, CAP> {
+impl<T, const CAP: usize, LenType: LenUint> Default for ArrayVec<T, CAP, LenType> {
     /// Return an empty array
-    fn default() -> ArrayVec<T, CAP> {
+    fn default() -> Self {
         ArrayVec::new()
     }
 }
 
-impl<T, const CAP: usize> PartialOrd for ArrayVec<T, CAP> where T: PartialOrd {
+impl<T, const CAP: usize, LenType: LenUint> PartialOrd for ArrayVec<T, CAP, LenType> where T: PartialOrd {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         (**self).partial_cmp(other)
     }
@@ -1234,13 +1233,13 @@ impl<T, const CAP: usize> PartialOrd for ArrayVec<T, CAP> where T: PartialOrd {
     }
 }
 
-impl<T, const CAP: usize> Ord for ArrayVec<T, CAP> where T: Ord {
+impl<T, const CAP: usize, LenType: LenUint> Ord for ArrayVec<T, CAP, LenType> where T: Ord {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
         (**self).cmp(other)
     }
 }
 
-#[cfg(feature="std")]
+#[cfg(feature = "std")]
 /// `Write` appends written data to the end of the vector.
 ///
 /// Requires `features="std"`.
@@ -1254,9 +1253,9 @@ impl<const CAP: usize> io::Write for ArrayVec<u8, CAP> {
     fn flush(&mut self) -> io::Result<()> { Ok(()) }
 }
 
-#[cfg(feature="serde")]
+#[cfg(feature = "serde")]
 /// Requires crate feature `"serde"`
-impl<T: Serialize, const CAP: usize> Serialize for ArrayVec<T, CAP> {
+impl<T: Serialize, const CAP: usize, LenType: LenUint> Serialize for ArrayVec<T, CAP, LenType> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer
     {
@@ -1264,19 +1263,19 @@ impl<T: Serialize, const CAP: usize> Serialize for ArrayVec<T, CAP> {
     }
 }
 
-#[cfg(feature="serde")]
+#[cfg(feature = "serde")]
 /// Requires crate feature `"serde"`
-impl<'de, T: Deserialize<'de>, const CAP: usize> Deserialize<'de> for ArrayVec<T, CAP> {
+impl<'de, T: Deserialize<'de>, const CAP: usize, LenType: LenUint> Deserialize<'de> for ArrayVec<T, CAP, LenType> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where D: Deserializer<'de>
     {
         use serde::de::{Visitor, SeqAccess, Error};
         use std::marker::PhantomData;
 
-        struct ArrayVecVisitor<'de, T: Deserialize<'de>, const CAP: usize>(PhantomData<(&'de (), [T; CAP])>);
+        struct ArrayVecVisitor<'de, T: Deserialize<'de>, const CAP: usize, LenType: LenUint>(PhantomData<(&'de (), [T; CAP], LenType)>);
 
-        impl<'de, T: Deserialize<'de>, const CAP: usize> Visitor<'de> for ArrayVecVisitor<'de, T, CAP> {
-            type Value = ArrayVec<T, CAP>;
+        impl<'de, T: Deserialize<'de>, const CAP: usize, LenType: LenUint> Visitor<'de> for ArrayVecVisitor<'de, T, CAP, LenType> {
+            type Value = ArrayVec<T, CAP, LenType>;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
                 write!(formatter, "an array with no more than {} items", CAP)
@@ -1285,7 +1284,7 @@ impl<'de, T: Deserialize<'de>, const CAP: usize> Deserialize<'de> for ArrayVec<T
             fn visit_seq<SA>(self, mut seq: SA) -> Result<Self::Value, SA::Error>
                 where SA: SeqAccess<'de>,
             {
-                let mut values = ArrayVec::<T, CAP>::new();
+                let mut values = ArrayVec::<T, CAP, LenType>::new();
 
                 while let Some(value) = seq.next_element()? {
                     if let Err(_) = values.try_push(value) {
@@ -1297,6 +1296,6 @@ impl<'de, T: Deserialize<'de>, const CAP: usize> Deserialize<'de> for ArrayVec<T
             }
         }
 
-        deserializer.deserialize_seq(ArrayVecVisitor::<T, CAP>(PhantomData))
+        deserializer.deserialize_seq(ArrayVecVisitor::<T, CAP, LenType>(PhantomData))
     }
 }
