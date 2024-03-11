@@ -18,7 +18,7 @@ jobs:
       matrix:
         include:
           - rust: 1.51.0 # MSRV
-            features: serde, borsh
+            features: serde
             experimental: false
           - rust: stable
             features:
