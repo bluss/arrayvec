@@ -464,10 +464,24 @@ impl<const CAP: usize> PartialEq<str> for ArrayString<CAP>
     }
 }
 
+impl<const CAP: usize> PartialEq<&str> for ArrayString<CAP>
+{
+    fn eq(&self, rhs: &&str) -> bool {
+        &**self == *rhs
+    }
+}
+
 impl<const CAP: usize> PartialEq<ArrayString<CAP>> for str
 {
     fn eq(&self, rhs: &ArrayString<CAP>) -> bool {
         self == &**rhs
+    }
+}
+
+impl<const CAP: usize> PartialEq<ArrayString<CAP>> for &str
+{
+    fn eq(&self, rhs: &ArrayString<CAP>) -> bool {
+        *self == &**rhs
     }
 }
 

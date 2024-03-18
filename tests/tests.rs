@@ -47,9 +47,9 @@ fn test_extend_from_slice() {
 
     vec.try_extend_from_slice(&[1, 2, 3]).unwrap();
     assert_eq!(vec.len(), 3);
-    assert_eq!(&vec[..], &[1, 2, 3]);
+    assert_eq!(vec, [1, 2, 3]);
     assert_eq!(vec.pop(), Some(3));
-    assert_eq!(&vec[..], &[1, 2]);
+    assert_eq!(vec, [1, 2]);
 }
 
 #[test]
@@ -528,8 +528,8 @@ fn test_string() {
     let text = "hello world";
     let mut s = ArrayString::<16>::new();
     s.try_push_str(text).unwrap();
-    assert_eq!(&s, text);
-    assert_eq!(text, &s);
+    assert_eq!(s, text);
+    assert_eq!(text, s);
 
     // Make sure Hash / Eq / Borrow match up so we can use HashMap
     let mut map = HashMap::new();
@@ -611,7 +611,7 @@ fn test_insert_at_length() {
     let result1 = v.try_insert(0, "a");
     let result2 = v.try_insert(1, "b");
     assert!(result1.is_ok() && result2.is_ok());
-    assert_eq!(&v[..], &["a", "b"]);
+    assert_eq!(v, ["a", "b"]);
 }
 
 #[should_panic]
@@ -737,6 +737,15 @@ fn test_try_from_argument() {
 }
 
 #[test]
+fn test_nested_eq() {
+    let array: ArrayVec<ArrayVec<_, 2>, 5> = (0..3)
+        .map(|i| ArrayVec::from([i, i + 1]))
+        .collect();
+
+    assert_eq!(array, [[0, 1], [1, 2], [2, 3]]);
+}
+
+#[test]
 fn allow_max_capacity_arrayvec_type() {
     // this type is allowed to be used (but can't be constructed)
     let _v: ArrayVec<(), {usize::MAX}>;
@@ -768,7 +777,7 @@ fn test_arrayvec_const_constructible() {
 
     let mut var = OF_U8;
     assert!(var.is_empty());
-    assert_eq!(var, ArrayVec::new());
+    assert_eq!(var, ArrayVec::<Vec<u8>, 10>::new());
     var.push(vec![3, 5, 8]);
     assert_eq!(var[..], [vec![3, 5, 8]]);
 }
@@ -790,4 +799,14 @@ fn test_arraystring_zero_filled_has_some_sanity_checks() {
     let string = ArrayString::<4>::zero_filled();
     assert_eq!(string.as_str(), "\0\0\0\0");
     assert_eq!(string.len(), 4);
+}
+
+#[test]
+fn test_vec_of_strings_equality() {
+    let vec = ArrayVec::from([
+        ArrayString::<8>::from("one").unwrap(),
+        ArrayString::<8>::from("two").unwrap(),
+        ArrayString::<8>::from("three").unwrap(),
+    ]);
+    assert_eq!(vec, ["one", "two", "three"]);
 }
