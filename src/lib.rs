@@ -61,3 +61,10 @@ pub use crate::array_string::ArrayString;
 pub use crate::errors::CapacityError;
 
 pub use crate::arrayvec::{ArrayVec, IntoIter, Drain};
+
+#[cfg(feature = "copy")]
+mod arrayvec_copy;
+#[cfg(feature = "copy")]
+pub mod copy {
+    pub use crate::arrayvec_copy::{ArrayVecCopy, IntoIter, Drain};
+}
