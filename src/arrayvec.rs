@@ -101,6 +101,42 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         ArrayVec { xs: MakeMaybeUninit::ARRAY, len: 0 }
     }
 
+    /// Create a new empty `ArrayVec` directly on the heap.
+    ///
+    /// The maximum capacity is given by the generic parameter `CAP`.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut array = ArrayVec::<_, 16>::boxed();
+    /// array.push(1);
+    /// array.push(2);
+    /// assert_eq!(&array[..], &[1, 2]);
+    /// assert_eq!(array.capacity(), 16);
+    /// ```
+    #[track_caller]
+    pub fn boxed() -> Box<Self> {
+        assert_capacity_limit!(CAP);
+        let layout = std::alloc::Layout::new::<Self>();
+        // SAFETY: `Self` is not a ZST, it contains at least `len`, even if `T`
+        // is a ZST or `CAP` is 0
+        let ptr = unsafe { std::alloc::alloc(layout) as *mut Self };
+        if ptr.is_null() {
+            std::alloc::handle_alloc_error(layout);
+        }
+        // SAFETY:
+        // - `len` needs to be initialized to 0
+        // - `xs` does _not_ need to be initialized if `len` is 0.
+        // - `ptr` is valid and well aligned for type `Self`
+        unsafe { std::ptr::addr_of_mut!((*ptr).len).write(0) };
+
+        // SAFETY: "It is valid to convert both ways between a Box and a raw
+        // pointer allocated with the Global allocator, given that the Layout
+        // used with the allocator is correct for the type."
+        // https://doc.rust-lang.org/stable/std/boxed/index.html#memory-layout
+        unsafe { Box::from_raw(ptr) }
+    }
+
     /// Return the number of elements in the `ArrayVec`.
     ///
     /// ```

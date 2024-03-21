@@ -791,3 +791,51 @@ fn test_arraystring_zero_filled_has_some_sanity_checks() {
     assert_eq!(string.as_str(), "\0\0\0\0");
     assert_eq!(string.len(), 4);
 }
+
+#[test]
+fn test_arrayvec_heap_constructible() {
+    let mut var: Box<ArrayVec<Vec<u8>, 10>> = ArrayVec::boxed();
+
+    assert!(var.is_empty());
+    var.push(vec![3, 5, 8]);
+    assert_eq!(var[..], [vec![3, 5, 8]]);
+}
+
+#[test]
+fn test_arraystring_heap_constructible() {
+    let mut var: Box<ArrayString<10>> = ArrayString::boxed();
+
+    assert!(var.is_empty());
+    var.push_str("hello");
+    assert_eq!(*var, *"hello");
+}
+
+#[test]
+fn test_arrayvec_heap_zero_capacity() {
+    let mut var: Box<ArrayVec<u8, 0>> = ArrayVec::boxed();
+
+    assert!(var.is_empty());
+    assert!(var.try_push(0).is_err());
+}
+
+#[test]
+fn test_arraystring_heap_zero_capacity() {
+    let mut var: Box<ArrayString<0>> = ArrayString::boxed();
+
+    assert!(var.is_empty());
+    assert!(var.try_push_str("hello").is_err());
+}
+
+#[test]
+fn test_arrayvec_heap_zst() {
+    #[derive(Copy, Clone, PartialEq, Debug)]
+    struct Z; // Zero sized type
+
+    let mut var: Box<ArrayVec<Z, 10>> = ArrayVec::boxed();
+
+    for _ in 0..5 {
+        var.push(Z);
+    }
+    assert_eq!(&var[..], &[Z; 5]);
+    assert_eq!(var.len(), 5);
+}
