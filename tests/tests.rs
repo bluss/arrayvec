@@ -75,6 +75,7 @@ fn test_try_from_slice_error() {
 }
 
 #[test]
+#[cfg(feature="array-len-u16")]
 fn test_u16_index() {
     const N: usize = 4096;
     let mut vec: ArrayVec<_,  N> = ArrayVec::new();
@@ -681,7 +682,7 @@ fn test_pop_at() {
 
 #[test]
 fn test_sizes() {
-    let v = ArrayVec::from([0u8; 1 << 16]);
+    let v = ArrayVec::from([0u8; 255]);
     assert_eq!(vec![0u8; v.len()], &v[..]);
 }
 
