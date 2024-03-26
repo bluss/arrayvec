@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="arrayvec::array_string::ArrayString&lt;*&gt;">
+    <DisplayString>{xs,[len]s8}</DisplayString>
+    <StringView>{xs,[len]s8}</StringView>
+    <Expand>
+      <Item Name="[len]" ExcludeView="simple">len</Item>
+      <Item Name="[capacity]" ExcludeView="simple">$T1</Item>
+      <CustomListItems>
+        <Variable Name="i" InitialValue="0" />
+        <Size>len</Size>
+        <Loop>
+          <Item>(char)xs[i].value.value</Item>
+          <Exec>i++</Exec>
+        </Loop>
+      </CustomListItems>
+    </Expand>
+  </Type>
+
+  <Type Name="arrayvec::arrayvec::ArrayVec&lt;*,*&gt;">
+    <DisplayString>{{ len={len} }}</DisplayString>
+    <Expand>
+      <Item Name="[len]" ExcludeView="simple">len</Item>
+      <Item Name="[capacity]" ExcludeView="simple">$T2</Item>
+      <CustomListItems>
+        <Variable Name="i" InitialValue="0" />
+        <Size>len</Size>
+        <Loop>
+          <Item>($T1)xs[i].value.value</Item>
+          <Exec>i++</Exec>
+        </Loop>
+      </CustomListItems>
+    </Expand>
+  </Type>
+</AutoVisualizer>

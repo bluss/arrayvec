@@ -21,6 +21,11 @@
 //!
 #![doc(html_root_url="https://docs.rs/arrayvec/0.7/")]
 #![cfg_attr(not(feature="std"), no_std)]
+#![cfg_attr(
+    feature="debugger_visualizer",
+    feature(debugger_visualizer),
+    debugger_visualizer(natvis_file = "../debug_metadata/arrayvec.natvis")
+)]
 
 #[cfg(feature="serde")]
 extern crate serde;
