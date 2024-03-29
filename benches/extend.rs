@@ -38,7 +38,7 @@ fn extend_with_slice(b: &mut Bencher) {
     let data = [1; 512];
     b.iter(|| {
         v.clear();
-        let iter = data.iter().map(|&x| x);
+        let iter = data.iter().copied();
         v.extend(iter);
         v[511]
     });
@@ -50,7 +50,7 @@ fn extend_with_write(b: &mut Bencher) {
     let data = [1; 512];
     b.iter(|| {
         v.clear();
-        v.write(&data[..]).ok();
+        v.write_all(&data[..]).ok();
         v[511]
     });
     b.bytes = v.capacity() as u64;
