@@ -19,7 +19,8 @@ use std::mem::MaybeUninit;
 #[cfg(feature = "serde")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
-use crate::len_type::{LenUint, CapToLenType, CapToDefaultLenType, DefaultLenType, assert_capacity_limit, assert_capacity_limit_const};
+use crate::len_type::{check_cap_fits_in_len_type, ConstGenericSmuggler, CapToDefaultLenType};
+use crate::len_type::{LenUint, DefaultLenType};
 use crate::errors::CapacityError;
 use crate::arrayvec_impl::ArrayVecImpl;
 use crate::utils::MakeMaybeUninit;
@@ -80,7 +81,7 @@ impl<T, const CAP: usize, LenType: LenUint> ArrayVec<T, CAP, LenType> {
     #[inline]
     #[track_caller]
     pub fn new() -> Self {
-        assert_capacity_limit!(LenType, CAP);
+        check_cap_fits_in_len_type::<LenType, CAP>();
         ArrayVec { len: LenType::ZERO, xs: MakeMaybeUninit::ARRAY }
     }
 
@@ -94,7 +95,7 @@ impl<T, const CAP: usize, LenType: LenUint> ArrayVec<T, CAP, LenType> {
     /// static ARRAY: ArrayVec<u8, 1024> = ArrayVec::new_const();
     /// ```
     pub const fn new_const() -> Self {
-        assert_capacity_limit_const!(LenType, CAP);
+        check_cap_fits_in_len_type::<LenType, CAP>();
         ArrayVec { len: LenType::ZERO, xs: MakeMaybeUninit::ARRAY }
     }
 
@@ -751,7 +752,7 @@ impl<T, const CAP: usize, LenType: LenUint> DerefMut for ArrayVec<T, CAP, LenTyp
 /// assert_eq!(array.capacity(), 3);
 /// ```
 impl<T, const CAP: usize> From<[T; CAP]> for ArrayVec<T, CAP>
-    where CapToLenType<CAP>: CapToDefaultLenType
+    where ConstGenericSmuggler<CAP>: CapToDefaultLenType
 {
     #[track_caller]
     fn from(array: [T; CAP]) -> Self {

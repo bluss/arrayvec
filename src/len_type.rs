@@ -15,27 +15,11 @@ macro_rules! impl_lenuint {
 macro_rules! impl_default_lentype_from_cap {
     ($LenT:ty => $($CAP:literal),*) => {
         $(
-            impl CapToDefaultLenType for CapToLenType<$CAP> {
+            impl CapToDefaultLenType for ConstGenericSmuggler<$CAP> {
                 type T = $LenT;
             }
         )*
     };
-}
-
-macro_rules! assert_capacity_limit {
-    ($ty: path, $cap:expr) => {
-        if $cap > <$ty as LenUint>::MAX {
-            panic!("ArrayVec: capacity {} is too large for {}::MAX={}", CAP, std::any::type_name::<$ty>(), <$ty as LenUint>::MAX)
-        }
-    }
-}
-
-macro_rules! assert_capacity_limit_const {
-    ($ty: path, $cap:expr) => {
-        if $cap > <$ty as LenUint>::MAX {
-            panic!("ArrayVec: capacity is too large for LenUint::MAX")
-        }
-    }
 }
 
 pub trait LenUint: Add + Sub + Copy + PartialOrd + PartialEq + private::Sealed  {
@@ -56,7 +40,7 @@ mod private {
     impl_lenuint!(Sealed, super::LenUint, usize);
 }
 
-pub struct CapToLenType<const CONST: usize> {}
+pub struct ConstGenericSmuggler<const CONST: usize> {}
 
 pub trait CapToDefaultLenType {
     type T: LenUint;
@@ -67,6 +51,19 @@ impl_default_lentype_from_cap!(u16 => 256, 500, 512, 1000, 1024, 2048, 4096, 819
 impl_default_lentype_from_cap!(u32 => 65536, 1000000, 4294967295);
 impl_default_lentype_from_cap!(u64 => 18446744073709551615);
 
-pub(crate) type DefaultLenType<const CAP: usize> = <CapToLenType<CAP> as CapToDefaultLenType>::T;
+pub trait CapFitsInLenType {
+    const CHECK: ();
+}
 
-pub(crate) use {assert_capacity_limit, assert_capacity_limit_const};
+impl<LenType: LenUint, const CAP: usize> CapFitsInLenType for (ConstGenericSmuggler<CAP>, LenType) {
+    const CHECK: () = {
+        if CAP > LenType::MAX {
+            panic!("Cannot fit CAP into provided LenType");
+        }
+    };
+}
+
+pub type DefaultLenType<const CAP: usize> = <ConstGenericSmuggler<CAP> as CapToDefaultLenType>::T;
+pub const fn check_cap_fits_in_len_type<LenType: LenUint, const CAP: usize>() {
+    <(ConstGenericSmuggler<CAP>, LenType) as CapFitsInLenType>::CHECK
+}

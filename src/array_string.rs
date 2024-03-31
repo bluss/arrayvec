@@ -11,7 +11,7 @@ use std::str;
 use std::str::FromStr;
 use std::str::Utf8Error;
 
-use crate::len_type::{LenUint, DefaultLenType, assert_capacity_limit, assert_capacity_limit_const};
+use crate::len_type::{check_cap_fits_in_len_type, DefaultLenType, LenUint};
 use crate::CapacityError;
 use crate::char::encode_utf8;
 use crate::utils::MakeMaybeUninit;
@@ -60,8 +60,13 @@ impl<const CAP: usize, LenType: LenUint> ArrayString<CAP, LenType>
     /// assert_eq!(&string[..], "foo");
     /// assert_eq!(string.capacity(), 16);
     /// ```
+    ///
+    /// If you provide a capacity greater than a length type, this will fail at compile time.
+    /// ```compile_fail
+    /// let string = arrayvec::ArrayString::<256, u8>::new();
+    /// ```
     pub fn new() -> Self {
-        assert_capacity_limit!(LenType, CAP);
+        check_cap_fits_in_len_type::<LenType, CAP>();
         ArrayString { len: LenType::from_usize(0), xs: MakeMaybeUninit::ARRAY }
     }
 
@@ -75,7 +80,7 @@ impl<const CAP: usize, LenType: LenUint> ArrayString<CAP, LenType>
     /// const ARRAY: ArrayString<1024> = ArrayString::new_const();
     /// ```
     pub const fn new_const() -> Self {
-        assert_capacity_limit_const!(LenType, CAP);
+        check_cap_fits_in_len_type::<LenType, CAP>();
         ArrayString { len: LenType::ZERO, xs: MakeMaybeUninit::ARRAY }
     }
 
@@ -137,10 +142,15 @@ impl<const CAP: usize, LenType: LenUint> ArrayString<CAP, LenType>
     /// let string = ArrayString::<16>::zero_filled();
     /// assert_eq!(string.len(), 16);
     /// ```
+    ///
+    /// If you provide a capacity greater than a length type, this will fail at compile time.
+    /// ```compile_fail
+    /// let string = arrayvec::ArrayString::<256, u8>::zero_filled();
+    /// ```
     #[inline]
     pub fn zero_filled() -> Self {
-        assert_capacity_limit!(LenType, CAP);
-        // SAFETY: `assert_capacity_limit` asserts that `len` won't overflow and
+        check_cap_fits_in_len_type::<LenType, CAP>();
+        // SAFETY: `check_cap_fits_in_len_type` asserts that `len` won't overflow and
         // `zeroed` fully fills the array with nulls.
         unsafe {
             ArrayString {
