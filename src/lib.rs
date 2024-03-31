@@ -28,48 +28,7 @@ extern crate serde;
 #[cfg(not(feature="std"))]
 extern crate core as std;
 
-pub trait LenUint: Add + Sub + Copy + PartialOrd + PartialEq + private::Sealed  {
-    const MAX: usize;
-    const ZERO: Self;
-    fn from_usize(n: usize) -> Self;
-    fn to_usize(self) -> usize;
-}
-macro_rules! impl_lenuint {
-    ($ty: path) => {
-        impl $crate::private::Sealed for $ty {}
-        impl $crate::LenUint for $ty {
-            const MAX: usize = <$ty>::MAX as usize;
-            const ZERO: Self = 0;
-            fn from_usize(n: usize) -> Self { n as $ty }
-            fn to_usize(self) -> usize { self as usize }
-        }
-    };
-}
-mod private {
-    pub trait Sealed {}
-    impl_lenuint!(u8);
-    impl_lenuint!(u16);
-    impl_lenuint!(u32);
-    #[cfg(target_pointer_width = "64")]
-    impl_lenuint!(u64);
-    impl_lenuint!(usize);
-}
-macro_rules! assert_capacity_limit {
-    ($ty: path, $cap:expr) => {
-        if $cap > <$ty as LenUint>::MAX {
-            panic!("ArrayVec: capacity {} is too large for {}::MAX={}", CAP, std::any::type_name::<$ty>(), <$ty as LenUint>::MAX)
-        }
-    }
-}
-
-macro_rules! assert_capacity_limit_const {
-    ($ty: path, $cap:expr) => {
-        if $cap > <$ty as LenUint>::MAX {
-            panic!("ArrayVec: capacity is too large for LenUint::MAX")
-        }
-    }
-}
-pub type DefaultLenUint = u32;
+mod len_type;
 mod arrayvec_impl;
 mod arrayvec;
 mod array_string;
@@ -77,9 +36,8 @@ mod char;
 mod errors;
 mod utils;
 
-use core::ops::Sub;
-use std::ops::Add;
 pub use crate::array_string::ArrayString;
 pub use crate::errors::CapacityError;
+pub use len_type::LenUint;
 
 pub use crate::arrayvec::{ArrayVec, IntoIter, Drain};

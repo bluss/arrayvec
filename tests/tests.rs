@@ -737,32 +737,6 @@ fn test_try_from_argument() {
 }
 
 #[test]
-fn allow_max_capacity_arrayvec_type() {
-    // this type is allowed to be used (but can't be constructed)
-    let _v: ArrayVec<(), { usize::MAX }>;
-}
-
-#[should_panic(expected = "largest supported capacity")]
-#[test]
-fn deny_max_capacity_arrayvec_value() {
-    if mem::size_of::<usize>() <= mem::size_of::<u32>() {
-        panic!("This test does not work on this platform. 'largest supported capacity'");
-    }
-    // this type is allowed to be used (but can't be constructed)
-    let _v: ArrayVec<(), { usize::MAX }> = ArrayVec::new();
-}
-
-#[should_panic(expected = "index out of bounds")]
-#[test]
-fn deny_max_capacity_arrayvec_value_const() {
-    if mem::size_of::<usize>() <= mem::size_of::<u32>() {
-        panic!("This test does not work on this platform. 'index out of bounds'");
-    }
-    // this type is allowed to be used (but can't be constructed)
-    let _v: ArrayVec<(), { usize::MAX }> = ArrayVec::new_const();
-}
-
-#[test]
 fn test_arrayvec_const_constructible() {
     const OF_U8: ArrayVec<Vec<u8>, 10> = ArrayVec::new_const();
 

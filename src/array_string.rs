@@ -11,8 +11,8 @@ use std::str;
 use std::str::FromStr;
 use std::str::Utf8Error;
 
-use crate::{CapacityError, DefaultLenUint};
-use crate::LenUint;
+use crate::len_type::{LenUint, DefaultLenType, assert_capacity_limit, assert_capacity_limit_const};
+use crate::CapacityError;
 use crate::char::encode_utf8;
 use crate::utils::MakeMaybeUninit;
 
@@ -32,7 +32,7 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 /// if needed.
 #[derive(Copy)]
 #[repr(C)]
-pub struct ArrayString<const CAP: usize, LenType: LenUint = DefaultLenUint> {
+pub struct ArrayString<const CAP: usize, LenType: LenUint = DefaultLenType<CAP>> {
     // the `len` first elements of the array are initialized
     len: LenType,
     xs: [MaybeUninit<u8>; CAP],
@@ -114,7 +114,7 @@ impl<const CAP: usize, LenType: LenUint> ArrayString<CAP, LenType>
     /// ```
     /// use arrayvec::ArrayString;
     ///
-    /// let string = ArrayString::from_byte_string(b"hello world").unwrap();
+    /// let string = ArrayString::<11>::from_byte_string(b"hello world").unwrap();
     /// ```
     pub fn from_byte_string(b: &[u8; CAP]) -> Result<Self, Utf8Error> {
         let len = str::from_utf8(b)?.len();

@@ -19,7 +19,7 @@ use std::mem::MaybeUninit;
 #[cfg(feature = "serde")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
-use crate::{DefaultLenUint, LenUint};
+use crate::len_type::{LenUint, CapToLenType, CapToDefaultLenType, DefaultLenType, assert_capacity_limit, assert_capacity_limit_const};
 use crate::errors::CapacityError;
 use crate::arrayvec_impl::ArrayVecImpl;
 use crate::utils::MakeMaybeUninit;
@@ -39,8 +39,8 @@ use crate::utils::MakeMaybeUninit;
 /// It offers a simple API but also dereferences to a slice, so that the full slice API is
 /// available. The ArrayVec can be converted into a by value iterator.
 #[repr(C)]
-pub struct ArrayVec<T, const CAP: usize, LenType: LenUint = DefaultLenUint> {
-    len: LenType,
+pub struct ArrayVec<T, const CAP: usize, LenT: LenUint = DefaultLenType<CAP>> {
+    len: LenT,
     // the `len` first elements of the array are initialized
     xs: [MaybeUninit<T>; CAP],
 }
@@ -750,7 +750,9 @@ impl<T, const CAP: usize, LenType: LenUint> DerefMut for ArrayVec<T, CAP, LenTyp
 /// assert_eq!(array.len(), 3);
 /// assert_eq!(array.capacity(), 3);
 /// ```
-impl<T, const CAP: usize, LenType: LenUint> From<[T; CAP]> for ArrayVec<T, CAP, LenType> {
+impl<T, const CAP: usize> From<[T; CAP]> for ArrayVec<T, CAP>
+    where CapToLenType<CAP>: CapToDefaultLenType
+{
     #[track_caller]
     fn from(array: [T; CAP]) -> Self {
         let array = ManuallyDrop::new(array);
@@ -874,7 +876,7 @@ impl<Z: zeroize::Zeroize, const CAP: usize, LenType: LenUint> zeroize::Zeroize f
 }
 
 /// By-value iterator for `ArrayVec`.
-pub struct IntoIter<T, const CAP: usize, LenType: LenUint = DefaultLenUint> {
+pub struct IntoIter<T, const CAP: usize, LenType: LenUint = DefaultLenType<CAP>> {
     index: usize,
     v: ArrayVec<T, CAP, LenType>,
 }
@@ -1241,7 +1243,7 @@ impl<T, const CAP: usize, LenType: LenUint> Ord for ArrayVec<T, CAP, LenType> wh
 /// `Write` appends written data to the end of the vector.
 ///
 /// Requires `features="std"`.
-impl<const CAP: usize> io::Write for ArrayVec<u8, CAP> {
+impl<const CAP: usize, LenType: LenUint> io::Write for ArrayVec<u8, CAP, LenType> {
     fn write(&mut self, data: &[u8]) -> io::Result<usize> {
         let len = cmp::min(self.remaining_capacity(), data.len());
         let _result = self.try_extend_from_slice(&data[..len]);
