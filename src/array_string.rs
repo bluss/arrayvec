@@ -81,6 +81,41 @@ impl<const CAP: usize> ArrayString<CAP>
         ArrayString { xs: MakeMaybeUninit::ARRAY, len: 0 }
     }
 
+    /// Create a new empty `ArrayString` directly on the heap.
+    ///
+    /// Capacity is inferred from the type parameter.
+    ///
+    /// ```
+    /// use arrayvec::ArrayString;
+    ///
+    /// let mut string = ArrayString::<16>::boxed();
+    /// string.push_str("foo");
+    /// assert_eq!(&string[..], "foo");
+    /// assert_eq!(string.capacity(), 16);
+    /// ```
+    #[track_caller]
+    pub fn boxed() -> Box<Self> {
+        assert_capacity_limit!(CAP);
+        let layout = std::alloc::Layout::new::<Self>();
+        // SAFETY: `Self` is not a ZST, it contains at least `len`, even if
+        // `CAP` is 0
+        let ptr = unsafe { std::alloc::alloc(layout) as *mut Self };
+        if ptr.is_null() {
+            std::alloc::handle_alloc_error(layout);
+        }
+        // SAFETY:
+        // - `len` needs to be initialized to 0
+        // - `xs` does _not_ need to be initialized if `len` is 0.
+        // - `ptr` is valid and well aligned for type `Self`
+        unsafe { std::ptr::addr_of_mut!((*ptr).len).write(0) };
+
+        // SAFETY: "It is valid to convert both ways between a Box and a raw
+        // pointer allocated with the Global allocator, given that the Layout
+        // used with the allocator is correct for the type."
+        // https://doc.rust-lang.org/stable/std/boxed/index.html#memory-layout
+        unsafe { Box::from_raw(ptr) }
+    }
+
     /// Return the length of the string.
     #[inline]
     pub const fn len(&self) -> usize { self.len as usize }
