@@ -2,7 +2,7 @@
 use std::cmp;
 use std::iter;
 use std::mem;
-use std::ops::{Bound, Deref, DerefMut, RangeBounds};
+use std::ops::{Bound, Deref, DerefMut, Index, IndexMut, RangeBounds};
 use std::ptr;
 use std::slice;
 
@@ -378,7 +378,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 
     /// Remove the element at `index` and swap the last element into its place.
     ///
-    /// This is a checked version of `.swap_remove`.  
+    /// This is a checked version of `.swap_remove`.
     /// This operation is O(1).
     ///
     /// Return `Some(` *element* `)` if the index is in bounds, else `None`.
@@ -1048,17 +1048,37 @@ impl<T, Data, F> Drop for ScopeExitGuard<T, Data, F>
 
 
 /// Extend the `ArrayVec` with an iterator.
-/// 
+///
 /// ***Panics*** if extending the vector exceeds its capacity.
 impl<T, const CAP: usize> Extend<T> for ArrayVec<T, CAP> {
     /// Extend the `ArrayVec` with an iterator.
-    /// 
+    ///
     /// ***Panics*** if extending the vector exceeds its capacity.
     #[track_caller]
     fn extend<I: IntoIterator<Item=T>>(&mut self, iter: I) {
         unsafe {
             self.extend_from_iter::<_, true>(iter)
         }
+    }
+}
+
+impl<I, T, const CAP: usize> Index<I> for ArrayVec<T, CAP>
+where
+    [T]: Index<I>,
+{
+    type Output = <[T] as Index<I>>::Output;
+
+    fn index(&self, index: I) -> &Self::Output {
+        &(**self)[index]
+    }
+}
+
+impl<I, T, const CAP: usize> IndexMut<I> for ArrayVec<T, CAP>
+where
+    [T]: IndexMut<I>,
+{
+    fn index_mut(&mut self, index: I) -> &mut Self::Output {
+        &mut (**self)[index]
     }
 }
 
@@ -1136,11 +1156,11 @@ unsafe fn raw_ptr_add<T>(ptr: *mut T, offset: usize) -> *mut T {
 }
 
 /// Create an `ArrayVec` from an iterator.
-/// 
+///
 /// ***Panics*** if the number of elements in the iterator exceeds the arrayvec's capacity.
 impl<T, const CAP: usize> iter::FromIterator<T> for ArrayVec<T, CAP> {
     /// Create an `ArrayVec` from an iterator.
-    /// 
+    ///
     /// ***Panics*** if the number of elements in the iterator exceeds the arrayvec's capacity.
     fn from_iter<I: IntoIterator<Item=T>>(iter: I) -> Self {
         let mut array = ArrayVec::new();

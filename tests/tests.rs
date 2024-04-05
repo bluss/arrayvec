@@ -520,6 +520,46 @@ fn array_clone_from() {
     assert_eq!(&t, &reference[..]);
 }
 
+#[test]
+fn array_index_usize() {
+    let v = ArrayVec::from([1, 2, 3]);
+    assert_eq!(v[1], 2);
+}
+
+#[should_panic(expected="index out of bounds: the len is 3 but the index is 3")]
+#[test]
+fn array_index_usize_out_of_bounds() {
+    let v = ArrayVec::from([1, 2, 3]);
+    let _ = v[3]; // out of bounds
+}
+
+#[test]
+fn array_index_range() {
+    let v = ArrayVec::from([1, 2, 3]);
+    assert_eq!(&v[1..3], [2, 3].as_ref());
+}
+
+#[should_panic(expected="range end index 4 out of range for slice of length 3")]
+#[test]
+fn array_index_range_out_of_bounds() {
+    let v = ArrayVec::from([1, 2, 3]);
+    let _ = v[1..4]; // out of bounds
+}
+
+#[test]
+fn array_indexmut_usize() {
+    let mut v = ArrayVec::from([1, 2, 3]);
+    v[1] = 0;
+    assert_eq!(v, ArrayVec::from([1, 0, 3]));
+}
+
+#[should_panic(expected="index out of bounds: the len is 3 but the index is 3")]
+#[test]
+fn array_indexmut_usize_out_of_bounds() {
+    let mut v = ArrayVec::from([1, 2, 3]);
+    v[3] = 0; // out of bounds
+}
+
 #[cfg(feature="std")]
 #[test]
 fn test_string() {
@@ -604,6 +644,46 @@ fn test_string_push() {
     assert!(s.try_push('x').is_err());
 }
 
+#[test]
+fn string_index() {
+    let v = ArrayString::<9>::from("abcαβγ").unwrap();
+    assert_eq!(&v[1..5], "bcα");
+}
+
+#[should_panic(expected="byte index 4 is out of bounds of `abc`")]
+#[test]
+fn string_index_out_of_bounds() {
+    let v = ArrayString::<3>::from("abc").unwrap();
+    let _ = v[1..4]; // out of bounds
+}
+
+#[should_panic(expected="byte index 1 is not a char boundary; it is inside 'α' (bytes 0..2) of `αβγabc`")]
+#[test]
+fn string_index_char_boundary_error() {
+    let v = ArrayString::<9>::from("αβγabc").unwrap();
+    let _ = v[1..4]; // not at char boundary
+}
+
+#[test]
+fn string_indexmut() {
+    let mut v = ArrayString::<9>::from("αβγabc").unwrap();
+    v[4..7].make_ascii_uppercase();
+    assert_eq!(&*v, "αβγAbc");
+}
+
+#[should_panic(expected="byte index 4 is out of bounds of `abc`")]
+#[test]
+fn string_indexmut_out_of_bounds() {
+    let mut v = ArrayString::<3>::from("abc").unwrap();
+    v[2..4].make_ascii_uppercase(); // out of bounds
+}
+
+#[should_panic(expected="byte index 1 is not a char boundary; it is inside 'α' (bytes 0..2) of `αβγabc`")]
+#[test]
+fn string_indexmut_char_boundary_error() {
+    let mut v = ArrayString::<9>::from("αβγabc").unwrap();
+    v[1..4].make_ascii_uppercase(); // not at char boundary
+}
 
 #[test]
 fn test_insert_at_length() {
