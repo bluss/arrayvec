@@ -638,7 +638,7 @@ impl<'de, const CAP: usize, LenType: LenUint> Deserialize<'de> for ArrayString<C
 
 #[cfg(feature = "borsh")]
 /// Requires crate feature `"borsh"`
-impl<const CAP: usize> borsh::BorshSerialize for ArrayString<CAP> {
+impl<const CAP: usize, LenType: LenUint> borsh::BorshSerialize for ArrayString<CAP, LenType> {
     fn serialize<W: borsh::io::Write>(&self, writer: &mut W) -> borsh::io::Result<()> {
         <str as borsh::BorshSerialize>::serialize(&*self, writer)
     }
@@ -646,14 +646,14 @@ impl<const CAP: usize> borsh::BorshSerialize for ArrayString<CAP> {
 
 #[cfg(feature = "borsh")]
 /// Requires crate feature `"borsh"`
-impl<const CAP: usize> borsh::BorshDeserialize for ArrayString<CAP> {
+impl<const CAP: usize, LenType: LenUint> borsh::BorshDeserialize for ArrayString<CAP, LenType> {
     fn deserialize_reader<R: borsh::io::Read>(reader: &mut R) -> borsh::io::Result<Self> {
         let len = <u32 as borsh::BorshDeserialize>::deserialize_reader(reader)? as usize;
         if len > CAP {
             return Err(borsh::io::Error::new(
                 borsh::io::ErrorKind::InvalidData,
                 format!("Expected a string no more than {} bytes long", CAP),
-            ))
+            ));
         }
 
         let mut buf = [0u8; CAP];

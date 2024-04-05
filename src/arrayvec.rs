@@ -1317,7 +1317,7 @@ impl<'de, T: Deserialize<'de>, const CAP: usize, LenType: LenUint> Deserialize<'
 
 #[cfg(feature = "borsh")]
 /// Requires crate feature `"borsh"`
-impl<T, const CAP: usize> borsh::BorshSerialize for ArrayVec<T, CAP>
+impl<T, const CAP: usize, LenType: LenUint> borsh::BorshSerialize for ArrayVec<T, CAP, LenType>
     where
         T: borsh::BorshSerialize,
 {
@@ -1328,7 +1328,7 @@ impl<T, const CAP: usize> borsh::BorshSerialize for ArrayVec<T, CAP>
 
 #[cfg(feature = "borsh")]
 /// Requires crate feature `"borsh"`
-impl<T, const CAP: usize> borsh::BorshDeserialize for ArrayVec<T, CAP>
+impl<T, const CAP: usize, LenType: LenUint> borsh::BorshDeserialize for ArrayVec<T, CAP, LenType>
     where
         T: borsh::BorshDeserialize,
 {
