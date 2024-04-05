@@ -28,7 +28,7 @@ jobs:
             features: serde
             experimental: false
           - rust: nightly
-            features: serde, zeroize
+            features: serde, borsh, zeroize
             experimental: false
 
     steps:

@@ -1,6 +1,13 @@
 Recent Changes (arrayvec)
 =========================
 
+## 0.7.5
+
+- Add `as_ptr` and `as_mut_ptr` to `ArrayString` by @YuhanLiin
+- Add borsh serialization support by @honzasp and @Fuuzetsu
+- Move length field before before data in ArrayVec and ArrayString by @JakkuSakura
+- Fix miri error for ZST case in extend by @bluss
+
 ## 0.7.4
 
 - Add feature zeroize to support the `Zeroize` trait by @elichai
