@@ -881,7 +881,8 @@ pub struct IntoIter<T, const CAP: usize, LenType: LenUint = DefaultLenType<CAP>>
     index: usize,
     v: ArrayVec<T, CAP, LenType>,
 }
-impl<T, const CAP: usize> IntoIter<T, CAP> {
+
+impl<T, const CAP: usize, LenType: LenUint> IntoIter<T, CAP, LenType> {
     /// Returns the remaining items of this iterator as a slice.
     pub fn as_slice(&self) -> &[T] {
         &self.v[self.index..]
@@ -1317,8 +1318,8 @@ impl<'de, T: Deserialize<'de>, const CAP: usize, LenType: LenUint> Deserialize<'
 #[cfg(feature = "borsh")]
 /// Requires crate feature `"borsh"`
 impl<T, const CAP: usize> borsh::BorshSerialize for ArrayVec<T, CAP>
-where
-    T: borsh::BorshSerialize,
+    where
+        T: borsh::BorshSerialize,
 {
     fn serialize<W: borsh::io::Write>(&self, writer: &mut W) -> borsh::io::Result<()> {
         <[T] as borsh::BorshSerialize>::serialize(self.as_slice(), writer)
@@ -1328,8 +1329,8 @@ where
 #[cfg(feature = "borsh")]
 /// Requires crate feature `"borsh"`
 impl<T, const CAP: usize> borsh::BorshDeserialize for ArrayVec<T, CAP>
-where
-    T: borsh::BorshDeserialize,
+    where
+        T: borsh::BorshDeserialize,
 {
     fn deserialize_reader<R: borsh::io::Read>(reader: &mut R) -> borsh::io::Result<Self> {
         let mut values = Self::new();
