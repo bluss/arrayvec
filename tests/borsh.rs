@@ -59,7 +59,7 @@ mod array_string {
 
     #[test]
     fn test_full() {
-        let string = ArrayString::from_byte_string(b"hello world").unwrap();
+        let string = ArrayString::<11>::from_byte_string(b"hello world").unwrap();
         assert_ser(&string, b"\x0b\0\0\0hello world");
         assert_roundtrip(&string);
     }
