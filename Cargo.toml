@@ -54,7 +54,7 @@ debug = true
 debug = true
 
 [package.metadata.docs.rs]
-features = ["borsh", "serde", "zeroize"]
+all-features = true
 # Enables the `docsrs` config attribute when running on docs.rs,
 # which always uses the latest nightly compiler. 
 # Idea taken from <https://stackoverflow.com/a/70914430>.
