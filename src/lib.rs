@@ -21,6 +21,8 @@
 //!
 #![doc(html_root_url="https://docs.rs/arrayvec/0.7/")]
 #![cfg_attr(not(feature="std"), no_std)]
+// This enables the nightly feature `doc_auto_cfg` when running on docs.rs,
+// which always uses the nightly compiler.
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
 #[cfg(feature="serde")]
