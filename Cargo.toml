@@ -55,6 +55,7 @@ debug = true
 
 [package.metadata.docs.rs]
 features = ["borsh", "serde", "zeroize"]
+rustdoc-flags = ["--cfg", "docsrs"]
 
 [package.metadata.release]
 no-dev-version = true

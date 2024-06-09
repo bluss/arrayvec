@@ -580,7 +580,6 @@ impl<const CAP: usize> FromStr for ArrayString<CAP>
 }
 
 #[cfg(feature="serde")]
-/// Requires crate feature `"serde"`
 impl<const CAP: usize> Serialize for ArrayString<CAP>
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -591,7 +590,6 @@ impl<const CAP: usize> Serialize for ArrayString<CAP>
 }
 
 #[cfg(feature="serde")]
-/// Requires crate feature `"serde"`
 impl<'de, const CAP: usize> Deserialize<'de> for ArrayString<CAP> 
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -629,7 +627,6 @@ impl<'de, const CAP: usize> Deserialize<'de> for ArrayString<CAP>
 }
 
 #[cfg(feature = "borsh")]
-/// Requires crate feature `"borsh"`
 impl<const CAP: usize> borsh::BorshSerialize for ArrayString<CAP> {
     fn serialize<W: borsh::io::Write>(&self, writer: &mut W) -> borsh::io::Result<()> {
         <str as borsh::BorshSerialize>::serialize(&*self, writer)
@@ -637,7 +634,6 @@ impl<const CAP: usize> borsh::BorshSerialize for ArrayString<CAP> {
 }
 
 #[cfg(feature = "borsh")]
-/// Requires crate feature `"borsh"`
 impl<const CAP: usize> borsh::BorshDeserialize for ArrayString<CAP> {
     fn deserialize_reader<R: borsh::io::Read>(reader: &mut R) -> borsh::io::Result<Self> {
         let len = <u32 as borsh::BorshDeserialize>::deserialize_reader(reader)? as usize;
@@ -683,7 +679,7 @@ impl<'a, const CAP: usize> TryFrom<fmt::Arguments<'a>> for ArrayString<CAP>
 }
 
 #[cfg(feature = "zeroize")]
-/// "Best efforts" zeroing of the `ArrayString`'s buffer when the `zeroize` feature is enabled.
+/// "Best efforts" zeroing of the `ArrayString`'s buffer.
 ///
 /// The length is set to 0, and the buffer is dropped and zeroized.
 /// Cannot ensure that previous moves of the `ArrayString` did not leave values on the stack.
