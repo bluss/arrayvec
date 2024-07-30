@@ -309,7 +309,7 @@ impl<const CAP: usize> ArrayString<CAP>
     /// assert_eq!(s.pop(), None);
     /// ```
     pub fn pop(&mut self) -> Option<char> {
-        let ch = match self.chars().rev().next() {
+        let ch = match self.chars().next_back() {
             Some(ch) => ch,
             None => return None,
         };
@@ -394,8 +394,8 @@ impl<const CAP: usize> ArrayString<CAP>
 
     /// Set the strings’s length.
     ///
-    /// This function is `unsafe` because it changes the notion of the
-    /// number of “valid” bytes in the string. Use with care.
+    /// # Safety
+    /// The data must be initialised up to the length provided.
     ///
     /// This method uses *debug assertions* to check the validity of `length`
     /// and may use other debug assertions.
@@ -523,17 +523,12 @@ impl<const CAP: usize> Clone for ArrayString<CAP>
     fn clone(&self) -> ArrayString<CAP> {
         *self
     }
-    fn clone_from(&mut self, rhs: &Self) {
-        // guaranteed to fit due to types matching.
-        self.clear();
-        self.try_push_str(rhs).ok();
-    }
 }
 
 impl<const CAP: usize> PartialOrd for ArrayString<CAP>
 {
     fn partial_cmp(&self, rhs: &Self) -> Option<cmp::Ordering> {
-        (**self).partial_cmp(&**rhs)
+        Some(self.cmp(rhs))
     }
     fn lt(&self, rhs: &Self) -> bool { **self < **rhs }
     fn le(&self, rhs: &Self) -> bool { **self <= **rhs }
@@ -677,7 +672,7 @@ impl<'a, const CAP: usize> TryFrom<fmt::Arguments<'a>> for ArrayString<CAP>
     fn try_from(f: fmt::Arguments<'a>) -> Result<Self, Self::Error> {
         use fmt::Write;
         let mut v = Self::new();
-        v.write_fmt(f).map_err(|e| CapacityError::new(e))?;
+        v.write_fmt(f).map_err(CapacityError::new)?;
         Ok(v)
     }
 }
