@@ -20,6 +20,9 @@ jobs:
           - rust: 1.51.0 # MSRV
             features: serde
             experimental: false
+          - rust: 1.70.0
+            features: serde
+            experimental: false
           - rust: stable
             features:
             bench: true
@@ -38,6 +41,11 @@ jobs:
           profile: minimal
           toolchain: ${{ matrix.rust }}
           override: true
+      - name: Pin versions for MSRV
+        if: "${{ matrix.rust == '1.51.0' }}"
+        run: |
+          cargo update -p serde_test --precise 1.0.163
+          cargo update -p serde --precise 1.0.69
       - name: Tests
         run: |
           cargo build --verbose --features "${{ matrix.features }}"
