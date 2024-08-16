@@ -241,6 +241,68 @@ impl<const CAP: usize> ArrayString<CAP>
         }
     }
 
+    /// Adds the given `ArrayString` to the end of this `ArrayString`.
+    ///
+    /// ***Panics*** if the backing array is not large enough to fit the additional `ArrayString`.
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    /// use arrayvec::ArrayString;
+    ///
+    /// let mut string = ArrayString::<2>::new();
+    /// let a = ArrayString::<1>::from_str("a").unwrap();
+    /// let b = ArrayString::<1>::from_str("b").unwrap();
+    ///
+    /// string.push_array_string(a);
+    /// string.push_array_string(b);
+    ///
+    /// assert_eq!(&string[..], "ab");
+    /// ```
+    #[track_caller]
+    pub fn push_array_string<const OTHER_CAP: usize>(&mut self, other: ArrayString<OTHER_CAP>) {
+        self.try_push_array_string(other).unwrap();
+    }
+
+    /// Adds the given `ArrayString` to the end of this `ArrayString`.
+    ///
+    /// Returns `Ok` if the push succeeds.
+    ///
+    /// **Errors** if the backing array is not large enough to fit the additional characters.
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    /// use arrayvec::ArrayString;
+    ///
+    /// let mut string = ArrayString::<6>::new();
+    /// let foo = ArrayString::<3>::from_str("foo").unwrap();
+    /// let bar = ArrayString::<3>::from_str("bar").unwrap();
+    /// let baz = ArrayString::<3>::from_str("baz").unwrap();
+    ///
+    /// string.try_push_array_string(foo).unwrap();
+    /// string.try_push_array_string(bar).unwrap();
+    /// let overflow = string.try_push_array_string(baz);
+    ///
+    /// assert_eq!(&string[..], "foobar");
+    /// assert_eq!(overflow.unwrap_err().element(), ArrayString::from_str("baz").unwrap());
+    /// ```
+    pub fn try_push_array_string<const OTHER_CAP: usize>(
+        &mut self,
+        other: ArrayString<OTHER_CAP>,
+    ) -> Result<(), CapacityError<ArrayString<OTHER_CAP>>> {
+        if other.len() > self.capacity() - self.len() {
+            return Err(CapacityError::new(other));
+        }
+        unsafe {
+            let dst = self.as_mut_ptr().add(self.len());
+            let src = other.as_ptr();
+            ptr::copy_nonoverlapping(src, dst, other.len());
+            let newl = self.len() + other.len();
+            self.set_len(newl);
+        }
+
+        Ok(())
+    }
+
     /// Adds the given string slice to the end of the string.
     ///
     /// ***Panics*** if the backing array is not large enough to fit the string.
