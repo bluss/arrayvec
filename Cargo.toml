@@ -36,6 +36,8 @@ version = "1.0"
 [dev-dependencies]
 matches = { version = "0.1" }
 bencher = "0.1.4"
+debugger_test = "0.1"
+debugger_test_parser = "0.1"
 
 [[bench]]
 name = "extend"
@@ -45,9 +47,24 @@ harness = false
 name = "arraystring"
 harness = false
 
+[[test]]
+name = "debugger_visualizer"
+path = "tests/debugger_visualizer.rs"
+required-features = ["debugger_visualizer"]
+# Do not run these tests by default. These tests need to
+# be run with the additional rustc flag `--test-threads=1`
+# since each test causes a debugger to attach to the current
+# test process. If multiple debuggers try to attach at the same
+# time, the test will fail.
+test = false
+
 [features]
 default = ["std"]
 std = []
+
+# UNSTABLE FEATURES (requires Rust nightly)
+# Enable to use the #[debugger_visualizer] attribute.
+debugger_visualizer = []
 
 [profile.bench]
 debug = true
