@@ -3,10 +3,14 @@ Recent Changes (arrayvec)
 
 ## 0.7.5
 
-- Add `as_ptr` and `as_mut_ptr` to `ArrayString` by @YuhanLiin
-- Add borsh serialization support by @honzasp and @Fuuzetsu
-- Move length field before before data in ArrayVec and ArrayString by @JakkuSakura
+- Add `as_ptr` and `as_mut_ptr` to `ArrayString` [@YuhanLiin](https://github.com/YuhanLiin) [#260](https://github.com/bluss/arrayvec/pull/260)
+- Add borsh serialization support by @honzasp and @Fuuzetsu [#259](https://github.com/bluss/arrayvec/pull/259)
+- Move length field before before data in ArrayVec and ArrayString by @JakkuSakura [#255](https://github.com/bluss/arrayvec/pull/255)
 - Fix miri error for ZST case in extend by @bluss
+- implement AsRef<Path> for ArrayString by [@Zoybean](https://github.com/Zoybean) [#218](https://github.com/bluss/arrayvec/pull/218)
+- Fix typos in changelog by [@striezel](https://github.com/striezel) [#241](https://github.com/bluss/arrayvec/pull/241)
+- Add `as_slice`, `as_mut_slice` methods to `IntoIter` by [@clarfonthey](https://github.com/clarfonthey) [#224](https://github.com/bluss/arrayvec/pull/224)
+
 
 ## 0.7.4
 
