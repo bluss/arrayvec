@@ -5,6 +5,7 @@ use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::mem::MaybeUninit;
 use std::ops::{Deref, DerefMut};
+#[cfg(feature="std")]
 use std::path::Path;
 use std::ptr;
 use std::slice;
@@ -502,6 +503,7 @@ impl<const CAP: usize> fmt::Debug for ArrayString<CAP>
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { (**self).fmt(f) }
 }
 
+#[cfg(feature="std")]
 impl<const CAP: usize> AsRef<Path> for ArrayString<CAP> {
     fn as_ref(&self) -> &Path {
         self.as_str().as_ref()
