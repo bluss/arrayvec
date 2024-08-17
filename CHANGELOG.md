@@ -1,6 +1,10 @@
 Recent Changes (arrayvec)
 =========================
 
+## 0.7.6
+
+- Fix no-std build [#274](https://github.com/bluss/arrayvec/pull/274)
+
 ## 0.7.5
 
 - Add `as_ptr` and `as_mut_ptr` to `ArrayString` [@YuhanLiin](https://github.com/YuhanLiin) [#260](https://github.com/bluss/arrayvec/pull/260)
