@@ -27,8 +27,9 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 /// The `ArrayString` is a string backed by a fixed size array. It keeps track
 /// of its length, and is parameterized by `CAP` for the maximum capacity.
 ///
-/// `CAP` is of type `usize` but is range limited to `u32::MAX`; attempting to create larger
-/// arrayvecs with larger capacity will panic.
+/// The length is stored in `u32` by default, and can be changed to `u16` or `u8`
+/// by `len_u16` or `len_u8` feature. Attempting to create arrayvecs with larger
+/// capacity will panic.
 ///
 /// The string is a contiguous value that you can store directly on the stack
 /// if needed.
@@ -76,7 +77,7 @@ impl<const CAP: usize> ArrayString<CAP>
     /// ```
     /// use arrayvec::ArrayString;
     ///
-    /// static ARRAY: ArrayString<1024> = ArrayString::new_const();
+    /// static ARRAY: ArrayString<255> = ArrayString::new_const();
     /// ```
     pub const fn new_const() -> ArrayString<CAP> {
         assert_capacity_limit_const!(CAP);

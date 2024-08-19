@@ -31,8 +31,9 @@ use crate::utils::MakeMaybeUninit;
 /// the number of initialized elements. The `ArrayVec<T, CAP>` is parameterized
 /// by `T` for the element type and `CAP` for the maximum capacity.
 ///
-/// `CAP` is of type `usize` but is range limited to `u32::MAX`; attempting to create larger
-/// arrayvecs with larger capacity will panic.
+/// The length is stored in `u32` by default, and can be changed to `u16` or `u8`
+/// by `len_u16` or `len_u8` feature. Attempting to create arrayvecs with larger
+/// capacity will panic.
 ///
 /// The vector is a contiguous value (storing the elements inline) that you can store directly on
 /// the stack if needed.
@@ -94,7 +95,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// ```
     /// use arrayvec::ArrayVec;
     ///
-    /// static ARRAY: ArrayVec<u8, 1024> = ArrayVec::new_const();
+    /// static ARRAY: ArrayVec<u8, 255> = ArrayVec::new_const();
     /// ```
     pub const fn new_const() -> ArrayVec<T, CAP> {
         assert_capacity_limit_const!(CAP);
