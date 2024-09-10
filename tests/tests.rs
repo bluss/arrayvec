@@ -680,6 +680,7 @@ fn test_pop_at() {
 }
 
 #[test]
+#[cfg(not(target_pointer_width = "16"))]
 fn test_sizes() {
     let v = ArrayVec::from([0u8; 1 << 16]);
     assert_eq!(vec![0u8; v.len()], &v[..]);
@@ -729,21 +730,17 @@ fn allow_max_capacity_arrayvec_type() {
 }
 
 #[should_panic(expected="largest supported capacity")]
+#[cfg(not(target_pointer_width = "16"))]
 #[test]
 fn deny_max_capacity_arrayvec_value() {
-    if mem::size_of::<usize>() <= mem::size_of::<u32>() {
-        panic!("This test does not work on this platform. 'largest supported capacity'");
-    }
     // this type is allowed to be used (but can't be constructed)
     let _v: ArrayVec<(), {usize::MAX}> = ArrayVec::new();
 }
 
 #[should_panic(expected="index out of bounds")]
+#[cfg(not(target_pointer_width = "16"))]
 #[test]
 fn deny_max_capacity_arrayvec_value_const() {
-    if mem::size_of::<usize>() <= mem::size_of::<u32>() {
-        panic!("This test does not work on this platform. 'index out of bounds'");
-    }
     // this type is allowed to be used (but can't be constructed)
     let _v: ArrayVec<(), {usize::MAX}> = ArrayVec::new_const();
 }
