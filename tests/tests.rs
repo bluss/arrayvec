@@ -7,7 +7,7 @@ use std::mem;
 use arrayvec::CapacityError;
 
 use std::collections::HashMap;
-
+use std::sync::RwLock;
 
 #[test]
 fn test_simple() {
@@ -776,4 +776,34 @@ fn test_arraystring_zero_filled_has_some_sanity_checks() {
     let string = ArrayString::<4>::zero_filled();
     assert_eq!(string.as_str(), "\0\0\0\0");
     assert_eq!(string.len(), 4);
+}
+
+/// 3 MB struct
+struct ReallyBigStruct {
+    pub(crate) field_one: [u8; 1_000_000],
+    pub(crate) field_two: [u8; 1_000_000],
+    pub(crate) field_three: [u8; 1_000_000],
+}
+
+/// Const initialised struct outside of stack
+/// We need to initialise this outside of the stack, since otherwise there is a memory copy from
+/// the stack into the heap.
+/// With a static initialisation, we do not have a stack copy.
+static large_struct: RwLock<ArrayVec<ReallyBigStruct, 100>> = RwLock::new(ArrayVec::new_const());
+
+#[test]
+fn test_push_uninit() {
+    let mut lock = large_struct.write().unwrap();
+    let ptr = unsafe { lock.try_push_uninit().unwrap() };
+    let field_one = unsafe {&mut (*ptr).field_one};
+    *field_one = [1; 1_000_000];
+    let field_two = unsafe {&mut (*ptr).field_two};
+    *field_two = [2; 1_000_000];
+    let field_three = unsafe {&mut (*ptr).field_three};
+    *field_three = [3; 1_000_000];
+
+    assert_eq!(lock.len(), 1);
+    assert_eq!(lock[0].field_one[3], 1);
+    assert_eq!(lock[0].field_two[999], 2);
+    assert_eq!(lock[0].field_three[999_999], 3);
 }

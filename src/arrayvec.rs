@@ -206,6 +206,22 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         ArrayVecImpl::try_push(self, element)
     }
 
+    /// Push a new uninitialised value to the end of the vector and return
+    /// a mutable reference to it.
+    ///
+    /// This is useful if the backed value is large and won't fit on stack.
+    ///
+    /// Capacity error carries the data - since we don't have data then we need a different error type.
+    pub unsafe fn try_push_uninit(&mut self) -> Result<*mut T, ()> {
+        let len = self.len();
+        if len >= Self::CAPACITY {
+            return Err(())
+        }
+        let new_ptr = self.as_mut_ptr().add(len);
+        self.set_len(len + 1);
+        Ok(new_ptr)
+    }
+
     /// Push `element` to the end of the vector without checking the capacity.
     ///
     /// It is up to the caller to ensure the capacity of the vector is
