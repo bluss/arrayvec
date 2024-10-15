@@ -806,4 +806,21 @@ fn test_push_uninit() {
     assert_eq!(lock[0].field_one[3], 1);
     assert_eq!(lock[0].field_two[999], 2);
     assert_eq!(lock[0].field_three[999_999], 3);
+
+    // Push a second value
+    let ptr = unsafe { lock.try_push_uninit().unwrap() };
+    let field_one = unsafe {&mut (*ptr).field_one};
+    *field_one = [4; 1_000_000];
+    let field_two = unsafe {&mut (*ptr).field_two};
+    *field_two = [5; 1_000_000];
+    let field_three = unsafe {&mut (*ptr).field_three};
+    *field_three = [6; 1_000_000];
+
+    assert_eq!(lock.len(), 2);
+    assert_eq!(lock[0].field_one[3], 1);
+    assert_eq!(lock[0].field_two[999], 2);
+    assert_eq!(lock[0].field_three[999_999], 3);
+    assert_eq!(lock[1].field_one[3], 4);
+    assert_eq!(lock[1].field_two[999], 5);
+    assert_eq!(lock[1].field_three[999_999], 6);
 }
