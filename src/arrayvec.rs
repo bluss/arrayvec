@@ -535,6 +535,41 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         drop(g);
     }
 
+    /// Returns the remaining spare capacity of the vector as a slice of
+    /// `MaybeUninit<T>`.
+    ///
+    /// The returned slice can be used to fill the vector with data (e.g. by
+    /// reading from a file) before marking the data as initialized using the
+    /// [`set_len`] method.
+    ///
+    /// [`set_len`]: ArrayVec::set_len
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// // Allocate vector big enough for 10 elements.
+    /// let mut v: ArrayVec<i32, 10> = ArrayVec::new();
+    ///
+    /// // Fill in the first 3 elements.
+    /// let uninit = v.spare_capacity_mut();
+    /// uninit[0].write(0);
+    /// uninit[1].write(1);
+    /// uninit[2].write(2);
+    ///
+    /// // Mark the first 3 elements of the vector as being initialized.
+    /// unsafe {
+    ///     v.set_len(3);
+    /// }
+    ///
+    /// assert_eq!(&v[..], &[0, 1, 2]);
+    /// ```
+    pub fn spare_capacity_mut(&mut self) -> &mut [MaybeUninit<T>] {
+        let len = self.len();
+        &mut self.xs[len..]
+    }
+
     /// Set the vector’s length without dropping or moving out elements
     ///
     /// This method is `unsafe` because it changes the notion of the
