@@ -619,6 +619,35 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         Ok(())
     }
 
+    /// Copy as many elements as we can from the slice and append to the `ArrayVec`.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut vec: ArrayVec<usize, 2> = ArrayVec::new();
+    /// vec.push(1);
+    /// let rest = vec.push_many_from_slice(&[2, 3]);
+    /// assert_eq!(&vec[..], &[1, 2]);
+    /// assert_eq!(rest, &[3]);
+    /// ```
+    ///
+    /// Can be thought of as a variation of [try_extend_from_slice] where
+    /// instead of failing, it does the "best it can" (extends the `ArrayVec`
+    /// with some but not all of the elements).
+    pub fn push_many_from_slice<'a, 'b>(&'a mut self, other: &'b [T]) -> &'b [T]
+        where T: Copy,
+    {
+        let self_len = self.len();
+        let take = usize::min(self.remaining_capacity(), other.len());
+
+        unsafe {
+            let dst = self.get_unchecked_ptr(self_len);
+            ptr::copy_nonoverlapping(other.as_ptr(), dst, take);
+            self.set_len(self_len + take);
+        }
+        &other[take..]
+    }
+
     /// Create a draining iterator that removes the specified range in the vector
     /// and yields the removed items from start to end. The element range is
     /// removed even if the iterator is not consumed until the end.

@@ -75,6 +75,21 @@ fn test_try_from_slice_error() {
 }
 
 #[test]
+fn test_push_many_from_slice() {
+    let mut vec: ArrayVec<usize,  4> = ArrayVec::new();
+
+    let ret = vec.push_many_from_slice(&[1, 2, 3]);
+    assert_eq!(ret, &[]);
+    assert_eq!(vec.len(), 3);
+    assert_eq!(&vec[..], &[1, 2, 3]);
+    assert_eq!(vec.pop(), Some(3));
+    assert_eq!(&vec[..], &[1, 2]);
+    let ret = vec.push_many_from_slice(&[3, 4, 5, 6]);
+    assert_eq!(&vec[..], &[1, 2, 3, 4]);
+    assert_eq!(ret, &[5, 6]);
+}
+
+#[test]
 fn test_u16_index() {
     const N: usize = 4096;
     let mut vec: ArrayVec<_,  N> = ArrayVec::new();
