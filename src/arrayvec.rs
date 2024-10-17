@@ -499,7 +499,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         let mut g = BackshiftOnDrop { v: self, processed_len: 0, deleted_cnt: 0, original_len };
 
         #[inline(always)]
-        fn process_one<F: FnMut(&mut T) -> bool, T, const CAP: usize, const DELETED: bool>(
+        fn process_one<T, F: FnMut(&mut T) -> bool, const CAP: usize, const DELETED: bool>(
             f: &mut F,
             g: &mut BackshiftOnDrop<'_, T, CAP>
         ) -> bool {
@@ -522,14 +522,14 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 
         // Stage 1: Nothing was deleted.
         while g.processed_len != original_len {
-            if !process_one::<F, T, CAP, false>(&mut f, &mut g) {
+            if !process_one::<T, F, CAP, false>(&mut f, &mut g) {
                 break;
             }
         }
 
         // Stage 2: Some elements were deleted.
         while g.processed_len != original_len {
-            process_one::<F, T, CAP, true>(&mut f, &mut g);
+            process_one::<T, F, CAP, true>(&mut f, &mut g);
         }
 
         drop(g);
@@ -899,7 +899,7 @@ impl<T, const CAP: usize> IntoIterator for ArrayVec<T, CAP> {
 /// let data = unsafe { core::slice::from_raw_parts(array.as_ptr(), array.capacity()) };
 /// assert_eq!(data, [0, 0, 0]);
 /// ```
-impl<Z: zeroize::Zeroize, const CAP: usize> zeroize::Zeroize for ArrayVec<Z, CAP> {
+impl<T: zeroize::Zeroize, const CAP: usize> zeroize::Zeroize for ArrayVec<T, CAP> {
     fn zeroize(&mut self) {
         // Zeroize all the contained elements.
         self.iter_mut().zeroize();
@@ -1064,16 +1064,16 @@ impl<'a, T: 'a, const CAP: usize> Drop for Drain<'a, T, CAP> {
     }
 }
 
-struct ScopeExitGuard<T, Data, F>
-    where F: FnMut(&Data, &mut T)
+struct ScopeExitGuard<V, Data, F>
+    where F: FnMut(&Data, &mut V)
 {
-    value: T,
+    value: V,
     data: Data,
     f: F,
 }
 
-impl<T, Data, F> Drop for ScopeExitGuard<T, Data, F>
-    where F: FnMut(&Data, &mut T)
+impl<V, Data, F> Drop for ScopeExitGuard<V, Data, F>
+    where F: FnMut(&Data, &mut V)
 {
     fn drop(&mut self) {
         (self.f)(&self.data, &mut self.value)

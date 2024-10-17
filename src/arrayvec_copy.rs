@@ -14,6 +14,7 @@ use std::fmt;
 #[cfg(feature="std")]
 use std::io;
 
+use std::mem::ManuallyDrop;
 use std::mem::MaybeUninit;
 
 #[cfg(feature="serde")]
@@ -24,7 +25,10 @@ use crate::errors::CapacityError;
 use crate::arrayvec_impl::ArrayVecImpl;
 use crate::utils::MakeMaybeUninit;
 
-/// A vector with a fixed capacity which implements `Copy` and its elemenents are constrained to also be `Copy`.
+/// A vector with a fixed capacity.
+///
+/// **Its only difference to [`ArrayVec`](crate::ArrayVec) is that its elements
+/// are constrained to be `Copy` which allows it to be `Copy` itself.**
 ///
 /// The `ArrayVecCopy` is a vector backed by a fixed size array. It keeps track of
 /// the number of initialized elements. The `ArrayVecCopy<T, CAP>` is parameterized
@@ -222,7 +226,8 @@ impl<T: Copy, const CAP: usize> ArrayVecCopy<T, CAP> {
         ArrayVecImpl::push_unchecked(self, element)
     }
 
-    /// Shortens the vector, keeping the first `len` elements.
+    /// Shortens the vector, keeping the first `len` elements and dropping
+    /// the rest.
     ///
     /// If `len` is greater than the vector’s current length this has no
     /// effect.
@@ -497,6 +502,7 @@ impl<T: Copy, const CAP: usize> ArrayVecCopy<T, CAP> {
             if !f(unsafe { &mut *cur }) {
                 g.processed_len += 1;
                 g.deleted_cnt += 1;
+                unsafe { ptr::drop_in_place(cur) };
                 return false;
             }
             if DELETED {
@@ -559,7 +565,7 @@ impl<T: Copy, const CAP: usize> ArrayVecCopy<T, CAP> {
         &mut self.xs[len..]
     }
 
-    /// Set the vector’s length without moving out elements
+    /// Set the vector’s length without dropping or moving out elements
     ///
     /// This method is `unsafe` because it changes the notion of the
     /// number of “valid” elements in the vector. Use with care.
@@ -692,7 +698,8 @@ impl<T: Copy, const CAP: usize> ArrayVecCopy<T, CAP> {
     /// This operation is safe if and only if length equals capacity.
     pub unsafe fn into_inner_unchecked(self) -> [T; CAP] {
         debug_assert_eq!(self.len(), self.capacity());
-        let array = ptr::read(self.as_ptr() as *const [T; CAP]);
+        let self_ = ManuallyDrop::new(self);
+        let array = ptr::read(self_.as_ptr() as *const [T; CAP]);
         array
     }
 
@@ -778,9 +785,10 @@ impl<T: Copy, const CAP: usize> DerefMut for ArrayVecCopy<T, CAP> {
 impl<T: Copy, const CAP: usize> From<[T; CAP]> for ArrayVecCopy<T, CAP> {
     #[track_caller]
     fn from(array: [T; CAP]) -> Self {
+        let array = ManuallyDrop::new(array);
         let mut vec = <ArrayVecCopy<T, CAP>>::new();
         unsafe {
-            (&array as *const [T; CAP] as *const [MaybeUninit<T>; CAP])
+            (&*array as *const [T; CAP] as *const [MaybeUninit<T>; CAP])
                 .copy_to_nonoverlapping(&mut vec.xs as *mut [MaybeUninit<T>; CAP], 1);
             vec.set_len(CAP);
         }
@@ -1036,16 +1044,16 @@ impl<'a, T: Copy + 'a, const CAP: usize> Drop for Drain<'a, T, CAP> {
     }
 }
 
-struct ScopeExitGuard<T, Data, F>
-    where F: FnMut(&Data, &mut T)
+struct ScopeExitGuard<V, Data, F>
+    where F: FnMut(&Data, &mut V)
 {
-    value: T,
+    value: V,
     data: Data,
     f: F,
 }
 
-impl<T, Data, F> Drop for ScopeExitGuard<T, Data, F>
-    where F: FnMut(&Data, &mut T)
+impl<V, Data, F> Drop for ScopeExitGuard<V, Data, F>
+    where F: FnMut(&Data, &mut V)
 {
     fn drop(&mut self) {
         (self.f)(&self.data, &mut self.value)
