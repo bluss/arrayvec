@@ -350,6 +350,13 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         ArrayVecImpl::pop(self)
     }
 
+    /// Remove the last element in the vector and return it.
+    ///
+    /// It is up to the caller to ensure the the vector is not empty.
+    pub unsafe fn pop_unchecked(&mut self) -> T {
+        ArrayVecImpl::pop_unchecked(self)
+    }
+
     /// Remove the element at `index` and swap the last element into its place.
     ///
     /// This operation is O(1).
