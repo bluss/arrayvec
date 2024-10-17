@@ -23,7 +23,6 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use crate::LenUint;
 use crate::errors::CapacityError;
 use crate::arrayvec_impl::ArrayVecImpl;
-use crate::utils::MakeMaybeUninit;
 
 /// A vector with a fixed capacity.
 ///
@@ -82,20 +81,6 @@ impl<T: Copy, const CAP: usize> ArrayVecCopy<T, CAP> {
         }
     }
 
-    /// Create a new empty `ArrayVecCopy` (const fn).
-    ///
-    /// The maximum capacity is given by the generic parameter `CAP`.
-    ///
-    /// ```
-    /// use arrayvec::ArrayVecCopy;
-    ///
-    /// static ARRAY: ArrayVecCopy<u8, 1024> = ArrayVecCopy::new_const();
-    /// ```
-    pub const fn new_const() -> ArrayVecCopy<T, CAP> {
-        assert_capacity_limit_const!(CAP);
-        ArrayVecCopy { xs: MakeMaybeUninit::ARRAY, len: 0 }
-    }
-
     /// Return the number of elements in the `ArrayVecCopy`.
     ///
     /// ```
@@ -106,7 +91,7 @@ impl<T: Copy, const CAP: usize> ArrayVecCopy<T, CAP> {
     /// assert_eq!(array.len(), 2);
     /// ```
     #[inline(always)]
-    pub const fn len(&self) -> usize { self.len as usize }
+    pub fn len(&self) -> usize { self.len as usize }
 
     /// Returns whether the `ArrayVecCopy` is empty.
     ///
@@ -118,7 +103,7 @@ impl<T: Copy, const CAP: usize> ArrayVecCopy<T, CAP> {
     /// assert_eq!(array.is_empty(), true);
     /// ```
     #[inline]
-    pub const fn is_empty(&self) -> bool { self.len() == 0 }
+    pub fn is_empty(&self) -> bool { self.len() == 0 }
 
     /// Return the capacity of the `ArrayVecCopy`.
     ///
@@ -129,7 +114,7 @@ impl<T: Copy, const CAP: usize> ArrayVecCopy<T, CAP> {
     /// assert_eq!(array.capacity(), 3);
     /// ```
     #[inline(always)]
-    pub const fn capacity(&self) -> usize { CAP }
+    pub fn capacity(&self) -> usize { CAP }
 
     /// Return true if the `ArrayVecCopy` is completely filled to its capacity, false otherwise.
     ///
@@ -141,7 +126,7 @@ impl<T: Copy, const CAP: usize> ArrayVecCopy<T, CAP> {
     /// array.push(1);
     /// assert!(array.is_full());
     /// ```
-    pub const fn is_full(&self) -> bool { self.len() == self.capacity() }
+    pub fn is_full(&self) -> bool { self.len() == self.capacity() }
 
     /// Returns the capacity left in the `ArrayVecCopy`.
     ///
@@ -152,7 +137,7 @@ impl<T: Copy, const CAP: usize> ArrayVecCopy<T, CAP> {
     /// array.pop();
     /// assert_eq!(array.remaining_capacity(), 1);
     /// ```
-    pub const fn remaining_capacity(&self) -> usize {
+    pub fn remaining_capacity(&self) -> usize {
         self.capacity() - self.len()
     }
 

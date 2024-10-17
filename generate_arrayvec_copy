@@ -12,6 +12,7 @@ sed \
        -e "s/struct \\([A-Za-z_]*\\)<\\('[A-Za-z_]*, \\)\\?T,/struct \\1<\\2T: Copy,/g" \
        -e "s/fn \\([A-Za-z_]*\\)<\\('[A-Za-z_]*, \\)\\?T:/fn \\1<\\2T: Copy +/g" \
        -e "s/fn \\([A-Za-z_]*\\)<\\('[A-Za-z_]*, \\)\\?T,/fn \\1<\\2T: Copy,/g" \
+       -e "s/const fn/fn/" \
        src/arrayvec.rs \
        > src/arrayvec_copy_generated.rs
 

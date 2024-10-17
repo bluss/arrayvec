@@ -1,8 +1,12 @@
 diff --git a/src/arrayvec_copy_generated.rs b/src/arrayvec_copy.rs
-index b12aa9e..5597af9 100644
+index f61b5b3..fab45ec 100644
 --- a/src/arrayvec_copy_generated.rs
 +++ b/src/arrayvec_copy.rs
-@@ -27,6 +27,9 @@ use crate::utils::MakeMaybeUninit;
+@@ -23,10 +23,12 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
+ use crate::LenUint;
+ use crate::errors::CapacityError;
+ use crate::arrayvec_impl::ArrayVecImpl;
+-use crate::utils::MakeMaybeUninit;
  
  /// A vector with a fixed capacity.
  ///
@@ -12,7 +16,7 @@ index b12aa9e..5597af9 100644
  /// The `ArrayVecCopy` is a vector backed by a fixed size array. It keeps track of
  /// the number of initialized elements. The `ArrayVecCopy<T, CAP>` is parameterized
  /// by `T` for the element type and `CAP` for the maximum capacity.
-@@ -46,14 +49,6 @@ pub struct ArrayVecCopy<T: Copy, const CAP: usize> {
+@@ -46,14 +48,6 @@ pub struct ArrayVecCopy<T: Copy, const CAP: usize> {
      xs: [MaybeUninit<T>; CAP],
  }
  
@@ -27,7 +31,28 @@ index b12aa9e..5597af9 100644
  macro_rules! panic_oob {
      ($method_name:expr, $index:expr, $len:expr) => {
          panic!(concat!("ArrayVecCopy::", $method_name, ": index {} is out of bounds in vector of length {}"),
-@@ -964,21 +959,6 @@ impl<T: Copy, const CAP: usize> DoubleEndedIterator for IntoIter<T, CAP> {
+@@ -87,20 +81,6 @@ impl<T: Copy, const CAP: usize> ArrayVecCopy<T, CAP> {
+         }
+     }
+ 
+-    /// Create a new empty `ArrayVecCopy` (fn).
+-    ///
+-    /// The maximum capacity is given by the generic parameter `CAP`.
+-    ///
+-    /// ```
+-    /// use arrayvec::ArrayVecCopy;
+-    ///
+-    /// static ARRAY: ArrayVecCopy<u8, 1024> = ArrayVecCopy::new_const();
+-    /// ```
+-    pub fn new_const() -> ArrayVecCopy<T, CAP> {
+-        assert_capacity_limit_const!(CAP);
+-        ArrayVecCopy { xs: MakeMaybeUninit::ARRAY, len: 0 }
+-    }
+-
+     /// Return the number of elements in the `ArrayVecCopy`.
+     ///
+     /// ```
+@@ -964,21 +944,6 @@ impl<T: Copy, const CAP: usize> DoubleEndedIterator for IntoIter<T, CAP> {
  
  impl<T: Copy, const CAP: usize> ExactSizeIterator for IntoIter<T, CAP> { }
  
