@@ -55,7 +55,7 @@ debug = true
 debug = true
 
 [package.metadata.docs.rs]
-features = ["borsh", "serde", "zeroize"]
+all-features = true
 
 [package.metadata.release]
 no-dev-version = true

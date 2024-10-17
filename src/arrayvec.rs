@@ -885,7 +885,7 @@ impl<T, const CAP: usize> IntoIterator for ArrayVec<T, CAP> {
 
 
 #[cfg(feature = "zeroize")]
-/// "Best efforts" zeroing of the `ArrayVec`'s buffer when the `zeroize` feature is enabled.
+/// "Best efforts" zeroing of the `ArrayVec`'s buffer.
 ///
 /// The length is set to 0, and the buffer is dropped and zeroized.
 /// Cannot ensure that previous moves of the `ArrayVec` did not leave values on the stack.
@@ -1289,8 +1289,6 @@ impl<T, const CAP: usize> Ord for ArrayVec<T, CAP> where T: Ord {
 
 #[cfg(feature="std")]
 /// `Write` appends written data to the end of the vector.
-///
-/// Requires `features="std"`.
 impl<const CAP: usize> io::Write for ArrayVec<u8, CAP> {
     fn write(&mut self, data: &[u8]) -> io::Result<usize> {
         let len = cmp::min(self.remaining_capacity(), data.len());
@@ -1302,7 +1300,6 @@ impl<const CAP: usize> io::Write for ArrayVec<u8, CAP> {
 }
 
 #[cfg(feature="serde")]
-/// Requires crate feature `"serde"`
 impl<T: Serialize, const CAP: usize> Serialize for ArrayVec<T, CAP> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer
@@ -1312,7 +1309,6 @@ impl<T: Serialize, const CAP: usize> Serialize for ArrayVec<T, CAP> {
 }
 
 #[cfg(feature="serde")]
-/// Requires crate feature `"serde"`
 impl<'de, T: Deserialize<'de>, const CAP: usize> Deserialize<'de> for ArrayVec<T, CAP> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where D: Deserializer<'de>
@@ -1349,7 +1345,6 @@ impl<'de, T: Deserialize<'de>, const CAP: usize> Deserialize<'de> for ArrayVec<T
 }
 
 #[cfg(feature = "borsh")]
-/// Requires crate feature `"borsh"`
 impl<T, const CAP: usize> borsh::BorshSerialize for ArrayVec<T, CAP>
 where
     T: borsh::BorshSerialize,
@@ -1360,7 +1355,6 @@ where
 }
 
 #[cfg(feature = "borsh")]
-/// Requires crate feature `"borsh"`
 impl<T, const CAP: usize> borsh::BorshDeserialize for ArrayVec<T, CAP>
 where
     T: borsh::BorshDeserialize,
