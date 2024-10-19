@@ -1335,9 +1335,9 @@ impl<'de, T: Copy + Deserialize<'de>, const CAP: usize> Deserialize<'de> for Arr
         use serde::de::{Visitor, SeqAccess, Error};
         use std::marker::PhantomData;
 
-        struct ArrayVecCopyVisitor<'de, T: Copy + Deserialize<'de>, const CAP: usize>(PhantomData<(&'de (), [T; CAP])>);
+        struct ArrayVecVisitor<'de, T: Copy + Deserialize<'de>, const CAP: usize>(PhantomData<(&'de (), [T; CAP])>);
 
-        impl<'de, T: Copy + Deserialize<'de>, const CAP: usize> Visitor<'de> for ArrayVecCopyVisitor<'de, T, CAP> {
+        impl<'de, T: Copy + Deserialize<'de>, const CAP: usize> Visitor<'de> for ArrayVecVisitor<'de, T, CAP> {
             type Value = ArrayVecCopy<T, CAP>;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
@@ -1359,7 +1359,7 @@ impl<'de, T: Copy + Deserialize<'de>, const CAP: usize> Deserialize<'de> for Arr
             }
         }
 
-        deserializer.deserialize_seq(ArrayVecCopyVisitor::<T, CAP>(PhantomData))
+        deserializer.deserialize_seq(ArrayVecVisitor::<T, CAP>(PhantomData))
     }
 }
 

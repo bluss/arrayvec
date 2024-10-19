@@ -12,7 +12,6 @@ set -o pipefail
 
 sed \
        -e "s/\\<ArrayVec\\>/ArrayVecCopy/g" \
-       -e "s/\\<ArrayVecVisitor\\>/ArrayVecCopyVisitor/g" \
        -e "s/impl<\\('[A-Za-z_]*, \\)\\?T:/impl<\\1T: Copy +/g" \
        -e "s/impl<\\('[A-Za-z_]*, \\)\\?T,/impl<\\1T: Copy,/g" \
        -e "s/struct \\([A-Za-z_]*\\)<\\('[A-Za-z_]*, \\)\\?T:/struct \\1<\\2T: Copy +/g" \
