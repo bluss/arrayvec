@@ -1,3 +1,11 @@
+// The ArrayVecCopy and ArrayVecCopy implementation
+//
+// NOTE: arrayvec.rs is the original source of both arrayvec.rs and arrayvec_copy.rs.
+// NOTE: Do not modify arrayvec_copy.rs manually. It is generated using the script
+// ./generate_arrayvec_copy.
+//
+// Any lines marked with a comment and then `DIRECTIVE ArrayVecCopy` will have that prefix removed
+// and have the rest of the line active in the ArrayVecCopy implementation.
 
 use std::cmp;
 use std::iter;
@@ -23,11 +31,10 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use crate::LenUint;
 use crate::errors::CapacityError;
 use crate::arrayvec_impl::ArrayVecImpl;
+#[cfg(not_in_arrayvec_copy)]
+use crate::utils::MakeMaybeUninit;
 
 /// A vector with a fixed capacity.
-///
-/// **Its only difference to [`ArrayVec`](crate::ArrayVec) is that its elements
-/// are constrained to be `Copy` which allows it to be `Copy` itself.**
 ///
 /// The `ArrayVecCopy` is a vector backed by a fixed size array. It keeps track of
 /// the number of initialized elements. The `ArrayVecCopy<T, CAP>` is parameterized
@@ -41,11 +48,23 @@ use crate::arrayvec_impl::ArrayVecImpl;
 ///
 /// It offers a simple API but also dereferences to a slice, so that the full slice API is
 /// available. The ArrayVecCopy can be converted into a by value iterator.
+#[doc = ""]
+#[doc = "**ArrayVecCopy's only difference to [`\x41rrayVec`](crate::\x41rrayVec) is that its"]
+#[doc = "elements are constrained to be `Copy` which allows it to be `Copy` itself.** "]
 #[repr(C)]
 pub struct ArrayVecCopy<T: Copy, const CAP: usize> {
     len: LenUint,
     // the `len` first elements of the array are initialized
     xs: [MaybeUninit<T>; CAP],
+}
+
+#[cfg(not_in_arrayvec_copy)]
+impl<T: Copy, const CAP: usize> Drop for ArrayVecCopy<T, CAP> {
+    fn drop(&mut self) {
+        self.clear();
+
+        // MaybeUninit inhibits array's drop
+    }
 }
 
 macro_rules! panic_oob {
@@ -79,6 +98,21 @@ impl<T: Copy, const CAP: usize> ArrayVecCopy<T, CAP> {
         unsafe {
             ArrayVecCopy { xs: MaybeUninit::uninit().assume_init(), len: 0 }
         }
+    }
+
+    #[cfg(not_in_arrayvec_copy)]
+    /// Create a new empty `ArrayVecCopy` (fn).
+    ///
+    /// The maximum capacity is given by the generic parameter `CAP`.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVecCopy;
+    ///
+    /// static ARRAY: ArrayVecCopy<u8, 1024> = ArrayVecCopy::new_const();
+    /// ```
+    pub fn new_const() -> ArrayVecCopy<T, CAP> {
+        assert_capacity_limit_const!(CAP);
+        ArrayVecCopy { xs: MakeMaybeUninit::ARRAY, len: 0 }
     }
 
     /// Return the number of elements in the `ArrayVecCopy`.
@@ -943,6 +977,22 @@ impl<T: Copy, const CAP: usize> DoubleEndedIterator for IntoIter<T, CAP> {
 }
 
 impl<T: Copy, const CAP: usize> ExactSizeIterator for IntoIter<T, CAP> { }
+
+#[cfg(not_in_arrayvec_copy)]
+impl<T: Copy, const CAP: usize> Drop for IntoIter<T, CAP> {
+    fn drop(&mut self) {
+        // panic safety: Set length to 0 before dropping elements.
+        let index = self.index;
+        let len = self.v.len();
+        unsafe {
+            self.v.set_len(0);
+            let elements = slice::from_raw_parts_mut(
+                self.v.get_unchecked_ptr(index),
+                len - index);
+            ptr::drop_in_place(elements);
+        }
+    }
+}
 
 impl<T: Copy, const CAP: usize> Clone for IntoIter<T, CAP>
 where T: Clone,
