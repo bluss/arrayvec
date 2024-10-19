@@ -3,6 +3,13 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+# Generate ArrayVecCopy from ArrayVec
+# Replace type name with ArrayVecCopy
+# Insert `T: Copy` bound as needed.
+#
+# Replace `// DIRECTIVE ArrayVecCopy` with empty string anywhere to allow
+# items to be cfg'ed out for arrayvec copy
+
 sed \
        -e "s/\\<ArrayVec\\>/ArrayVecCopy/g" \
        -e "s/\\<ArrayVecVisitor\\>/ArrayVecCopyVisitor/g" \
@@ -13,25 +20,8 @@ sed \
        -e "s/fn \\([A-Za-z_]*\\)<\\('[A-Za-z_]*, \\)\\?T:/fn \\1<\\2T: Copy +/g" \
        -e "s/fn \\([A-Za-z_]*\\)<\\('[A-Za-z_]*, \\)\\?T,/fn \\1<\\2T: Copy,/g" \
        -e "s/const fn/fn/" \
+       -e "s/\\/\\/ DIRECTIVE ArrayVecCopy \\+//" \
        src/arrayvec.rs \
        > src/arrayvec_copy_generated.rs
 
-trap "rm src/arrayvec_copy_generated.rs" EXIT
-
-if [ -e src/arrayvec_copy.patch ]; then
-	if [ -e src/arrayvec_copy.rs ]; then
-		echo "Both src/arrayvec_copy.patch and src/arrayvec_copy.rs exist." > /dev/stderr
-		echo "Delete one of them and start again." > /dev/stderr
-		exit 1
-	else
-		patch -o src/arrayvec_copy.rs src/arrayvec_copy_generated.rs src/arrayvec_copy.patch > /dev/null
-	fi
-else
-	if [ -e src/arrayvec_copy.rs ]; then
-		git diff --no-index src/arrayvec_copy_generated.rs src/arrayvec_copy.rs > src/arrayvec_copy.patch || true
-	else
-		echo "Both src/arrayvec_copy.patch and src/arrayvec_copy.rs are missing." > /dev/stderr
-		echo "One of them is needed to generate the other." > /dev/stderr
-		exit 1
-	fi
-fi
+mv -v -f src/arrayvec_copy_generated.rs src/arrayvec_copy.rs
