@@ -52,6 +52,7 @@ use crate::utils::MakeMaybeUninit;
 // DIRECTIVE ArrayVecCopy #[doc = "**ArrayVecCopy's only difference to [`\x41rrayVec`](crate::\x41rrayVec) is that its"]
 // DIRECTIVE ArrayVecCopy #[doc = "elements are constrained to be `Copy` which allows it to be `Copy` itself.** "]
 #[repr(C)]
+// DIRECTIVE ArrayVecCopy #[derive(Copy)]
 pub struct ArrayVec<T, const CAP: usize> {
     len: LenUint,
     // the `len` first elements of the array are initialized
