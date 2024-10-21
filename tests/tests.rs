@@ -3,6 +3,7 @@ extern crate arrayvec;
 
 use arrayvec::ArrayVec;
 use arrayvec::ArrayString;
+use arrayvec::ArrayVecCopy;
 use std::mem;
 use arrayvec::CapacityError;
 
@@ -773,4 +774,24 @@ fn test_arraystring_zero_filled_has_some_sanity_checks() {
     let string = ArrayString::<4>::zero_filled();
     assert_eq!(string.as_str(), "\0\0\0\0");
     assert_eq!(string.len(), 4);
+}
+
+#[test]
+fn test_arrayvec_copy_is_copy() {
+    let mut vec: ArrayVecCopy<usize,  10> = ArrayVecCopy::new();
+
+    vec.try_extend_from_slice(&[1, 2, 3]).unwrap();
+    assert_eq!(vec.len(), 3);
+    assert_eq!(&vec[..], &[1, 2, 3]);
+
+    let copy = vec;
+
+    assert_eq!(&copy[..], &vec[..]);
+
+    let many_duplicates = [copy; 16];
+
+    // deref to copy in pattern
+    for &dup in &many_duplicates {
+        assert_eq!(dup, vec);
+    }
 }
