@@ -3,7 +3,7 @@ extern crate arrayvec;
 
 use arrayvec::ArrayVec;
 use arrayvec::ArrayString;
-use arrayvec::ArrayVecCopy;
+use arrayvec::copy::ArrayVecCopy;
 use std::mem;
 use arrayvec::CapacityError;
 

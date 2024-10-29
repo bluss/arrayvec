@@ -66,10 +66,9 @@ mod errors;
 mod utils;
 
 pub mod copy {
-    pub use crate::arrayvec_copy::{Drain, IntoIter};
+    pub use crate::arrayvec_copy::{ArrayVecCopy, Drain, IntoIter};
 }
 
-pub use crate::arrayvec_copy::ArrayVecCopy;
 pub use crate::array_string::ArrayString;
 pub use crate::errors::CapacityError;
 
