@@ -60,3 +60,7 @@ features = ["borsh", "serde", "zeroize"]
 [package.metadata.release]
 no-dev-version = true
 tag-name = "{{version}}"
+
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(not_in_arrayvec_copy)'] }
