@@ -125,11 +125,20 @@ impl<const CAP: usize> ArrayString<CAP>
         let len = str::from_utf8(b)?.len();
         debug_assert_eq!(len, CAP);
         let mut vec = Self::new();
+
+        // This seems to result in the same, fast assembly code as some
+        // `unsafe` transmutes and a call to `copy_to_nonoverlapping`.
+        // See https://godbolt.org/z/vhM1WePTK for more details.
+        for (dst, src) in vec.xs.iter_mut().zip(b.iter()) {
+            *dst = MaybeUninit::new(*src);
+        }
+
+        // SAFETY: Copying `CAP` bytes in the `for` loop above initializes
+        // all the bytes in `vec`.
         unsafe {
-            (b as *const [u8; CAP] as *const [MaybeUninit<u8>; CAP])
-                .copy_to_nonoverlapping(&mut vec.xs as *mut [MaybeUninit<u8>; CAP], 1);
             vec.set_len(CAP);
         }
+        
         Ok(vec)
     }
 
