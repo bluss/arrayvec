@@ -7,7 +7,6 @@ use std::mem::MaybeUninit;
 use std::ops::{Deref, DerefMut};
 #[cfg(feature="std")]
 use std::path::Path;
-use std::ptr;
 use std::slice;
 use std::str;
 use std::str::FromStr;
@@ -35,7 +34,8 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 #[derive(Copy)]
 #[repr(C)]
 pub struct ArrayString<const CAP: usize> {
-    // the `len` first elements of the array are initialized
+    // the `len` first elements of the array are initialized and contain valid
+    // UTF-8
     len: LenUint,
     xs: [MaybeUninit<u8>; CAP],
 }
@@ -134,7 +134,8 @@ impl<const CAP: usize> ArrayString<CAP>
         }
 
         // SAFETY: Copying `CAP` bytes in the `for` loop above initializes
-        // all the bytes in `vec`.
+        // all the bytes in `vec`.  `str::from_utf8` call above promises
+        // that the bytes are valid UTF-8.
         unsafe {
             vec.set_len(CAP);
         }
@@ -242,7 +243,8 @@ impl<const CAP: usize> ArrayString<CAP>
         // SAFETY: `ptr` points to `remaining_cap` bytes.
         match unsafe { encode_utf8(c, ptr, remaining_cap) } {
             Ok(n) => {
-                // SAFETY: `encode_utf8` promises that it initialized `n` bytes.
+                // SAFETY: `encode_utf8` promises that it initialized `n` bytes
+                // and that it wrote valid UTF-8.
                 unsafe {
                     self.set_len(len + n);
                 }
@@ -308,7 +310,8 @@ impl<const CAP: usize> ArrayString<CAP>
         }
 
         // SAFETY: Copying `CAP` bytes in the `for` loop above initializes
-        // all the bytes in `self.xs[old_len..new_len]`.
+        // all the bytes in `self.xs[old_len..new_len]`.  We copy the bytes
+        // from `s: &'a str` so the bytes must be valid UTF-8.
         unsafe {
             self.set_len(new_len);
         }
@@ -337,9 +340,17 @@ impl<const CAP: usize> ArrayString<CAP>
             None => return None,
         };
         let new_len = self.len() - ch.len_utf8();
+
+        // SAFETY: Type invariant guarantees that `self.len()` bytes are
+        // initialized and valid UTF-8.  Therefore `new_len` bytes (less bytes)
+        // are also initialized.  And they are still valid UTF-8 because we cut
+        // on char boundary.
         unsafe {
+            debug_assert!(new_len <= self.len());
+            debug_assert!(self.is_char_boundary(new_len));
             self.set_len(new_len);
         }
+
         Some(ch)
     }
 
@@ -362,11 +373,17 @@ impl<const CAP: usize> ArrayString<CAP>
     pub fn truncate(&mut self, new_len: usize) {
         if new_len <= self.len() {
             assert!(self.is_char_boundary(new_len));
+
+            // SAFETY: Type invariant guarantees that `self.len()` bytes are
+            // initialized and form valid UTF-8.  `new_len` bytes are also
+            // initialized, because we checked above that `new_len <=
+            // self.len()`.  And `new_len` bytes are valid UTF-8, because we
+            // `assert!` above that `new_len` is at a char boundary.
+            //
+            // In libstd truncate is called on the underlying vector, which in
+            // turns drops each element.  Here we work with `u8` butes, so we
+            // don't have to worry about Drop, and we can just set the length.
             unsafe { 
-                // In libstd truncate is called on the underlying vector,
-                // which in turns drops each element.
-                // As we know we don't have to worry about Drop,
-                // we can just set the length (a la clear.)
                 self.set_len(new_len);
             }
         }
@@ -396,20 +413,25 @@ impl<const CAP: usize> ArrayString<CAP>
         };
 
         let next = idx + ch.len_utf8();
+        self.xs.copy_within(next.., idx);
+
+        // SAFETY: Type invariant guarantees that `self.len()` bytes are
+        // initialized and form valid UTF-8.  Therefore `new_len` bytes (less
+        // bytes) are also initialized.  We remove a whole UTF-8 char, so
+        // `new_len` bytes remain valid UTF-8.
         let len = self.len();
-        let ptr = self.as_mut_ptr();
+        let new_len = len - (next - idx);
         unsafe {
-            ptr::copy(
-                ptr.add(next),
-                ptr.add(idx),
-                len - next);
-            self.set_len(len - (next - idx));
+            debug_assert!(new_len <= self.len());
+            self.set_len(new_len);
         }
         ch
     }
 
     /// Make the string empty.
     pub fn clear(&mut self) {
+        // SAFETY: Empty slice is initialized by definition.  Empty string is
+        // valid UTF-8.
         unsafe {
             self.set_len(0);
         }
@@ -417,15 +439,25 @@ impl<const CAP: usize> ArrayString<CAP>
 
     /// Set the strings’s length.
     ///
-    /// This function is `unsafe` because it changes the notion of the
-    /// number of “valid” bytes in the string. Use with care.
-    ///
     /// This method uses *debug assertions* to check the validity of `length`
     /// and may use other debug assertions.
+    ///
+    /// # Safety
+    ///
+    /// The caller needs to guarantee that `length` bytes of the underlying
+    /// storage:
+    ///
+    /// * have been initialized
+    /// * encode valid UTF-8
     pub unsafe fn set_len(&mut self, length: usize) {
         // type invariant that capacity always fits in LenUint
         debug_assert!(length <= self.capacity());
+
         self.len = length as LenUint;
+
+        // type invariant that we contain a valid UTF-8 string
+        // (this is just an O(1) heuristic - full check would require O(N)).
+        debug_assert!(self.is_char_boundary(length));
     }
 
     /// Return a string slice of the whole `ArrayString`.
