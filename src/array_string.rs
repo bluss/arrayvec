@@ -235,16 +235,20 @@ impl<const CAP: usize> ArrayString<CAP>
     /// ```
     pub fn try_push(&mut self, c: char) -> Result<(), CapacityError<char>> {
         let len = self.len();
-        unsafe {
-            let ptr = self.as_mut_ptr().add(len);
-            let remaining_cap = self.capacity() - len;
-            match encode_utf8(c, ptr, remaining_cap) {
-                Ok(n) => {
+        let ptr: *mut MaybeUninit<u8> = self.xs[len..].as_mut_ptr();
+        let ptr = ptr as *mut u8;
+        let remaining_cap = self.capacity() - len;
+
+        // SAFETY: `ptr` points to `remaining_cap` bytes.
+        match unsafe { encode_utf8(c, ptr, remaining_cap) } {
+            Ok(n) => {
+                // SAFETY: `encode_utf8` promises that it initialized `n` bytes.
+                unsafe {
                     self.set_len(len + n);
-                    Ok(())
                 }
-                Err(_) => Err(CapacityError::new(c)),
+                Ok(())
             }
+            Err(_) => Err(CapacityError::new(c)),
         }
     }
 
