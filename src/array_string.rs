@@ -291,13 +291,24 @@ impl<const CAP: usize> ArrayString<CAP>
         if s.len() > self.capacity() - self.len() {
             return Err(CapacityError::new(s));
         }
-        unsafe {
-            let dst = self.as_mut_ptr().add(self.len());
-            let src = s.as_ptr();
-            ptr::copy_nonoverlapping(src, dst, s.len());
-            let newl = self.len() + s.len();
-            self.set_len(newl);
+        let old_len = self.len();
+        let new_len = old_len + s.len();
+
+        // This loop is similar to the one in `from_byte_string` and therefore
+        // it is expected to  result in the same, fast assembly code as some
+        // `unsafe` transmutes and a call to `copy_to_nonoverlapping`.
+        let dst = &mut self.xs[old_len..new_len];
+        let src = s.as_bytes();
+        for (dst, src) in dst.iter_mut().zip(src.iter()) {
+            *dst = MaybeUninit::new(*src);
         }
+
+        // SAFETY: Copying `CAP` bytes in the `for` loop above initializes
+        // all the bytes in `self.xs[old_len..new_len]`.
+        unsafe {
+            self.set_len(new_len);
+        }
+
         Ok(())
     }
 
