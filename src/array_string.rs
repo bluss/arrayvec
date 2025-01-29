@@ -64,8 +64,9 @@ impl<const CAP: usize> ArrayString<CAP>
     /// ```
     pub fn new() -> ArrayString<CAP> {
         assert_capacity_limit!(CAP);
-        unsafe {
-            ArrayString { xs: MaybeUninit::uninit().assume_init(), len: 0 }
+        ArrayString {
+            xs: [MaybeUninit::uninit(); CAP],
+            len: 0,
         }
     }
 
@@ -144,13 +145,9 @@ impl<const CAP: usize> ArrayString<CAP>
     #[inline]
     pub fn zero_filled() -> Self {
         assert_capacity_limit!(CAP);
-        // SAFETY: `assert_capacity_limit` asserts that `len` won't overflow and
-        // `zeroed` fully fills the array with nulls.
-        unsafe {
-            ArrayString {
-                xs: MaybeUninit::zeroed().assume_init(),
-                len: CAP as _
-            }
+        ArrayString {
+            xs: [MaybeUninit::zeroed(); CAP],
+            len: CAP as _,
         }
     }
 
