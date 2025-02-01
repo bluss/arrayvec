@@ -774,3 +774,28 @@ fn test_arraystring_zero_filled_has_some_sanity_checks() {
     assert_eq!(string.as_str(), "\0\0\0\0");
     assert_eq!(string.len(), 4);
 }
+
+#[test]
+fn test_string_collect() {
+    let text = "hello world";
+    let u = ArrayString::<11>::try_from_iterator(text.chars()).unwrap();
+    assert_eq!(u.as_str(), text);
+    assert_eq!(u.len(), text.len());
+}
+
+#[test]
+fn test_string_collect_seveal_times() {
+    let text = "hello world";
+    let mut u = ArrayString::<22>::try_from_iterator(text.chars()).unwrap();
+    u.try_extend(text.chars()).unwrap();
+    assert_eq!(u.as_str(), &format!("{}{}", text, text));
+    assert_eq!(u.len(), text.len()*2);
+}
+
+
+#[test]
+fn test_string_collect_error_on_overflow() {
+    let text = "hello world";
+    ArrayString::<10>::try_from_iterator(text.chars()).unwrap_err();
+}
+
