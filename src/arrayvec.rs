@@ -1252,6 +1252,12 @@ impl<T, const CAP: usize> fmt::Debug for ArrayVec<T, CAP> where T: fmt::Debug {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { (**self).fmt(f) }
 }
 
+#[cfg(feature = "defmt-03")]
+impl<const CAP: usize, T: defmt::Format> defmt::Format for ArrayVec<T, CAP> {
+    fn format(&self, f: defmt::Formatter) {
+        defmt::write!(f, "{}", self.as_slice())
+    }
+}
 impl<T, const CAP: usize> Default for ArrayVec<T, CAP> {
     /// Return an empty array
     fn default() -> ArrayVec<T, CAP> {

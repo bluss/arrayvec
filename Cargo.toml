@@ -15,6 +15,9 @@ categories = ["data-structures", "no-std"]
 
 [build-dependencies]
 
+[dependencies]
+defmt = { version = "0.3.10", optional = true }
+
 [dependencies.borsh]
 version = "1.2.0"
 optional = true
@@ -48,6 +51,7 @@ harness = false
 [features]
 default = ["std"]
 std = []
+defmt-03 = ["dep:defmt"]
 
 [profile.bench]
 debug = true
