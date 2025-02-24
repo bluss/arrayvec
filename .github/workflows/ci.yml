@@ -1,8 +1,8 @@
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 name: Continuous integration
 
@@ -17,12 +17,10 @@ jobs:
     strategy:
       matrix:
         include:
-          - rust: 1.51.0 # MSRV
+          - rust: 1.83.0 # MSRV
             features: serde
             experimental: false
-            # doctest of `ArrayVec::spare_capacity_mut` has MSRV 1.55
-            test-args: --skip spare_capacity_mut
-          - rust: 1.70.0
+          - rust: 1.85.0
             features: serde
             experimental: false
           - rust: stable
@@ -42,7 +40,7 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
       - name: Pin versions for MSRV
-        if: "${{ matrix.rust == '1.51.0' }}"
+        if: "${{ matrix.rust == '1.83.0' }}"
         run: |
           cargo update -p serde_test --precise 1.0.163
           cargo update -p serde --precise 1.0.69
@@ -79,7 +77,6 @@ jobs:
       - name: Tests
         run: |
           cargo rustc "--target=${{ matrix.target }}" --no-default-features --features "${{ matrix.features }}"
-
 
   miri:
     runs-on: ubuntu-latest

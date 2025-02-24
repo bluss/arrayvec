@@ -4,7 +4,7 @@ version = "0.7.6"
 authors = ["bluss"]
 license = "MIT OR Apache-2.0"
 edition = "2018"
-rust-version = "1.51"
+rust-version = "1.83"
 
 description = "A vector with fixed capacity, backed by an array (it can be stored on the stack too). Implements fixed capacity ArrayVec and ArrayString."
 documentation = "https://docs.rs/arrayvec/"
