@@ -17,7 +17,7 @@
 //!
 //! ## Rust Version
 //!
-//! This version of arrayvec requires Rust 1.83 or later.
+//! This version of arrayvec requires Rust 1.57 or later.
 //!
 #![doc(html_root_url="https://docs.rs/arrayvec/0.7/")]
 #![cfg_attr(not(feature="std"), no_std)]
@@ -67,3 +67,21 @@ pub use crate::array_string::ArrayString;
 pub use crate::errors::CapacityError;
 
 pub use crate::arrayvec::{ArrayVec, IntoIter, Drain};
+
+#[cfg(not(feature = "const"))]
+macro_rules! const_fn {
+    ($(#[$($metas:meta)*])* $v:vis const $($t:tt)+) => {
+        $(#[$($metas)*])*
+        $v $($t)+
+    };
+}
+
+#[cfg(feature = "const")]
+macro_rules! const_fn {
+    ($(#[$($metas:meta)*])* $v:vis const $($t:tt)+) => {
+        $(#[$($metas)*])*
+        $v const $($t)+
+    };
+}
+
+pub(crate) use const_fn;

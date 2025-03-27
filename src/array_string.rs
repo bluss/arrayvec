@@ -17,6 +17,7 @@ use crate::CapacityError;
 use crate::LenUint;
 use crate::char::encode_utf8;
 use crate::utils::MakeMaybeUninit;
+use crate::const_fn;
 
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
@@ -50,6 +51,8 @@ impl<const CAP: usize> Default for ArrayString<CAP>
 
 impl<const CAP: usize> ArrayString<CAP>
 {
+
+    const_fn!{
     /// Create a new empty `ArrayString`.
     ///
     /// Capacity is inferred from the type parameter.
@@ -67,7 +70,7 @@ impl<const CAP: usize> ArrayString<CAP>
         unsafe {
             ArrayString { xs: MaybeUninit::uninit().assume_init(), len: 0 }
         }
-    }
+    }}
 
     /// Create a new empty `ArrayString` (const fn).
     ///
@@ -91,6 +94,7 @@ impl<const CAP: usize> ArrayString<CAP>
     #[inline]
     pub const fn is_empty(&self) -> bool { self.len() == 0 }
 
+    const_fn!{
     /// Create a new `ArrayString` from a `str`.
     ///
     /// Capacity is inferred from the type parameter.
@@ -111,8 +115,9 @@ impl<const CAP: usize> ArrayString<CAP>
             Ok(()) => Ok(arraystr),
             Err(e) => Err(e),
         }
-    }
+    }}
 
+    const_fn!{
     /// Create a new `ArrayString` from a byte string literal.
     ///
     /// **Errors** if the byte string literal is not valid UTF-8.
@@ -135,8 +140,9 @@ impl<const CAP: usize> ArrayString<CAP>
             vec.set_len(CAP);
         }
         Ok(vec)
-    }
+    }}
 
+    const_fn!{
     /// Create a new `ArrayString` value fully filled with ASCII NULL characters (`\0`). Useful
     /// to be used as a buffer to collect external data or as a buffer for intermediate processing.
     ///
@@ -157,7 +163,7 @@ impl<const CAP: usize> ArrayString<CAP>
                 len: CAP as _
             }
         }
-    }
+    }}
 
     /// Return the capacity of the `ArrayString`.
     ///
@@ -214,6 +220,7 @@ impl<const CAP: usize> ArrayString<CAP>
         self.try_push(c).unwrap();
     }
 
+    const_fn!{
     /// Adds the given char to the end of the string.
     ///
     /// Returns `Ok` if the push succeeds.
@@ -245,7 +252,7 @@ impl<const CAP: usize> ArrayString<CAP>
                 Err(_) => Err(CapacityError::new(c)),
             }
         }
-    }
+    }}
 
     /// Adds the given string slice to the end of the string.
     ///
@@ -266,6 +273,7 @@ impl<const CAP: usize> ArrayString<CAP>
         self.try_push_str(s).unwrap()
     }
 
+    const_fn!{
     /// Adds the given string slice to the end of the string.
     ///
     /// Returns `Ok` if the push succeeds.
@@ -298,7 +306,7 @@ impl<const CAP: usize> ArrayString<CAP>
             self.set_len(newl);
         }
         Ok(())
-    }
+    }}
 
     /// Removes the last character from the string and returns it.
     ///
@@ -392,13 +400,15 @@ impl<const CAP: usize> ArrayString<CAP>
         ch
     }
 
+    const_fn!{
     /// Make the string empty.
     pub const fn clear(&mut self) {
         unsafe {
             self.set_len(0);
         }
-    }
+    }}
 
+    const_fn!{
     /// Set the strings’s length.
     ///
     /// This function is `unsafe` because it changes the notion of the
@@ -410,16 +420,18 @@ impl<const CAP: usize> ArrayString<CAP>
         // type invariant that capacity always fits in LenUint
         debug_assert!(length <= self.capacity());
         self.len = length as LenUint;
-    }
+    }}
 
+    const_fn!{
     /// Return a string slice of the whole `ArrayString`.
     pub const fn as_str(&self) -> &str {
         unsafe {
             let sl = slice::from_raw_parts(self.as_ptr(), self.len());
             str::from_utf8_unchecked(sl)
         }
-    }
+    }}
 
+    const_fn!{
     /// Return a mutable string slice of the whole `ArrayString`.
     pub const fn as_mut_str(&mut self) -> &mut str {
         unsafe {
@@ -427,17 +439,18 @@ impl<const CAP: usize> ArrayString<CAP>
             let sl = slice::from_raw_parts_mut(self.as_mut_ptr(), len);
             str::from_utf8_unchecked_mut(sl)
         }
-    }
+    }}
 
     /// Return a raw pointer to the string's buffer.
     pub const fn as_ptr(&self) -> *const u8 {
         self.xs.as_ptr() as *const u8
     }
 
+    const_fn!{
     /// Return a raw mutable pointer to the string's buffer.
     pub const fn as_mut_ptr(&mut self) -> *mut u8 {
         self.xs.as_mut_ptr() as *mut u8
-    }
+    }}
 }
 
 impl<const CAP: usize> Deref for ArrayString<CAP>

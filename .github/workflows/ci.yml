@@ -1,8 +1,8 @@
 on:
   push:
-    branches: [master]
+    branches: [ master ]
   pull_request:
-    branches: [master]
+    branches: [ master ]
 
 name: Continuous integration
 
@@ -17,21 +17,21 @@ jobs:
     strategy:
       matrix:
         include:
-          - rust: 1.83.0 # MSRV
+          - rust: 1.57.0 # MSRV
             features: serde
             experimental: false
-          - rust: 1.85.0
-            features: serde
+          - rust: 1.70.0
+            features: serde, const
             experimental: false
           - rust: stable
-            features:
+            features: const
             bench: true
             experimental: false
           - rust: beta
-            features: serde
+            features: serde, const
             experimental: false
           - rust: nightly
-            features: serde, borsh, zeroize
+            features: serde, borsh, zeroize, const
             experimental: false
 
     steps:
@@ -40,7 +40,7 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
       - name: Pin versions for MSRV
-        if: "${{ matrix.rust == '1.83.0' }}"
+        if: "${{ matrix.rust == '1.57.0' }}"
         run: |
           cargo update -p serde_test --precise 1.0.163
           cargo update -p serde --precise 1.0.69
@@ -77,6 +77,7 @@ jobs:
       - name: Tests
         run: |
           cargo rustc "--target=${{ matrix.target }}" --no-default-features --features "${{ matrix.features }}"
+
 
   miri:
     runs-on: ubuntu-latest
