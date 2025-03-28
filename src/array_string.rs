@@ -17,6 +17,7 @@ use crate::CapacityError;
 use crate::LenUint;
 use crate::char::encode_utf8;
 use crate::utils::MakeMaybeUninit;
+use crate::const_fn;
 
 #[cfg(feature="serde")]
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
@@ -50,6 +51,8 @@ impl<const CAP: usize> Default for ArrayString<CAP>
 
 impl<const CAP: usize> ArrayString<CAP>
 {
+
+    const_fn!{
     /// Create a new empty `ArrayString`.
     ///
     /// Capacity is inferred from the type parameter.
@@ -62,12 +65,12 @@ impl<const CAP: usize> ArrayString<CAP>
     /// assert_eq!(&string[..], "foo");
     /// assert_eq!(string.capacity(), 16);
     /// ```
-    pub fn new() -> ArrayString<CAP> {
+    pub const fn new() -> ArrayString<CAP> {
         assert_capacity_limit!(CAP);
         unsafe {
             ArrayString { xs: MaybeUninit::uninit().assume_init(), len: 0 }
         }
-    }
+    }}
 
     /// Create a new empty `ArrayString` (const fn).
     ///
@@ -91,6 +94,7 @@ impl<const CAP: usize> ArrayString<CAP>
     #[inline]
     pub const fn is_empty(&self) -> bool { self.len() == 0 }
 
+    const_fn!{
     /// Create a new `ArrayString` from a `str`.
     ///
     /// Capacity is inferred from the type parameter.
@@ -105,12 +109,15 @@ impl<const CAP: usize> ArrayString<CAP>
     /// assert_eq!(string.len(), 3);
     /// assert_eq!(string.capacity(), 3);
     /// ```
-    pub fn from(s: &str) -> Result<Self, CapacityError<&str>> {
+    pub const fn from(s: &str) -> Result<Self, CapacityError<&str>> {
         let mut arraystr = Self::new();
-        arraystr.try_push_str(s)?;
-        Ok(arraystr)
-    }
+        match arraystr.try_push_str(s) {
+            Ok(()) => Ok(arraystr),
+            Err(e) => Err(e),
+        }
+    }}
 
+    const_fn!{
     /// Create a new `ArrayString` from a byte string literal.
     ///
     /// **Errors** if the byte string literal is not valid UTF-8.
@@ -120,9 +127,12 @@ impl<const CAP: usize> ArrayString<CAP>
     ///
     /// let string = ArrayString::from_byte_string(b"hello world").unwrap();
     /// ```
-    pub fn from_byte_string(b: &[u8; CAP]) -> Result<Self, Utf8Error> {
-        let len = str::from_utf8(b)?.len();
-        debug_assert_eq!(len, CAP);
+    pub const fn from_byte_string(b: &[u8; CAP]) -> Result<Self, Utf8Error> {
+        let len = match str::from_utf8(b) {
+            Ok(str) => str.len(),
+            Err(e) => return Err(e),
+        };
+        debug_assert!(len == CAP);
         let mut vec = Self::new();
         unsafe {
             (b as *const [u8; CAP] as *const [MaybeUninit<u8>; CAP])
@@ -130,8 +140,9 @@ impl<const CAP: usize> ArrayString<CAP>
             vec.set_len(CAP);
         }
         Ok(vec)
-    }
+    }}
 
+    const_fn!{
     /// Create a new `ArrayString` value fully filled with ASCII NULL characters (`\0`). Useful
     /// to be used as a buffer to collect external data or as a buffer for intermediate processing.
     ///
@@ -142,7 +153,7 @@ impl<const CAP: usize> ArrayString<CAP>
     /// assert_eq!(string.len(), 16);
     /// ```
     #[inline]
-    pub fn zero_filled() -> Self {
+    pub const fn zero_filled() -> Self {
         assert_capacity_limit!(CAP);
         // SAFETY: `assert_capacity_limit` asserts that `len` won't overflow and
         // `zeroed` fully fills the array with nulls.
@@ -152,7 +163,7 @@ impl<const CAP: usize> ArrayString<CAP>
                 len: CAP as _
             }
         }
-    }
+    }}
 
     /// Return the capacity of the `ArrayString`.
     ///
@@ -209,6 +220,7 @@ impl<const CAP: usize> ArrayString<CAP>
         self.try_push(c).unwrap();
     }
 
+    const_fn!{
     /// Adds the given char to the end of the string.
     ///
     /// Returns `Ok` if the push succeeds.
@@ -227,7 +239,7 @@ impl<const CAP: usize> ArrayString<CAP>
     /// assert_eq!(&string[..], "ab");
     /// assert_eq!(overflow.unwrap_err().element(), 'c');
     /// ```
-    pub fn try_push(&mut self, c: char) -> Result<(), CapacityError<char>> {
+    pub const fn try_push(&mut self, c: char) -> Result<(), CapacityError<char>> {
         let len = self.len();
         unsafe {
             let ptr = self.as_mut_ptr().add(len);
@@ -240,7 +252,7 @@ impl<const CAP: usize> ArrayString<CAP>
                 Err(_) => Err(CapacityError::new(c)),
             }
         }
-    }
+    }}
 
     /// Adds the given string slice to the end of the string.
     ///
@@ -261,6 +273,7 @@ impl<const CAP: usize> ArrayString<CAP>
         self.try_push_str(s).unwrap()
     }
 
+    const_fn!{
     /// Adds the given string slice to the end of the string.
     ///
     /// Returns `Ok` if the push succeeds.
@@ -281,7 +294,7 @@ impl<const CAP: usize> ArrayString<CAP>
     /// assert_eq!(overflow1.unwrap_err().element(), "bc");
     /// assert_eq!(overflow2.unwrap_err().element(), "ef");
     /// ```
-    pub fn try_push_str<'a>(&mut self, s: &'a str) -> Result<(), CapacityError<&'a str>> {
+    pub const fn try_push_str<'a>(&mut self, s: &'a str) -> Result<(), CapacityError<&'a str>> {
         if s.len() > self.capacity() - self.len() {
             return Err(CapacityError::new(s));
         }
@@ -293,7 +306,7 @@ impl<const CAP: usize> ArrayString<CAP>
             self.set_len(newl);
         }
         Ok(())
-    }
+    }}
 
     /// Removes the last character from the string and returns it.
     ///
@@ -340,7 +353,7 @@ impl<const CAP: usize> ArrayString<CAP>
     /// ```
     pub fn truncate(&mut self, new_len: usize) {
         if new_len <= self.len() {
-            assert!(self.is_char_boundary(new_len));
+            assert!(self.as_str().is_char_boundary(new_len));
             unsafe { 
                 // In libstd truncate is called on the underlying vector,
                 // which in turns drops each element.
@@ -387,13 +400,15 @@ impl<const CAP: usize> ArrayString<CAP>
         ch
     }
 
+    const_fn!{
     /// Make the string empty.
-    pub fn clear(&mut self) {
+    pub const fn clear(&mut self) {
         unsafe {
             self.set_len(0);
         }
-    }
+    }}
 
+    const_fn!{
     /// Set the strings’s length.
     ///
     /// This function is `unsafe` because it changes the notion of the
@@ -401,31 +416,41 @@ impl<const CAP: usize> ArrayString<CAP>
     ///
     /// This method uses *debug assertions* to check the validity of `length`
     /// and may use other debug assertions.
-    pub unsafe fn set_len(&mut self, length: usize) {
+    pub const unsafe fn set_len(&mut self, length: usize) {
         // type invariant that capacity always fits in LenUint
         debug_assert!(length <= self.capacity());
         self.len = length as LenUint;
-    }
+    }}
 
+    const_fn!{
     /// Return a string slice of the whole `ArrayString`.
-    pub fn as_str(&self) -> &str {
-        self
-    }
+    pub const fn as_str(&self) -> &str {
+        unsafe {
+            let sl = slice::from_raw_parts(self.as_ptr(), self.len());
+            str::from_utf8_unchecked(sl)
+        }
+    }}
 
+    const_fn!{
     /// Return a mutable string slice of the whole `ArrayString`.
-    pub fn as_mut_str(&mut self) -> &mut str {
-        self
-    }
+    pub const fn as_mut_str(&mut self) -> &mut str {
+        unsafe {
+            let len = self.len();
+            let sl = slice::from_raw_parts_mut(self.as_mut_ptr(), len);
+            str::from_utf8_unchecked_mut(sl)
+        }
+    }}
 
     /// Return a raw pointer to the string's buffer.
-    pub fn as_ptr(&self) -> *const u8 {
+    pub const fn as_ptr(&self) -> *const u8 {
         self.xs.as_ptr() as *const u8
     }
 
+    const_fn!{
     /// Return a raw mutable pointer to the string's buffer.
-    pub fn as_mut_ptr(&mut self) -> *mut u8 {
+    pub const fn as_mut_ptr(&mut self) -> *mut u8 {
         self.xs.as_mut_ptr() as *mut u8
-    }
+    }}
 }
 
 impl<const CAP: usize> Deref for ArrayString<CAP>
@@ -433,10 +458,7 @@ impl<const CAP: usize> Deref for ArrayString<CAP>
     type Target = str;
     #[inline]
     fn deref(&self) -> &str {
-        unsafe {
-            let sl = slice::from_raw_parts(self.as_ptr(), self.len());
-            str::from_utf8_unchecked(sl)
-        }
+        self.as_str()
     }
 }
 
@@ -444,11 +466,7 @@ impl<const CAP: usize> DerefMut for ArrayString<CAP>
 {
     #[inline]
     fn deref_mut(&mut self) -> &mut str {
-        unsafe {
-            let len = self.len();
-            let sl = slice::from_raw_parts_mut(self.as_mut_ptr(), len);
-            str::from_utf8_unchecked_mut(sl)
-        }
+        self.as_mut_str()
     }
 }
 

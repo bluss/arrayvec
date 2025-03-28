@@ -22,8 +22,8 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
 use crate::LenUint;
 use crate::errors::CapacityError;
-use crate::arrayvec_impl::ArrayVecImpl;
 use crate::utils::MakeMaybeUninit;
+use crate::const_fn;
 
 /// A vector with a fixed capacity.
 ///
@@ -65,6 +65,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// Capacity
     const CAPACITY: usize = CAP;
 
+    const_fn!{
     /// Create a new empty `ArrayVec`.
     ///
     /// The maximum capacity is given by the generic parameter `CAP`.
@@ -80,12 +81,12 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// ```
     #[inline]
     #[track_caller]
-    pub fn new() -> ArrayVec<T, CAP> {
+    pub const fn new() -> ArrayVec<T, CAP> {
         assert_capacity_limit!(CAP);
         unsafe {
             ArrayVec { xs: MaybeUninit::uninit().assume_init(), len: 0 }
         }
-    }
+    }}
 
     /// Create a new empty `ArrayVec` (const fn).
     ///
@@ -177,9 +178,10 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// ```
     #[track_caller]
     pub fn push(&mut self, element: T) {
-        ArrayVecImpl::push(self, element)
+        self.try_push(element).unwrap()
     }
 
+    const_fn!{
     /// Push `element` to the end of the vector.
     ///
     /// Return `Ok` if the push succeeds, or return an error if the vector
@@ -202,10 +204,18 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     ///
     /// assert!(overflow.is_err());
     /// ```
-    pub fn try_push(&mut self, element: T) -> Result<(), CapacityError<T>> {
-        ArrayVecImpl::try_push(self, element)
-    }
+    pub const fn try_push(&mut self, element: T) -> Result<(), CapacityError<T>> {
+        if self.len() < Self::CAPACITY {
+            unsafe {
+                self.push_unchecked(element);
+            }
+            Ok(())
+        } else {
+            Err(CapacityError::new(element))
+        }
+    }}
 
+    const_fn!{
     /// Push `element` to the end of the vector without checking the capacity.
     ///
     /// It is up to the caller to ensure the capacity of the vector is
@@ -227,9 +237,12 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     ///
     /// assert_eq!(&array[..], &[1, 2]);
     /// ```
-    pub unsafe fn push_unchecked(&mut self, element: T) {
-        ArrayVecImpl::push_unchecked(self, element)
-    }
+    pub const unsafe fn push_unchecked(&mut self, element: T) {
+        let len = self.len();
+        debug_assert!(len < Self::CAPACITY);
+        ptr::write(self.as_mut_ptr().add(len), element);
+        self.set_len(len + 1);
+    }}
 
     /// Shortens the vector, keeping the first `len` elements and dropping
     /// the rest.
@@ -247,19 +260,27 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert_eq!(&array[..], &[1, 2, 3]);
     /// ```
     pub fn truncate(&mut self, new_len: usize) {
-        ArrayVecImpl::truncate(self, new_len)
+        unsafe {
+            let len = self.len();
+            if new_len < len {
+                self.set_len(new_len);
+                let tail = slice::from_raw_parts_mut(self.as_mut_ptr().add(new_len), len - new_len);
+                ptr::drop_in_place(tail);
+            }
+        }
     }
 
     /// Remove all elements in the vector.
     pub fn clear(&mut self) {
-        ArrayVecImpl::clear(self)
+        self.truncate(0)
     }
 
 
+    const_fn!{
     /// Get pointer to where element at `index` would be
-    unsafe fn get_unchecked_ptr(&mut self, index: usize) -> *mut T {
+    const unsafe fn get_unchecked_ptr(&mut self, index: usize) -> *mut T {
         self.as_mut_ptr().add(index)
-    }
+    }}
 
     /// Insert `element` at position `index`.
     ///
@@ -332,6 +353,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         Ok(())
     }
 
+    const_fn!{
     /// Remove the last element in the vector and return it.
     ///
     /// Return `Some(` *element* `)` if the vector is non-empty, else `None`.
@@ -346,9 +368,16 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert_eq!(array.pop(), Some(1));
     /// assert_eq!(array.pop(), None);
     /// ```
-    pub fn pop(&mut self) -> Option<T> {
-        ArrayVecImpl::pop(self)
-    }
+    pub const fn pop(&mut self) -> Option<T> {
+        if self.len() == 0 {
+            return None;
+        }
+        unsafe {
+            let new_len = self.len() - 1;
+            self.set_len(new_len);
+            Some(ptr::read(self.as_ptr().add(new_len)))
+        }
+    }}
 
     /// Remove the element at `index` and swap the last element into its place.
     ///
@@ -535,6 +564,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         drop(g);
     }
 
+    const_fn!{
     /// Returns the remaining spare capacity of the vector as a slice of
     /// `MaybeUninit<T>`.
     ///
@@ -565,11 +595,12 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     ///
     /// assert_eq!(&v[..], &[0, 1, 2]);
     /// ```
-    pub fn spare_capacity_mut(&mut self) -> &mut [MaybeUninit<T>] {
+    pub const fn spare_capacity_mut(&mut self) -> &mut [MaybeUninit<T>] {
         let len = self.len();
-        &mut self.xs[len..]
-    }
+        self.xs.split_at_mut(len).1
+    }}
 
+    const_fn!{
     /// Set the vector’s length without dropping or moving out elements
     ///
     /// This method is `unsafe` because it changes the notion of the
@@ -577,12 +608,13 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     ///
     /// This method uses *debug assertions* to check that `length` is
     /// not greater than the capacity.
-    pub unsafe fn set_len(&mut self, length: usize) {
+    pub const unsafe fn set_len(&mut self, length: usize) {
         // type invariant that capacity always fits in LenUint
         debug_assert!(length <= self.capacity());
         self.len = length as LenUint;
-    }
+    }}
 
+    const_fn!{
     /// Copy all elements from the slice and append to the `ArrayVec`.
     ///
     /// ```
@@ -601,7 +633,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// slice.
     ///
     /// [`remaining_capacity`]: #method.remaining_capacity
-    pub fn try_extend_from_slice(&mut self, other: &[T]) -> Result<(), CapacityError>
+    pub const fn try_extend_from_slice(&mut self, other: &[T]) -> Result<(), CapacityError>
         where T: Copy,
     {
         if self.remaining_capacity() < other.len() {
@@ -617,7 +649,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
             self.set_len(self_len + other_len);
         }
         Ok(())
-    }
+    }}
 
     /// Create a draining iterator that removes the specified range in the vector
     /// and yields the removed items from start to end. The element range is
@@ -685,29 +717,32 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         }
     }
 
+    const_fn!{
     /// Return the inner fixed size array, if it is full to its capacity.
     ///
     /// Return an `Ok` value with the array if length equals capacity,
     /// return an `Err` with self otherwise.
-    pub fn into_inner(self) -> Result<[T; CAP], Self> {
+    pub const fn into_inner(self) -> Result<[T; CAP], Self> {
         if self.len() < self.capacity() {
             Err(self)
         } else {
             unsafe { Ok(self.into_inner_unchecked()) }
         }
-    }
+    }}
 
+    const_fn!{
     /// Return the inner fixed size array.
     ///
     /// Safety:
     /// This operation is safe if and only if length equals capacity.
-    pub unsafe fn into_inner_unchecked(self) -> [T; CAP] {
-        debug_assert_eq!(self.len(), self.capacity());
-        let self_ = ManuallyDrop::new(self);
-        let array = ptr::read(self_.as_ptr() as *const [T; CAP]);
-        array
-    }
+    pub const unsafe fn into_inner_unchecked(self) -> [T; CAP] {
+        debug_assert!(self.len() == self.capacity());
+        let ptr = self.as_ptr();
+        mem::forget(self);
+        ptr::read(ptr as *const [T; CAP])
+    }}
 
+    const_fn!{
     /// Returns the ArrayVec, replacing the original with a new empty ArrayVec.
     ///
     /// ```
@@ -717,49 +752,38 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert_eq!([0, 1, 2, 3], v.take().into_inner().unwrap());
     /// assert!(v.is_empty());
     /// ```
-    pub fn take(&mut self) -> Self  {
-        mem::replace(self, Self::new())
-    }
+    pub const fn take(&mut self) -> Self  {
+        mem::replace(self, Self::new_const())
+    }}
 
+    const_fn!{
     /// Return a slice containing all elements of the vector.
-    pub fn as_slice(&self) -> &[T] {
-        ArrayVecImpl::as_slice(self)
-    }
+    pub const fn as_slice(&self) -> &[T] {
+        let len = self.len();
+        unsafe {
+            slice::from_raw_parts(self.as_ptr(), len)
+        }
+    }}
 
+    const_fn!{
     /// Return a mutable slice containing all elements of the vector.
-    pub fn as_mut_slice(&mut self) -> &mut [T] {
-        ArrayVecImpl::as_mut_slice(self)
-    }
+    pub const fn as_mut_slice(&mut self) -> &mut [T] {
+        let len = self.len();
+        unsafe {
+            std::slice::from_raw_parts_mut(self.as_mut_ptr(), len)
+        }
+    }}
 
     /// Return a raw pointer to the vector's buffer.
-    pub fn as_ptr(&self) -> *const T {
-        ArrayVecImpl::as_ptr(self)
-    }
-
-    /// Return a raw mutable pointer to the vector's buffer.
-    pub fn as_mut_ptr(&mut self) -> *mut T {
-        ArrayVecImpl::as_mut_ptr(self)
-    }
-}
-
-impl<T, const CAP: usize> ArrayVecImpl for ArrayVec<T, CAP> {
-    type Item = T;
-    const CAPACITY: usize = CAP;
-
-    fn len(&self) -> usize { self.len() }
-
-    unsafe fn set_len(&mut self, length: usize) {
-        debug_assert!(length <= CAP);
-        self.len = length as LenUint;
-    }
-
-    fn as_ptr(&self) -> *const Self::Item {
+    pub const fn as_ptr(&self) -> *const T {
         self.xs.as_ptr() as _
     }
 
-    fn as_mut_ptr(&mut self) -> *mut Self::Item {
+    const_fn!{
+    /// Return a raw mutable pointer to the vector's buffer.
+    pub const fn as_mut_ptr(&mut self) -> *mut T {
         self.xs.as_mut_ptr() as _
-    }
+    }}
 }
 
 impl<T, const CAP: usize> Deref for ArrayVec<T, CAP> {
@@ -916,15 +940,17 @@ pub struct IntoIter<T, const CAP: usize> {
     v: ArrayVec<T, CAP>,
 }
 impl<T, const CAP: usize> IntoIter<T, CAP> {
+    const_fn!{
     /// Returns the remaining items of this iterator as a slice.
-    pub fn as_slice(&self) -> &[T] {
-        &self.v[self.index..]
-    }
+    pub const fn as_slice(&self) -> &[T] {
+        self.v.as_slice().split_at(self.index).1
+    }}
 
+    const_fn!{
     /// Returns the remaining items of this iterator as a mutable slice.
-    pub fn as_mut_slice(&mut self) -> &mut [T] {
-        &mut self.v[self.index..]
-    }
+    pub const fn as_mut_slice(&mut self) -> &mut [T] {
+        self.v.as_mut_slice().split_at_mut(self.index).1
+    }}
 }
 
 impl<T, const CAP: usize> Iterator for IntoIter<T, CAP> {
@@ -1100,7 +1126,7 @@ impl<T, const CAP: usize> Extend<T> for ArrayVec<T, CAP> {
 #[inline(never)]
 #[cold]
 #[track_caller]
-fn extend_panic() {
+const fn extend_panic() {
     panic!("ArrayVec: capacity exceeded in extend/from_iter");
 }
 
@@ -1160,15 +1186,16 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     }
 }
 
+const_fn!{
 /// Rawptr add but uses arithmetic distance for ZST
-unsafe fn raw_ptr_add<T>(ptr: *mut T, offset: usize) -> *mut T {
+const unsafe fn raw_ptr_add<T>(ptr: *mut T, offset: usize) -> *mut T {
     if mem::size_of::<T>() == 0 {
         // Special case for ZST
         ptr.cast::<u8>().wrapping_add(offset).cast::<T>()
     } else {
         ptr.add(offset)
     }
-}
+}}
 
 /// Create an `ArrayVec` from an iterator.
 /// 
