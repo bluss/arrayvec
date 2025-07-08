@@ -33,11 +33,10 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 /// The string is a contiguous value that you can store directly on the stack
 /// if needed.
 #[derive(Copy)]
-#[repr(C)]
 pub struct ArrayString<const CAP: usize> {
     // the `len` first elements of the array are initialized
-    len: LenUint,
     xs: [MaybeUninit<u8>; CAP],
+    len: LenUint,
 }
 
 impl<const CAP: usize> Default for ArrayString<CAP>
