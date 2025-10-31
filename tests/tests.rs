@@ -4,6 +4,7 @@ extern crate arrayvec;
 use arrayvec::ArrayVec;
 use arrayvec::ArrayString;
 use std::mem;
+use std::mem::MaybeUninit;
 use arrayvec::CapacityError;
 
 use std::collections::HashMap;
@@ -773,4 +774,29 @@ fn test_arraystring_zero_filled_has_some_sanity_checks() {
     let string = ArrayString::<4>::zero_filled();
     assert_eq!(string.as_str(), "\0\0\0\0");
     assert_eq!(string.len(), 4);
+}
+
+#[test]
+fn test_array_vec_from_parts() {
+    let mut xs = [MaybeUninit::<u8>::uninit(); 4];
+    xs[0] = MaybeUninit::new(1);
+    xs[1] = MaybeUninit::new(2);
+
+    // # Safety - we have initialized 2 elements in xs
+    let array = unsafe { ArrayVec::from_raw_parts(xs, 2) };
+    assert_eq!(&array[..], &[1, 2]);
+    assert_eq!(array.len(), 2);
+}
+
+#[test]
+fn test_array_str_from_parts() {
+    let mut xs = [MaybeUninit::<u8>::uninit(); 4];
+    xs[0] = MaybeUninit::new(b'a');
+    xs[1] = MaybeUninit::new(b'b');
+    xs[2] = MaybeUninit::new(b'c');
+
+    // # Safety - we have initialized 3 elements in xs
+    let array = unsafe { ArrayString::from_raw_parts(xs, 3) };
+    assert_eq!(&array[..], "abc");
+    assert_eq!(array.len(), 3);
 }
