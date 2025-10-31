@@ -779,8 +779,8 @@ fn test_arraystring_zero_filled_has_some_sanity_checks() {
 #[test]
 fn test_array_vec_from_parts() {
     let mut xs = [MaybeUninit::<u8>::uninit(); 4];
-    xs[0].write(1);
-    xs[1].write(2);
+    xs[0] = MaybeUninit::new(1);
+    xs[1] = MaybeUninit::new(2);
 
     // # Safety - we have initialized 2 elements in xs
     let array = unsafe { ArrayVec::from_raw_parts(xs, 2) };
@@ -791,9 +791,9 @@ fn test_array_vec_from_parts() {
 #[test]
 fn test_array_str_from_parts() {
     let mut xs = [MaybeUninit::<u8>::uninit(); 4];
-    xs[0].write(b'a');
-    xs[1].write(b'b');
-    xs[2].write(b'c');
+    xs[0] = MaybeUninit::new(b'a');
+    xs[1] = MaybeUninit::new(b'b');
+    xs[2] = MaybeUninit::new(b'c');
 
     // # Safety - we have initialized 3 elements in xs
     let array = unsafe { ArrayString::from_raw_parts(xs, 3) };
