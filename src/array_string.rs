@@ -91,7 +91,7 @@ impl<const CAP: usize> ArrayString<CAP>
     /// i.e. that `len <= CAP` and that the first `len` bytes of `xs` form a valid UTF-8 string.
     pub const unsafe fn from_raw_parts(xs: [MaybeUninit<u8>; CAP], len: usize) -> Self {
         assert_capacity_limit_const!(CAP);
-        debug_assert!(len <= CAP);
+        assert_capacity_len_const!(CAP, len);
         ArrayString { xs, len: len as _ }
     }
 

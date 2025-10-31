@@ -2,8 +2,6 @@ use core::mem::MaybeUninit;
 
 use crate::ArrayString;
 
-
-
 /// Creates a const ArrayString from a str slice.
 pub const fn str<const CAP: usize>(s: &str) -> ArrayString<CAP> {
     assert_capacity_limit_const!(CAP);
