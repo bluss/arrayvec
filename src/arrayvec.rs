@@ -101,6 +101,17 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         ArrayVec { xs: MakeMaybeUninit::ARRAY, len: 0 }
     }
 
+    /// Create an `ArrayVec` from raw parts.
+    ///
+    /// # Safety
+    /// The caller must ensure that the first `len` elements of `xs` are
+    /// properly initialized.
+    pub const unsafe fn from_raw_parts(xs: [MaybeUninit<T>; CAP], len: usize) -> Self {
+        assert_capacity_limit_const!(CAP);
+        debug_assert!(len <= CAP);
+        ArrayVec { xs, len: len as LenUint }
+    }
+
     /// Return the number of elements in the `ArrayVec`.
     ///
     /// ```

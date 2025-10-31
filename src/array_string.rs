@@ -83,6 +83,18 @@ impl<const CAP: usize> ArrayString<CAP>
         ArrayString { xs: MakeMaybeUninit::ARRAY, len: 0 }
     }
 
+
+    /// Create a new `ArrayString` from raw parts (const fn).
+    /// 
+    /// # Safety
+    /// The caller must ensure that the provided `len` is valid,
+    /// i.e. that `len <= CAP` and that the first `len` bytes of `xs` form a valid UTF-8 string.
+    pub const unsafe fn from_raw_parts(xs: [MaybeUninit<u8>; CAP], len: usize) -> Self {
+        assert_capacity_limit_const!(CAP);
+        debug_assert!(len <= CAP);
+        ArrayString { xs, len: len as _ }
+    }
+
     /// Return the length of the string.
     #[inline]
     pub const fn len(&self) -> usize { self.len as usize }

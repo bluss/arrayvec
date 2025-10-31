@@ -36,8 +36,8 @@ pub(crate) type LenUint = u16;
 
 macro_rules! assert_capacity_limit {
     ($cap:expr) => {
-        if std::mem::size_of::<usize>() > std::mem::size_of::<LenUint>() {
-            if $cap > LenUint::MAX as usize {
+        if std::mem::size_of::<usize>() > std::mem::size_of::<$crate::LenUint>() {
+            if $cap > $crate::LenUint::MAX as usize {
                 #[cfg(not(target_pointer_width = "16"))]
                 panic!("ArrayVec: largest supported capacity is u32::MAX");
                 #[cfg(target_pointer_width = "16")]
@@ -49,8 +49,8 @@ macro_rules! assert_capacity_limit {
 
 macro_rules! assert_capacity_limit_const {
     ($cap:expr) => {
-        if std::mem::size_of::<usize>() > std::mem::size_of::<LenUint>() {
-            if $cap > LenUint::MAX as usize {
+        if std::mem::size_of::<usize>() > std::mem::size_of::<$crate::LenUint>() {
+            if $cap > $crate::LenUint::MAX as usize {
                 [/*ArrayVec: largest supported capacity is u32::MAX*/][$cap]
             }
         }
@@ -63,6 +63,8 @@ mod array_string;
 mod char;
 mod errors;
 mod utils;
+#[cfg(feature = "const_helper")]
+pub mod const_helper;
 
 pub use crate::array_string::ArrayString;
 pub use crate::errors::CapacityError;
