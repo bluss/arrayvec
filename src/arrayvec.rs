@@ -87,6 +87,46 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         }
     }
 
+    /// Initialize an empty `ArrayVec` in-place.
+    ///
+    /// Useful when you want to store a huge `ArrayVec` in some pre-initialized memory and
+    /// don't want to create and move it from the stack.
+    /// This is very cheap as all elements are uninitialized when the vec is empty.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    /// use std::mem::MaybeUninit;
+    ///
+    /// let mut place = MaybeUninit::<ArrayVec<_, 10>>::uninit();
+    /// let vec = ArrayVec::new_in_place(&mut place);
+    /// assert_eq!(vec.len(), 0);
+    /// assert_eq!(vec.capacity(), 10);
+    /// vec.push(42);
+    /// assert_eq!(vec, [42].as_slice());
+    /// ```
+    ///
+    /// ### Creating an `ArrayVec` on the Heap
+    ///
+    /// The return value is the same reference as passed to the function. Thus you can just
+    /// ignore that and assume that your [`MaybeUninit`] is initialized.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    /// use std::mem::MaybeUninit;
+    ///
+    /// let mut place = Box::new_uninit();
+    /// ArrayVec::new_in_place(&mut place);
+    /// let vec: Box<ArrayVec<u32, 10>> = unsafe { place.assume_init() };
+    /// assert_eq!(vec.len(), 0);
+    /// assert_eq!(vec.capacity(), 10);
+    /// ```
+    #[inline]
+    pub fn new_in_place(uninit: &mut MaybeUninit<Self>) -> &mut Self {
+        let ptr = uninit.as_mut_ptr();
+        unsafe { ptr::addr_of_mut!((*ptr).len).write(0); }
+        unsafe { uninit.assume_init_mut() }
+    }
+
     /// Create a new empty `ArrayVec` (const fn).
     ///
     /// The maximum capacity is given by the generic parameter `CAP`.
