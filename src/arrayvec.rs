@@ -124,7 +124,8 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     pub fn new_in_place(uninit: &mut MaybeUninit<Self>) -> &mut Self {
         let ptr = uninit.as_mut_ptr();
         unsafe { ptr::addr_of_mut!((*ptr).len).write(0); }
-        unsafe { uninit.assume_init_mut() }
+        // XXX: Once MSRV >= 1.55 we can use: unsafe { uninit.assume_init_mut() }
+        unsafe { &mut *ptr }
     }
 
     /// Create a new empty `ArrayVec` (const fn).
