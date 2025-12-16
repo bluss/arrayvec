@@ -1,6 +1,8 @@
 Recent Changes (arrayvec)
 =========================
 
+- Enable in-place initialization [#304](https://github.com/bluss/arrayvec/pull/304)
+
 ## 0.7.6
 
 - Fix no-std build [#274](https://github.com/bluss/arrayvec/pull/274)

@@ -21,10 +21,13 @@ jobs:
             features: serde
             experimental: false
             # doctest of `ArrayVec::spare_capacity_mut` has MSRV 1.55
-            test-args: --skip spare_capacity_mut
+            # doctest of `ArrayVec::new_in_place` has MSRV 1.82
+            test-args: --skip spare_capacity_mut --skip new_in_place
           - rust: 1.70.0
             features: serde
             experimental: false
+            # doctest of `ArrayVec::new_in_place` has MSRV 1.82
+            test-args: --skip new_in_place
           - rust: stable
             features:
             bench: true
