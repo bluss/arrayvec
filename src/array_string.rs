@@ -311,10 +311,7 @@ impl<const CAP: usize> ArrayString<CAP>
     /// assert_eq!(s.pop(), None);
     /// ```
     pub fn pop(&mut self) -> Option<char> {
-        let ch = match self.chars().rev().next() {
-            Some(ch) => ch,
-            None => return None,
-        };
+        let ch = self.chars().next_back()?;
         let new_len = self.len() - ch.len_utf8();
         unsafe {
             self.set_len(new_len);
@@ -396,6 +393,7 @@ impl<const CAP: usize> ArrayString<CAP>
 
     /// Set the strings’s length.
     ///
+    /// # Safety
     /// This function is `unsafe` because it changes the notion of the
     /// number of “valid” bytes in the string. Use with care.
     ///
@@ -408,21 +406,25 @@ impl<const CAP: usize> ArrayString<CAP>
     }
 
     /// Return a string slice of the whole `ArrayString`.
+    #[inline]
     pub fn as_str(&self) -> &str {
         self
     }
 
     /// Return a mutable string slice of the whole `ArrayString`.
+    #[inline]
     pub fn as_mut_str(&mut self) -> &mut str {
         self
     }
 
     /// Return a raw pointer to the string's buffer.
+    #[inline]
     pub fn as_ptr(&self) -> *const u8 {
         self.xs.as_ptr() as *const u8
     }
 
     /// Return a raw mutable pointer to the string's buffer.
+    #[inline]
     pub fn as_mut_ptr(&mut self) -> *mut u8 {
         self.xs.as_mut_ptr() as *mut u8
     }
@@ -470,6 +472,20 @@ impl<const CAP: usize> PartialEq<ArrayString<CAP>> for str
 {
     fn eq(&self, rhs: &ArrayString<CAP>) -> bool {
         self == &**rhs
+    }
+}
+
+impl<const CAP: usize> PartialEq<&str> for ArrayString<CAP>
+{
+    fn eq(&self, rhs: &&str) -> bool {
+        self == *rhs
+    }
+}
+
+impl<const CAP: usize> PartialEq<ArrayString<CAP>> for &str
+{
+    fn eq(&self, rhs: &ArrayString<CAP>) -> bool {
+        *self == rhs
     }
 }
 
@@ -527,6 +543,7 @@ impl<const CAP: usize> fmt::Write for ArrayString<CAP>
     }
 }
 
+#[expect(clippy::non_canonical_clone_impl)]
 impl<const CAP: usize> Clone for ArrayString<CAP>
 {
     fn clone(&self) -> ArrayString<CAP> {
@@ -542,40 +559,42 @@ impl<const CAP: usize> Clone for ArrayString<CAP>
 impl<const CAP: usize> PartialOrd for ArrayString<CAP>
 {
     fn partial_cmp(&self, rhs: &Self) -> Option<cmp::Ordering> {
-        (**self).partial_cmp(&**rhs)
+        Some(self.cmp(rhs))
     }
-    fn lt(&self, rhs: &Self) -> bool { **self < **rhs }
-    fn le(&self, rhs: &Self) -> bool { **self <= **rhs }
-    fn gt(&self, rhs: &Self) -> bool { **self > **rhs }
-    fn ge(&self, rhs: &Self) -> bool { **self >= **rhs }
 }
 
 impl<const CAP: usize> PartialOrd<str> for ArrayString<CAP>
 {
     fn partial_cmp(&self, rhs: &str) -> Option<cmp::Ordering> {
-        (**self).partial_cmp(rhs)
+        self.as_str().partial_cmp(rhs)
     }
-    fn lt(&self, rhs: &str) -> bool { &**self < rhs }
-    fn le(&self, rhs: &str) -> bool { &**self <= rhs }
-    fn gt(&self, rhs: &str) -> bool { &**self > rhs }
-    fn ge(&self, rhs: &str) -> bool { &**self >= rhs }
 }
 
 impl<const CAP: usize> PartialOrd<ArrayString<CAP>> for str
 {
     fn partial_cmp(&self, rhs: &ArrayString<CAP>) -> Option<cmp::Ordering> {
-        self.partial_cmp(&**rhs)
+        self.partial_cmp(rhs.as_str())
     }
-    fn lt(&self, rhs: &ArrayString<CAP>) -> bool { self < &**rhs }
-    fn le(&self, rhs: &ArrayString<CAP>) -> bool { self <= &**rhs }
-    fn gt(&self, rhs: &ArrayString<CAP>) -> bool { self > &**rhs }
-    fn ge(&self, rhs: &ArrayString<CAP>) -> bool { self >= &**rhs }
+}
+
+impl<const CAP: usize> PartialOrd<&str> for ArrayString<CAP>
+{
+    fn partial_cmp(&self, rhs: &&str) -> Option<cmp::Ordering> {
+        self.as_str().partial_cmp(*rhs)
+    }
+}
+
+impl<const CAP: usize> PartialOrd<ArrayString<CAP>> for &str
+{
+    fn partial_cmp(&self, rhs: &ArrayString<CAP>) -> Option<cmp::Ordering> {
+        (*self).partial_cmp(rhs.as_str())
+    }
 }
 
 impl<const CAP: usize> Ord for ArrayString<CAP>
 {
     fn cmp(&self, rhs: &Self) -> cmp::Ordering {
-        (**self).cmp(&**rhs)
+        self.as_str().cmp(rhs.as_str())
     }
 }
 
@@ -595,7 +614,7 @@ impl<const CAP: usize> Serialize for ArrayString<CAP>
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer
     {
-        serializer.serialize_str(&*self)
+        serializer.serialize_str(self)
     }
 }
 
@@ -641,7 +660,7 @@ impl<'de, const CAP: usize> Deserialize<'de> for ArrayString<CAP>
 /// Requires crate feature `"borsh"`
 impl<const CAP: usize> borsh::BorshSerialize for ArrayString<CAP> {
     fn serialize<W: borsh::io::Write>(&self, writer: &mut W) -> borsh::io::Result<()> {
-        <str as borsh::BorshSerialize>::serialize(&*self, writer)
+        <str as borsh::BorshSerialize>::serialize(self, writer)
     }
 }
 
@@ -661,7 +680,7 @@ impl<const CAP: usize> borsh::BorshDeserialize for ArrayString<CAP> {
         let buf = &mut buf[..len];
         reader.read_exact(buf)?;
 
-        let s = str::from_utf8(&buf).map_err(|err| {
+        let s = str::from_utf8(buf).map_err(|err| {
             borsh::io::Error::new(borsh::io::ErrorKind::InvalidData, err.to_string())
         })?;
         Ok(Self::from(s).unwrap())
@@ -686,7 +705,7 @@ impl<'a, const CAP: usize> TryFrom<fmt::Arguments<'a>> for ArrayString<CAP>
     fn try_from(f: fmt::Arguments<'a>) -> Result<Self, Self::Error> {
         use fmt::Write;
         let mut v = Self::new();
-        v.write_fmt(f).map_err(|e| CapacityError::new(e))?;
+        v.write_fmt(f).map_err(CapacityError::new)?;
         Ok(v)
     }
 }
