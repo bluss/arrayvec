@@ -733,3 +733,44 @@ impl<const CAP: usize> zeroize::Zeroize for ArrayString<CAP> {
         self.xs.zeroize();
     }
 }
+
+#[cfg(feature = "diesel")]
+mod diesel {
+    use diesel::backend::Backend;
+    use diesel::deserialize;
+    use diesel::deserialize::FromSql;
+    use diesel::sql_types::Text;
+    use diesel::serialize;
+    use diesel::serialize::{Output, ToSql};
+
+    use super::ArrayString;
+
+    /// Requires crate feature `"diesel"`
+    impl<ST, DB, const CAP: usize> FromSql<ST, DB> for ArrayString<CAP>
+    where
+        DB: Backend,
+        *const str: FromSql<ST, DB>
+    {
+        #[inline]
+        fn from_sql(bytes: DB::RawValue<'_>) -> deserialize::Result<Self> {
+            use std::convert::TryInto as _;
+
+            let str_ptr = <*const str as FromSql<ST, DB>>::from_sql(bytes)?;
+            // Diesel guarantees the pointer impl will be non-null and pointing to valid UTF-8
+            let string = unsafe { &*str_ptr };
+            Ok(string.try_into()?)
+        }
+    }
+
+    /// Requires crate feature `"diesel"`
+    impl<ST, DB, const CAP: usize> ToSql<ST, DB> for ArrayString<CAP>
+    where
+        DB: Backend,
+        str: ToSql<Text, DB>
+    {
+        #[inline]
+        fn to_sql<'a>(&'a self, out: &mut Output<'a, '_, DB>) -> serialize::Result {
+            self.as_str().to_sql(out)
+        }
+    }
+}
