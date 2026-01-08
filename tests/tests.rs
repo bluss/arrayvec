@@ -557,7 +557,7 @@ fn test_string() {
 #[test]
 fn test_string_from() {
     let text = "hello world";
-	// Test `from` constructor
+    // Test `from` constructor
     let u = ArrayString::<11>::from(text).unwrap();
     assert_eq!(&u, text);
     assert_eq!(u.len(), text.len());
@@ -774,3 +774,20 @@ fn test_arraystring_zero_filled_has_some_sanity_checks() {
     assert_eq!(string.as_str(), "\0\0\0\0");
     assert_eq!(string.len(), 4);
 }
+
+#[test]
+fn test_arraystring_ord() {
+    let a_arraystring: ArrayString<1> = ArrayString::from("a").unwrap();
+    let b_arraystring: ArrayString<1> = ArrayString::from("b").unwrap();
+
+    let a_str = "a";
+    let b_str = "b";
+
+    assert!(a_arraystring < b_arraystring);
+    assert!(b_arraystring > a_arraystring);
+    assert!(a_arraystring < b_str);
+    assert!(a_str < b_arraystring);
+    assert!(b_arraystring > a_str);
+    assert!(b_str > a_arraystring);
+}
+

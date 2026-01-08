@@ -208,6 +208,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 
     /// Push `element` to the end of the vector without checking the capacity.
     ///
+    /// # Safety
     /// It is up to the caller to ensure the capacity of the vector is
     /// sufficiently large.
     ///
@@ -572,6 +573,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 
     /// Set the vector’s length without dropping or moving out elements
     ///
+    /// # Safety
     /// This method is `unsafe` because it changes the notion of the
     /// number of “valid” elements in the vector. Use with care.
     ///
@@ -637,7 +639,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert_eq!(&v1[..], &[3]);
     /// assert_eq!(&v2[..], &[1, 2]);
     /// ```
-    pub fn drain<R>(&mut self, range: R) -> Drain<T, CAP>
+    pub fn drain<R>(&mut self, range: R) -> Drain<'_, T, CAP>
         where R: RangeBounds<usize>
     {
         // Memory safety
@@ -664,7 +666,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         self.drain_range(start, end)
     }
 
-    fn drain_range(&mut self, start: usize, end: usize) -> Drain<T, CAP>
+    fn drain_range(&mut self, start: usize, end: usize) -> Drain<'_, T, CAP>
     {
         let len = self.len();
 
@@ -699,13 +701,12 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 
     /// Return the inner fixed size array.
     ///
-    /// Safety:
+    /// # Safety
     /// This operation is safe if and only if length equals capacity.
     pub unsafe fn into_inner_unchecked(self) -> [T; CAP] {
         debug_assert_eq!(self.len(), self.capacity());
         let self_ = ManuallyDrop::new(self);
-        let array = ptr::read(self_.as_ptr() as *const [T; CAP]);
-        array
+        ptr::read(self_.as_ptr() as *const [T; CAP])
     }
 
     /// Returns the ArrayVec, replacing the original with a new empty ArrayVec.
@@ -718,7 +719,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert!(v.is_empty());
     /// ```
     pub fn take(&mut self) -> Self  {
-        mem::replace(self, Self::new())
+        mem::take(self)
     }
 
     /// Return a slice containing all elements of the vector.
@@ -1048,7 +1049,7 @@ impl<'a, T: 'a, const CAP: usize> Drop for Drain<'a, T, CAP> {
         // len is currently 0 so panicking while dropping will not cause a double drop.
 
         // exhaust self first
-        while let Some(_) = self.next() { }
+        for _ in self.by_ref() {}
 
         if self.tail_len > 0 {
             unsafe {
@@ -1335,7 +1336,7 @@ impl<'de, T: Deserialize<'de>, const CAP: usize> Deserialize<'de> for ArrayVec<T
                 let mut values = ArrayVec::<T, CAP>::new();
 
                 while let Some(value) = seq.next_element()? {
-                    if let Err(_) = values.try_push(value) {
+                    if values.try_push(value).is_err() {
                         return Err(SA::Error::invalid_length(CAP + 1, &self));
                     }
                 }
@@ -1370,7 +1371,7 @@ where
         let len = <u32 as borsh::BorshDeserialize>::deserialize_reader(reader)?;
         for _ in 0..len {
             let elem = <T as borsh::BorshDeserialize>::deserialize_reader(reader)?;
-            if let Err(_) = values.try_push(elem) {
+            if values.try_push(elem).is_err() {
                 return Err(borsh::io::Error::new(
                     borsh::io::ErrorKind::InvalidData,
                     format!("Expected an array with no more than {} items", CAP),
