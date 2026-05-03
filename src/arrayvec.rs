@@ -1137,6 +1137,11 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
                 debug_assert_ne!(ptr, end_ptr);
                 if mem::size_of::<T>() != 0 {
                     ptr.write(elt);
+                } else {
+                    // The ZST element has logically been moved into the vector.
+                    // There is no memory to write, but dropping `elt` here would
+                    // drop it once now and once again when the vector is dropped.
+                    mem::forget(elt);
                 }
                 ptr = raw_ptr_add(ptr, 1);
                 guard.data += 1;
