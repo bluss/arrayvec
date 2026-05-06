@@ -65,6 +65,6 @@ mod errors;
 mod utils;
 
 pub use crate::array_string::ArrayString;
-pub use crate::errors::CapacityError;
+pub use crate::errors::{CapacityError, UnderfilledError};
 
 pub use crate::arrayvec::{ArrayVec, IntoIter, Drain};

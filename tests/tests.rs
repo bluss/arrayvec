@@ -3,6 +3,7 @@ extern crate arrayvec;
 
 use arrayvec::ArrayVec;
 use arrayvec::ArrayString;
+use arrayvec::UnderfilledError;
 use std::mem;
 use arrayvec::CapacityError;
 
@@ -456,7 +457,7 @@ fn test_into_inner_1() {
     let mut v = ArrayVec::from([1, 2]);
     v.pop();
     let u = v.clone();
-    assert_eq!(v.into_inner(), Err(u));
+    assert_eq!(v.into_inner(), Err(UnderfilledError::new(u)));
 }
 
 #[test]

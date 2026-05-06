@@ -21,7 +21,7 @@ use std::mem::MaybeUninit;
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
 use crate::LenUint;
-use crate::errors::CapacityError;
+use crate::errors::{CapacityError, UnderfilledError};
 use crate::arrayvec_impl::ArrayVecImpl;
 use crate::utils::MakeMaybeUninit;
 
@@ -687,11 +687,15 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 
     /// Return the inner fixed size array, if it is full to its capacity.
     ///
-    /// Return an `Ok` value with the array if length equals capacity,
-    /// return an `Err` with self otherwise.
-    pub fn into_inner(self) -> Result<[T; CAP], Self> {
+    /// # Errors
+    ///
+    /// This method will return an error if the array is not filled to its
+    /// capacity (see [`capacity`]).
+    /// 
+    /// [`capacity`]: #method.capacity
+    pub fn into_inner(self) -> Result<[T; CAP], UnderfilledError<T, CAP>> {
         if self.len() < self.capacity() {
-            Err(self)
+            Err(UnderfilledError::new(self))
         } else {
             unsafe { Ok(self.into_inner_unchecked()) }
         }
