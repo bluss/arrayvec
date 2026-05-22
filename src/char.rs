@@ -22,6 +22,7 @@ const MAX_THREE_B: u32 =  0x10000;
 /// Placeholder
 pub struct EncodeUtf8Error;
 
+crate::const_fn!{
 /// Encode a char into buf using UTF-8.
 ///
 /// On success, return the byte length of the encoding (1, 2, 3 or 4).<br>
@@ -29,7 +30,7 @@ pub struct EncodeUtf8Error;
 ///
 /// Safety: `ptr` must be writable for `len` bytes.
 #[inline]
-pub unsafe fn encode_utf8(ch: char, ptr: *mut u8, len: usize) -> Result<usize, EncodeUtf8Error>
+pub const unsafe fn encode_utf8(ch: char, ptr: *mut u8, len: usize) -> Result<usize, EncodeUtf8Error>
 {
     let code = ch as u32;
     if code < MAX_ONE_B && len >= 1 {
@@ -52,7 +53,7 @@ pub unsafe fn encode_utf8(ch: char, ptr: *mut u8, len: usize) -> Result<usize, E
         return Ok(4);
     };
     Err(EncodeUtf8Error)
-}
+}}
 
 
 #[test]
@@ -89,4 +90,3 @@ fn test_encode_utf8_oob() {
         }
     }
 }
-
