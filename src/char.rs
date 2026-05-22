@@ -29,7 +29,7 @@ pub struct EncodeUtf8Error;
 ///
 /// Safety: `ptr` must be writable for `len` bytes.
 #[inline]
-pub unsafe fn encode_utf8(ch: char, ptr: *mut u8, len: usize) -> Result<usize, EncodeUtf8Error>
+pub const unsafe fn encode_utf8(ch: char, ptr: *mut u8, len: usize) -> Result<usize, EncodeUtf8Error>
 {
     let code = ch as u32;
     if code < MAX_ONE_B && len >= 1 {
