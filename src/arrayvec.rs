@@ -101,6 +101,17 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         ArrayVec { xs: MakeMaybeUninit::ARRAY, len: 0 }
     }
 
+    /// Create an `ArrayVec` from raw parts.
+    ///
+    /// # Safety
+    /// The caller must ensure that the first `len` elements of `xs` are
+    /// properly initialized and that len is less than or equal to `CAP`.
+    pub const unsafe fn from_raw_parts(xs: [MaybeUninit<T>; CAP], len: usize) -> Self {
+        assert_capacity_limit_const!(CAP);
+        assert_capacity_len_const!(CAP, len);
+        ArrayVec { xs, len: len as LenUint }
+    }
+
     /// Return the number of elements in the `ArrayVec`.
     ///
     /// ```
@@ -1126,7 +1137,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         let mut guard = ScopeExitGuard {
             value: &mut self.len,
             data: len,
-            f: move |&len, self_len| {
+            f: move |&len, self_len: &mut &mut LenUint| {
                 **self_len = len as LenUint;
             }
         };

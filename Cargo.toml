@@ -48,6 +48,8 @@ harness = false
 [features]
 default = ["std"]
 std = []
+# For the const_helper feature MSRV 1.63.0 is required
+const_helper = [] 
 
 [profile.bench]
 debug = true
