@@ -208,10 +208,14 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 
     /// Push `element` to the end of the vector without checking the capacity.
     ///
+    /// # Safety
+    ///
     /// It is up to the caller to ensure the capacity of the vector is
     /// sufficiently large.
     ///
     /// This method uses *debug assertions* to check that the arrayvec is not full.
+    ///
+    /// # Example
     ///
     /// ```
     /// use arrayvec::ArrayVec;
@@ -572,8 +576,8 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 
     /// Set the vector’s length without dropping or moving out elements
     ///
-    /// This method is `unsafe` because it changes the notion of the
-    /// number of “valid” elements in the vector. Use with care.
+    /// # Safety
+    /// The data must be initialised up to the length provided.
     ///
     /// This method uses *debug assertions* to check that `length` is
     /// not greater than the capacity.
@@ -699,13 +703,14 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
 
     /// Return the inner fixed size array.
     ///
-    /// Safety:
-    /// This operation is safe if and only if length equals capacity.
+    /// # Safety
+    ///
+    /// [`Self::len`] must equal [`Self::capacity`].
     pub unsafe fn into_inner_unchecked(self) -> [T; CAP] {
         debug_assert_eq!(self.len(), self.capacity());
+
         let self_ = ManuallyDrop::new(self);
-        let array = ptr::read(self_.as_ptr() as *const [T; CAP]);
-        array
+        ptr::read(self_.as_ptr() as *const [T; CAP])
     }
 
     /// Returns the ArrayVec, replacing the original with a new empty ArrayVec.
@@ -1048,7 +1053,7 @@ impl<'a, T: 'a, const CAP: usize> Drop for Drain<'a, T, CAP> {
         // len is currently 0 so panicking while dropping will not cause a double drop.
 
         // exhaust self first
-        while let Some(_) = self.next() { }
+        for _ in self.by_ref() { }
 
         if self.tail_len > 0 {
             unsafe {

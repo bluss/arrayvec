@@ -300,9 +300,10 @@ fn test_extend_capacity_panic_2() {
 
 #[test]
 fn test_is_send_sync() {
-    let data = ArrayVec::<Vec<i32>,  5>::new();
-    &data as &dyn Send;
-    &data as &dyn Sync;
+    fn assert_send_and_sync<T: Send + Sync>(_: T) {}
+
+    let data = ArrayVec::<Vec<i32>, 5>::new();
+    assert_send_and_sync(data)
 }
 
 #[test]
@@ -594,7 +595,7 @@ fn test_string_push() {
     let text = "abcαβγ";
     let mut s = ArrayString::<8>::new();
     for c in text.chars() {
-        if let Err(_) = s.try_push(c) {
+        if s.try_push(c).is_err() {
             break;
         }
     }

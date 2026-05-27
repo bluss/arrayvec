@@ -35,7 +35,7 @@ fn try_push_string(b: &mut Bencher) {
     b.iter(|| {
         v.clear();
         for ch in input.chars().cycle() {
-            if !v.try_push(ch).is_ok() {
+            if v.try_push(ch).is_err() {
                 break;
             }
         }
