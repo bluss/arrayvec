@@ -1,6 +1,9 @@
 Recent Changes (arrayvec)
 =========================
 
+## 0.7.7
+- Add impl of ToSocketAddrs for ArrayString
+
 ## 0.7.6
 
 - Fix no-std build [#274](https://github.com/bluss/arrayvec/pull/274)
