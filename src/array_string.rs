@@ -295,6 +295,36 @@ impl<const CAP: usize> ArrayString<CAP>
         Ok(())
     }
 
+    pub fn try_extend<I: IntoIterator<Item = char>>(&mut self, value: I) -> Result<(), CapacityError<()>> {
+        let mut len = self.len();
+        let value = value.into_iter();
+        if value.size_hint().0 > self.capacity() - len {
+            return Err(CapacityError::new(()));
+        }
+
+        unsafe {
+            let mut ptr = self.as_mut_ptr().add(self.len());
+            for c in value {
+                let remaining_cap = self.capacity() - len;
+                match encode_utf8(c, ptr, remaining_cap) {
+                    Ok(n) => {
+                        len += n;
+                        ptr = ptr.add(n);
+                    }
+                    Err(_) => return Err(CapacityError::new(())),
+                }
+            }
+            self.set_len(len);
+            Ok(())
+        }
+    }
+
+    pub fn try_from_iterator<I: IntoIterator<Item = char>>(value: I) -> Result<Self, CapacityError<()>> {
+        let mut string = Self::new();
+        string.try_extend(value)?;
+        Ok(string)
+    }
+
     /// Removes the last character from the string and returns it.
     ///
     /// Returns `None` if this `ArrayString` is empty.
