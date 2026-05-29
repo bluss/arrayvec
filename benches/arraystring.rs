@@ -1,6 +1,6 @@
-
 extern crate arrayvec;
-#[macro_use] extern crate bencher;
+#[macro_use]
+extern crate bencher;
 
 use arrayvec::ArrayString;
 
@@ -10,8 +10,7 @@ fn try_push_c(b: &mut Bencher) {
     let mut v = ArrayString::<512>::new();
     b.iter(|| {
         v.clear();
-        while v.try_push('c').is_ok() {
-        }
+        while v.try_push('c').is_ok() {}
         v.len()
     });
     b.bytes = v.capacity() as u64;
@@ -21,8 +20,7 @@ fn try_push_alpha(b: &mut Bencher) {
     let mut v = ArrayString::<512>::new();
     b.iter(|| {
         v.clear();
-        while v.try_push('α').is_ok() {
-        }
+        while v.try_push('α').is_ok() {}
         v.len()
     });
     b.bytes = v.capacity() as u64;
@@ -85,6 +83,13 @@ fn push_string(b: &mut Bencher) {
     b.bytes = v.capacity() as u64;
 }
 
-benchmark_group!(benches, try_push_c, try_push_alpha, try_push_string, push_c,
-                 push_alpha, push_string);
+benchmark_group!(
+    benches,
+    try_push_c,
+    try_push_alpha,
+    try_push_string,
+    push_c,
+    push_alpha,
+    push_string
+);
 benchmark_main!(benches);
