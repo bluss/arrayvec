@@ -756,7 +756,7 @@ fn allow_max_capacity_arrayvec_type() {
 }
 
 #[should_panic(expected="largest supported capacity")]
-#[cfg(not(target_pointer_width = "16"))]
+#[cfg(not(any(target_pointer_width = "16", target_pointer_width = "32")))]
 #[test]
 fn deny_max_capacity_arrayvec_value() {
     // this type is allowed to be used (but can't be constructed)
@@ -764,7 +764,7 @@ fn deny_max_capacity_arrayvec_value() {
 }
 
 #[should_panic(expected="index out of bounds")]
-#[cfg(not(target_pointer_width = "16"))]
+#[cfg(not(any(target_pointer_width = "16", target_pointer_width = "32")))]
 #[test]
 fn deny_max_capacity_arrayvec_value_const() {
     // this type is allowed to be used (but can't be constructed)
