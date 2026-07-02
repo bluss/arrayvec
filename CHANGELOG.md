@@ -1,6 +1,10 @@
 Recent Changes (arrayvec)
 =========================
 
+## 0.7.8
+
+- Fix tests on 32-bit architectures by skipping them by [@decathorpe](https://github.com/decathorpe) [#312](https://github.com/bluss/arrayvec/pull/312).
+
 ## 0.7.7
 
 - Fix lifetime warning by [@niklasf](https://github.com/niklasf)
