@@ -92,3 +92,16 @@ jobs:
           cargo miri setup
       - name: Test with Miri
         run: cargo miri test --all-features
+
+  check-generated:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Regenerate src/arrayvec_copy.rs
+        run: |
+          rm src/arrayvec_copy.rs
+          ./generate_arrayvec_copy
+      - name: Verify that nothing has changed
+        run: |
+          git diff
+          test -z "$(git status --porcelain)"

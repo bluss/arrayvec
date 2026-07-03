@@ -57,12 +57,17 @@ macro_rules! assert_capacity_limit_const {
     }
 }
 
+mod arrayvec_copy;
 mod arrayvec_impl;
 mod arrayvec;
 mod array_string;
 mod char;
 mod errors;
 mod utils;
+
+pub mod copy {
+    pub use crate::arrayvec_copy::{ArrayVecCopy, Drain, IntoIter};
+}
 
 pub use crate::array_string::ArrayString;
 pub use crate::errors::CapacityError;
