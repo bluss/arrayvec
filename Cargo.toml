@@ -45,6 +45,10 @@ harness = false
 name = "arraystring"
 harness = false
 
+[[bench]]
+name = "clone"
+harness = false
+
 [features]
 default = ["std"]
 std = []
