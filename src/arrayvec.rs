@@ -111,7 +111,14 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert_eq!(array.len(), 2);
     /// ```
     #[inline(always)]
-    pub const fn len(&self) -> usize { self.len as usize }
+    pub const fn len(&self) -> usize {
+        let len = self.len as usize;
+        if len <= CAP {
+            len
+        } else {
+            unsafe { std::hint::unreachable_unchecked() }
+        }
+    }
 
     /// Returns whether the `ArrayVec` is empty.
     ///
