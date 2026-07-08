@@ -619,6 +619,19 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         Ok(())
     }
 
+    /// Leak the contents of the vector and return a reference to them as a mutable slice.
+    ///
+    /// This sets len() to zero. The elements will not be dropped. The backing memory will
+    /// not be lost however, as the ArrayVec can be used again as soon as the returned slice
+    /// is dropped.
+    pub fn leak(&mut self) -> &mut [T] {
+        let orig_len = self.len();
+        unsafe {
+            self.set_len(0);
+            slice::from_raw_parts_mut(self.as_mut_ptr(), orig_len)
+        }
+    }
+
     /// Create a draining iterator that removes the specified range in the vector
     /// and yields the removed items from start to end. The element range is
     /// removed even if the iterator is not consumed until the end.

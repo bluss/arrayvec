@@ -332,6 +332,15 @@ fn test_still_works_with_option_arrayvec() {
 }
 
 #[test]
+fn test_leak() {
+    let mut v = ArrayVec::from([1,2,3,4,5,6,7,8]);
+    assert_eq!(v.leak(), [1,2,3,4,5,6,7,8]);
+    assert_eq!(v.len(), 0);
+    v.try_extend_from_slice(&[1,2,3]).unwrap();
+    assert_eq!(v.as_ref(), [1,2,3]);
+}
+
+#[test]
 fn test_drain() {
     let mut v = ArrayVec::from([0; 8]);
     v.pop();
