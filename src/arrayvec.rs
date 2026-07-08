@@ -1193,7 +1193,62 @@ impl<T, const CAP: usize> Clone for ArrayVec<T, CAP>
     where T: Clone
 {
     fn clone(&self) -> Self {
-        self.iter().cloned().collect()
+        let mut array: ArrayVec<T, CAP> = ArrayVec::new();
+        {
+            let mut guard = ScopeExitGuard {
+                value: &mut array.len,
+                data: 0 as LenUint,
+                f: move |&len, self_len| {
+                    **self_len = len;
+                },
+            };
+
+            for i in 0..CAP {
+                if i < self.len() {
+                    let val = unsafe { &*self.xs[i].as_ptr() }.clone();
+                    if mem::size_of::<T>() != 0 {
+                        unsafe { array.xs[i].as_mut_ptr().write(val) };
+                    } else {
+                        // The ZST element has logically been moved into the vector.
+                        // There is no memory to write, but dropping `elt` here would
+                        // drop it once now and once again when the vector is dropped.
+                        mem::forget(val);
+                    }
+                    guard.data += 1;
+                } else {
+                    // we are done copying all the elements.
+                    // we continue to copy uninitialized elements past len up to CAP. This seems
+                    // weird and counter intuitive, but when T is trivial (like i8/i32), copying the
+                    // whole array is faster as the compiler doesnt have to loop up to len, and the
+                    // generated code is branchless copy of the whole struct (like Copy).
+                    //
+                    // We only do it if;
+                    // - T does not requires drop, which we take as an indication that T::clone()
+                    //   is not trivial and therefore the loop will not be optimized away by the
+                    //   compiler.
+                    // - size_of > 0, to avoid reading self.xs[i].as_ptr()
+                    // - the total array is less or equal to 128 bytes. An arbitrary threshold to
+                    //   avoid unnecessary copying of large arrays.
+                    if mem::needs_drop::<T>()
+                        || mem::size_of::<T>() == 0
+                        || CAP > 128 / mem::size_of::<T>()
+                    {
+                        break;
+                    }
+                    // Safety: copy of MaybeUninit to MaybeUninit
+                    unsafe { ptr::copy_nonoverlapping(&self.xs[i], &mut array.xs[i], 1) };
+                }
+            }
+        }
+
+        // This assignment seems redundant as guard.data is already equal to len and will set the
+        // array len on drop, but setting it here explicitly helps the compiler understand it
+        // can just copy the len instead of accumulating it in the guard. This is especially
+        // useful for T::clone() that can not panic.
+        debug_assert_eq!(array.len, self.len);
+        array.len = self.len;
+
+        array
     }
 
     fn clone_from(&mut self, rhs: &Self) {
