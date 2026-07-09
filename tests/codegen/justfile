@@ -1,0 +1,51 @@
+root := "../.."
+
+default: check
+
+build-deps:
+    cd {{root}} && cargo build --release
+
+# Compile and inspect the asm for .clone() testcase
+# Require that it's very short (should be like a short struct copy)
+check: build-deps
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    ROOT={{root}}
+    asm=$(rustc --edition 2024 -C opt-level=3 --crate-type lib \
+        clone_copy.rs -L "$ROOT/target/release/deps" \
+        --emit=asm -o -)
+
+    fail=
+
+    FUNC=test_subject
+    MAXBODY=20
+
+    # Sanity check
+    echo "$asm" | grep -q "$FUNC.*:" || { echo "FAIL: $FUNC label missing"; fail=1; }
+
+    # Assertions
+    echo "$asm" | grep -q -E 'memcpy|memmove' && { echo "FAIL: references memcpy"; fail=1; }
+    echo "$asm" | grep -q -E 'panic' && { echo "FAIL: references panic"; fail=1; }
+
+    # Extract the function body
+    body=$(echo "$asm" | sed -n "/$FUNC.*:$/,/\.cfi_endproc/p")
+    nlines=$(echo "$body" | wc -l | tr -d ' ')
+    if [ "$nlines" -gt "$MAXBODY" ]; then
+        echo "FAIL: body too long"
+        fail=1
+    fi
+
+
+    if [ "${fail:-0}" = 1 ]; then
+        echo "--- output (full) ---"
+        echo "$asm"
+        echo "--- end ---"
+        exit 1
+    else
+        echo "--- output (body) ---"
+        echo "$body"
+        echo "--- end ---"
+    fi
+
+    echo "PASS: function $FUNC"
