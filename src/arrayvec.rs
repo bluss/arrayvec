@@ -1064,19 +1064,20 @@ impl<'a, T: 'a, const CAP: usize> Drop for Drain<'a, T, CAP> {
     }
 }
 
-struct ScopeExitGuard<T, Data, F>
-    where F: FnMut(&Data, &mut T)
-{
-    value: T,
-    data: Data,
-    f: F,
+/// Guard that writes a `usize` length back to a `LenUint` field on drop.
+///
+/// Used to keep the `ArrayVec` length consistent if a panic occurs during
+/// element-by-element writing: on panic the vector is left with the temporally
+/// correct initialized length.
+struct WritebackGuard<'a> {
+    target: &'a mut LenUint,
+    len: usize,
 }
 
-impl<T, Data, F> Drop for ScopeExitGuard<T, Data, F>
-    where F: FnMut(&Data, &mut T)
-{
+impl Drop for WritebackGuard<'_> {
+    #[inline(always)]
     fn drop(&mut self) {
-        (self.f)(&self.data, &mut self.value)
+        *self.target = self.len as LenUint;
     }
 }
 
@@ -1092,7 +1093,7 @@ impl<T, const CAP: usize> Extend<T> for ArrayVec<T, CAP> {
     #[track_caller]
     fn extend<I: IntoIterator<Item=T>>(&mut self, iter: I) {
         unsafe {
-            self.extend_from_iter::<_, true>(iter)
+            self.extend_from_iter::<_, true>(iter.into_iter())
         }
     }
 }
@@ -1104,50 +1105,37 @@ fn extend_panic() {
     panic!("ArrayVec: capacity exceeded in extend/from_iter");
 }
 
+
 impl<T, const CAP: usize> ArrayVec<T, CAP> {
-    /// Extend the arrayvec from the iterable.
+    /// Extend the vector from the iterator.
+    ///
+    /// ***Panics*** if extending the vector exceeds its capacity.
     ///
     /// ## Safety
     ///
-    /// Unsafe because if CHECK is false, the length of the input is not checked.
-    /// The caller must ensure the length of the input fits in the capacity.
+    /// If CHECK is false, the iterator must yield at most `CAP - len()` elements.
     #[track_caller]
-    pub(crate) unsafe fn extend_from_iter<I, const CHECK: bool>(&mut self, iterable: I)
-        where I: IntoIterator<Item = T>
+    unsafe fn extend_from_iter<I, const CHECK: bool>(&mut self, iter: I)
+        where I: Iterator<Item = T>
     {
-        let take = self.capacity() - self.len();
         let len = self.len();
-        let mut ptr = raw_ptr_add(self.as_mut_ptr(), len);
-        let end_ptr = raw_ptr_add(ptr, take);
-        // Keep the length in a separate variable, write it back on scope
-        // exit. To help the compiler with alias analysis and stuff.
-        // We update the length to handle panic in the iteration of the
-        // user's iterator, without dropping any elements on the floor.
-        let mut guard = ScopeExitGuard {
-            value: &mut self.len,
-            data: len,
-            f: move |&len, self_len| {
-                **self_len = len as LenUint;
+        let end = self.capacity();
+        let ptr = self.as_mut_ptr();
+
+        // WritebackGuard updates self.len on drop (both success and panic).
+        let mut guard = WritebackGuard { target: &mut self.len, len: len };
+
+        // Take elements from the input iterator and write them into
+        // the arrayvec, as long as there is capacity left.
+        let mut index = len;
+        for elt in iter {
+            if index == end && CHECK {
+                extend_panic();
             }
-        };
-        let mut iter = iterable.into_iter();
-        loop {
-            if let Some(elt) = iter.next() {
-                if ptr == end_ptr && CHECK { extend_panic(); }
-                debug_assert_ne!(ptr, end_ptr);
-                if mem::size_of::<T>() != 0 {
-                    ptr.write(elt);
-                } else {
-                    // The ZST element has logically been moved into the vector.
-                    // There is no memory to write, but dropping `elt` here would
-                    // drop it once now and once again when the vector is dropped.
-                    mem::forget(elt);
-                }
-                ptr = raw_ptr_add(ptr, 1);
-                guard.data += 1;
-            } else {
-                return; // success
-            }
+            debug_assert_ne!(index, end);
+            ptr.add(index).write(elt);
+            guard.len += 1;
+            index += 1;
         }
     }
 
@@ -1162,16 +1150,6 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
             let slice = if take < slice.len() { &slice[..take] } else { slice };
             self.extend_from_iter::<_, false>(slice.iter().cloned());
         }
-    }
-}
-
-/// Rawptr add but uses arithmetic distance for ZST
-unsafe fn raw_ptr_add<T>(ptr: *mut T, offset: usize) -> *mut T {
-    if mem::size_of::<T>() == 0 {
-        // Special case for ZST
-        ptr.cast::<u8>().wrapping_add(offset).cast::<T>()
-    } else {
-        ptr.add(offset)
     }
 }
 
