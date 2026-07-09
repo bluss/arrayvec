@@ -28,6 +28,27 @@ fn test_simple() {
 }
 
 #[test]
+fn test_clone_simple() {
+    let data = [1, 2, 3, 4, 5, 6, 7];
+    let mut vec = ArrayVec::from(data);
+    vec.pop();
+
+    let u = vec.clone();
+    assert_eq!(vec, u);
+    assert_eq!(&vec, &data[..data.len() - 1]);
+}
+
+#[test]
+fn test_clone_complex() {
+    let mut vec: ArrayVec<Vec<i32>,  3> = ArrayVec::new();
+
+    vec.push(vec![1, 2, 3, 4]);
+    vec.push(vec![10]);
+    let u = vec.clone();
+    assert_eq!(vec, u);
+}
+
+#[test]
 fn test_capacity_left() {
     let mut vec: ArrayVec<usize,  4> = ArrayVec::new();
     assert_eq!(vec.remaining_capacity(), 4);
