@@ -85,7 +85,14 @@ impl<const CAP: usize> ArrayString<CAP>
 
     /// Return the length of the string.
     #[inline]
-    pub const fn len(&self) -> usize { self.len as usize }
+    pub const fn len(&self) -> usize {
+        let len = self.len as usize;
+        if len <= CAP {
+            len
+        } else {
+            unsafe { std::hint::unreachable_unchecked() }
+        }
+    }
 
     /// Returns whether the string is empty.
     #[inline]
