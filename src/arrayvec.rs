@@ -740,16 +740,18 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     pub fn as_mut_ptr(&mut self) -> *mut T {
         ArrayVecImpl::as_mut_ptr(self)
     }
-}
 
-impl<T: PartialEq, const CAP: usize> ArrayVec<T, CAP> {
-    /// Removes consecutive repeated elements in the vector according to the
-    /// [`PartialEq`] trait implementation.
+    /// Removes all but the first of consecutive elements in the vector that resolve to the same
+    /// key.
     ///
     /// If the vector is sorted, this removes all duplicates.
     #[inline]
-    pub fn dedup(&mut self) {
-        self.dedup_by(|a, b| a == b)
+    pub fn dedup_by_key<F, K>(&mut self, mut key: F)
+    where
+        F: FnMut(&mut T) -> K,
+        K: PartialEq,
+    {
+        self.dedup_by(|a, b| key(a) == key(b))
     }
 
     /// Removes all but the first of consecutive elements in the vector satisfying a given equality
@@ -887,6 +889,17 @@ impl<T: PartialEq, const CAP: usize> ArrayVec<T, CAP> {
             gap.vec.set_len(gap.write);
             mem::forget(gap);
         }
+    }
+}
+
+impl<T: PartialEq, const CAP: usize> ArrayVec<T, CAP> {
+    /// Removes consecutive repeated elements in the vector according to the
+    /// [`PartialEq`] trait implementation.
+    ///
+    /// If the vector is sorted, this removes all duplicates.
+    #[inline]
+    pub fn dedup(&mut self) {
+        self.dedup_by(|a, b| a == b)
     }
 }
 
