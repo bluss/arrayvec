@@ -814,10 +814,44 @@ fn test_arraystring_const_constructible() {
     assert_eq!(var, *"hello");
 }
 
-
 #[test]
 fn test_arraystring_zero_filled_has_some_sanity_checks() {
     let string = ArrayString::<4>::zero_filled();
     assert_eq!(string.as_str(), "\0\0\0\0");
     assert_eq!(string.len(), 4);
+}
+
+#[test]
+fn test_dedup_unordered() {
+    let mut vec: ArrayVec<usize, 8> = ArrayVec::new_const();
+
+    vec.push(0);
+    vec.push(10);
+    vec.push(10);
+    vec.push(5);
+    vec.push(0);
+    vec.push(10);
+    vec.push(7);
+    vec.push(7);
+
+    let () = vec.dedup();
+    assert_eq!(&vec[..], &[0, 10, 5, 0, 10, 7]);
+}
+
+#[test]
+fn test_dedup_ordered() {
+    let mut vec: ArrayVec<usize, 8> = ArrayVec::new_const();
+
+    vec.push(0);
+    vec.push(10);
+    vec.push(10);
+    vec.push(5);
+    vec.push(0);
+    vec.push(10);
+    vec.push(7);
+    vec.push(7);
+
+    let () = vec.sort_unstable();
+    let () = vec.dedup();
+    assert_eq!(&vec[..], &[0, 5, 7, 10]);
 }
