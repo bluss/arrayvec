@@ -47,3 +47,9 @@ impl<T> fmt::Debug for CapacityError<T> {
     }
 }
 
+#[cfg(feature = "defmt-03")]
+impl<T: defmt::Format> defmt::Format for CapacityError<T> {
+    fn format(&self, f: defmt::Formatter) {
+        defmt::write!(f, "CapacityError {{ element: {} }}", self.element)
+    }
+}
