@@ -350,6 +350,41 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         ArrayVecImpl::pop(self)
     }
 
+    /// Removes and returns the last element in the vector if the predicate returns `true`, or
+    /// [`None`] if the predicate returns `false` or the vector is empty (the predicate will not be
+    /// called in that case).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    /// 
+    /// let mut array = ArrayVec::<i32, 2>::new();
+    ///
+    /// assert_eq!(array.pop_if(|_| panic!()), None);
+    ///
+    /// array.push(1);
+    /// array.push(2);
+    ///
+    /// let pred = |x: &mut i32| *x % 2 == 0;
+    ///
+    /// assert_eq!(array.pop_if(pred), Some(2));
+    /// assert_eq!(&array, [1].as_slice());
+    /// assert_eq!(array.pop_if(pred), None);
+    /// ```
+    pub fn pop_if(&mut self, predicate: impl FnOnce(&mut T) -> bool) -> Option<T> {
+        if predicate(self.last_mut()?) {
+            // SAFETY: `last_mut()` must have returned `Some`, so `self.len() > 0`
+            unsafe {
+                let new_len = self.len() - 1;
+                self.set_len(new_len);
+                Some(ptr::read(self.as_ptr().add(new_len)))
+            }
+        } else {
+            None
+        }
+    }
+
     /// Remove the element at `index` and swap the last element into its place.
     ///
     /// This operation is O(1).
