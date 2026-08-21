@@ -369,7 +369,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// let pred = |x: &mut i32| *x % 2 == 0;
     ///
     /// assert_eq!(array.pop_if(pred), Some(2));
-    /// assert_eq!(&array, [1].as_slice());
+    /// assert_eq!(&array[..], &[1]);
     /// assert_eq!(array.pop_if(pred), None);
     /// ```
     pub fn pop_if(&mut self, predicate: impl FnOnce(&mut T) -> bool) -> Option<T> {
