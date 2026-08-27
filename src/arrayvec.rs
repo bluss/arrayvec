@@ -462,7 +462,8 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert_eq!(&array[..], &[1, 3]);
     /// ```
     pub fn retain<F>(&mut self, mut f: F)
-        where F: FnMut(&mut T) -> bool
+    where
+        F: FnMut(&mut T) -> bool,
     {
         // Check the implementation of
         // https://doc.rust-lang.org/std/vec/struct.Vec.html#method.retain
@@ -470,69 +471,97 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         // dropping elements). Implementation closely mirrored here.
 
         let original_len = self.len();
-        unsafe { self.set_len(0) };
 
-        struct BackshiftOnDrop<'a, T, const CAP: usize> {
+        if original_len == 0 {
+            // Empty case: explicit return allows better optimization, vs letting compiler infer it
+            return;
+        }
+
+        // Vec: [Kept, Kept, Hole, Hole, Hole, Hole, Unchecked, Unchecked]
+        //      |            ^- write                ^- read             |
+        //      |<-              original_len                          ->|
+        // Kept: Elements which predicate returns true on.
+        // Hole: Moved or dropped element slot.
+        // Unchecked: Unchecked valid elements.
+        //
+        // This drop guard will be invoked when predicate or `drop` of element panicked.
+        // It shifts unchecked elements to cover holes and `set_len` to the correct length.
+        // In cases when predicate and `drop` never panick, it will be optimized out.
+        struct PanicGuard<'a, T, const CAP: usize> {
             v: &'a mut ArrayVec<T, CAP>,
-            processed_len: usize,
-            deleted_cnt: usize,
+            read: usize,
+            write: usize,
             original_len: usize,
         }
 
-        impl<T, const CAP: usize> Drop for BackshiftOnDrop<'_, T, CAP> {
+        impl<T, const CAP: usize> Drop for PanicGuard<'_, T, CAP> {
+            #[cold]
+            #[inline(never)]
             fn drop(&mut self) {
-                if self.deleted_cnt > 0 {
-                    unsafe {
-                        ptr::copy(
-                            self.v.as_ptr().add(self.processed_len),
-                            self.v.as_mut_ptr().add(self.processed_len - self.deleted_cnt),
-                            self.original_len - self.processed_len
-                        );
-                    }
-                }
+                let remaining = self.original_len - self.read;
+                // SAFETY: Trailing unchecked items must be valid since we never touch them.
                 unsafe {
-                    self.v.set_len(self.original_len - self.deleted_cnt);
+                    let ptr = self.v.as_mut_ptr();
+                    ptr::copy(ptr.add(self.read), ptr.add(self.write), remaining);
+                }
+                // SAFETY: After filling holes, all items are in contiguous memory.
+                unsafe {
+                    self.v.set_len(self.write + remaining);
                 }
             }
         }
 
-        let mut g = BackshiftOnDrop { v: self, processed_len: 0, deleted_cnt: 0, original_len };
-
-        #[inline(always)]
-        fn process_one<F: FnMut(&mut T) -> bool, T, const CAP: usize, const DELETED: bool>(
-            f: &mut F,
-            g: &mut BackshiftOnDrop<'_, T, CAP>
-        ) -> bool {
-            let cur = unsafe { g.v.as_mut_ptr().add(g.processed_len) };
-            if !f(unsafe { &mut *cur }) {
-                g.processed_len += 1;
-                g.deleted_cnt += 1;
-                unsafe { ptr::drop_in_place(cur) };
-                return false;
-            }
-            if DELETED {
-                unsafe {
-                    let hole_slot = cur.sub(g.deleted_cnt);
-                    ptr::copy_nonoverlapping(cur, hole_slot, 1);
-                }
-            }
-            g.processed_len += 1;
-            true
-        }
-
-        // Stage 1: Nothing was deleted.
-        while g.processed_len != original_len {
-            if !process_one::<F, T, CAP, false>(&mut f, &mut g) {
+        let mut read = 0;
+        loop {
+            // SAFETY: read < original_len
+            let cur = unsafe { self.get_unchecked_mut(read) };
+            if !f(cur) {
                 break;
             }
+            read += 1;
+            if read == original_len {
+                // All elements are kept, return early.
+                return;
+            }
         }
 
-        // Stage 2: Some elements were deleted.
-        while g.processed_len != original_len {
-            process_one::<F, T, CAP, true>(&mut f, &mut g);
+        // Critical section starts here and at least one element is going to be removed.
+        // Advance `g.read` early to avoid double drop if `drop_in_place` panicked.
+        let mut g = PanicGuard {
+            v: self,
+            read: read + 1,
+            write: read,
+            original_len,
+        };
+        // SAFETY: previous `read` is always less than original_len.
+        unsafe { ptr::drop_in_place(&mut *g.v.as_mut_ptr().add(read)) };
+
+        while g.read < g.original_len {
+            // SAFETY: `read` is always less than original_len.
+            let ptr = g.v.as_mut_ptr();
+            let cur = unsafe { &mut *ptr.add(g.read) };
+            if !f(cur) {
+                // Advance `read` early to avoid double drop if `drop_in_place` panicked.
+                g.read += 1;
+                // SAFETY: We never touch this element again after dropped.
+                unsafe { ptr::drop_in_place(cur) };
+            } else {
+                // SAFETY: `read` > `write`, so the slots don't overlap.
+                // We use copy for move, and never touch the source element again.
+                unsafe {
+                    let hole = ptr.add(g.write);
+                    ptr::copy_nonoverlapping(cur, hole, 1);
+                }
+                g.write += 1;
+                g.read += 1;
+            }
         }
 
-        drop(g);
+        // We are leaving the critical section and no panic happened,
+        // Commit the length change and forget the guard.
+        // SAFETY: `write` is always less than or equal to original_len.
+        unsafe { g.v.set_len(g.write) };
+        mem::forget(g);
     }
 
     /// Returns the remaining spare capacity of the vector as a slice of
