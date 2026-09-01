@@ -46,6 +46,16 @@ pub struct ArrayVec<T, const CAP: usize> {
     xs: [MaybeUninit<T>; CAP],
 }
 
+#[cfg(feature = "may_dangle")]
+unsafe impl<#[may_dangle] T, const CAP: usize> Drop for ArrayVec<T, CAP> {
+    fn drop(&mut self) {
+        self.clear();
+
+        // MaybeUninit inhibits array's drop
+    }
+}
+
+#[cfg(not(feature = "may_dangle"))]
 impl<T, const CAP: usize> Drop for ArrayVec<T, CAP> {
     fn drop(&mut self) {
         self.clear();
