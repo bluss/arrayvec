@@ -821,3 +821,53 @@ fn test_arraystring_zero_filled_has_some_sanity_checks() {
     assert_eq!(string.as_str(), "\0\0\0\0");
     assert_eq!(string.len(), 4);
 }
+
+#[test]
+fn test_track_caller_out_of_bounds() {
+    // The out-of-bounds panics of `insert`/`try_insert`/`remove`/`swap_remove`
+    // must report the caller's location, not a line inside arrayvec.
+    use std::panic::{self, AssertUnwindSafe};
+    use std::sync::{Arc, Mutex};
+
+    fn panic_file<F: FnOnce()>(f: F) -> String {
+        let slot = Arc::new(Mutex::new(String::new()));
+        let sink = Arc::clone(&slot);
+        let prev = panic::take_hook();
+        panic::set_hook(Box::new(move |info| {
+            if let Some(loc) = info.location() {
+                *sink.lock().unwrap() = loc.file().to_string();
+            }
+        }));
+        let result = panic::catch_unwind(AssertUnwindSafe(f));
+        panic::set_hook(prev);
+        assert!(result.is_err(), "expected a panic");
+        let file = slot.lock().unwrap().clone();
+        file
+    }
+
+    let here = file!();
+
+    assert_eq!(here, panic_file(|| {
+        let mut v = ArrayVec::<i32, 8>::new();
+        v.insert(3, 1);
+    }));
+    assert_eq!(here, panic_file(|| {
+        let mut v = ArrayVec::<i32, 8>::new();
+        let _ = v.try_insert(3, 1);
+    }));
+    assert_eq!(here, panic_file(|| {
+        let mut v = ArrayVec::<i32, 8>::new();
+        v.remove(3);
+    }));
+    assert_eq!(here, panic_file(|| {
+        let mut v = ArrayVec::<i32, 8>::new();
+        v.swap_remove(3);
+    }));
+
+    // The capacity panic of `insert` already reported the caller; keep it that way.
+    assert_eq!(here, panic_file(|| {
+        let mut v = ArrayVec::<i32, 1>::new();
+        v.push(0);
+        v.insert(0, 1);
+    }));
+}
