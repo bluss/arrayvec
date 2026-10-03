@@ -411,6 +411,17 @@ fn test_retain() {
 
 #[test]
 #[should_panic]
+fn test_retain_panic() {
+    let mut v = ArrayVec::from([1, 2, 3]);
+    v.retain(|elt| match *elt {
+        1 => false,
+        2 => panic!("after something has been deleted"),
+        _ => true,
+    });
+}
+
+#[test]
+#[should_panic]
 fn test_drain_oob() {
     let mut v = ArrayVec::from([0; 8]);
     v.pop();

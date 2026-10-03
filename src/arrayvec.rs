@@ -482,10 +482,11 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         impl<T, const CAP: usize> Drop for BackshiftOnDrop<'_, T, CAP> {
             fn drop(&mut self) {
                 if self.deleted_cnt > 0 {
+                    let ptr = self.v.as_mut_ptr();
                     unsafe {
                         ptr::copy(
-                            self.v.as_ptr().add(self.processed_len),
-                            self.v.as_mut_ptr().add(self.processed_len - self.deleted_cnt),
+                            ptr.add(self.processed_len),
+                            ptr.add(self.processed_len - self.deleted_cnt),
                             self.original_len - self.processed_len
                         );
                     }
