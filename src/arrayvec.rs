@@ -40,9 +40,13 @@ use crate::utils::MakeMaybeUninit;
 /// It offers a simple API but also dereferences to a slice, so that the full slice API is
 /// available. The ArrayVec can be converted into a by value iterator.
 #[repr(C)]
+#[derive(debuggable::Debuggable)]
+#[debuggable(summary = "{len} items")]
 pub struct ArrayVec<T, const CAP: usize> {
+    #[debuggable(hide)]
     len: LenUint,
     // the `len` first elements of the array are initialized
+    #[debuggable(items, len = "len")]
     xs: [MaybeUninit<T>; CAP],
 }
 

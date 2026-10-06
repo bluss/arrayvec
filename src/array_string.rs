@@ -34,6 +34,8 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 /// if needed.
 #[derive(Copy)]
 #[repr(C)]
+#[derive(debuggable::Debuggable)]
+#[debuggable(summary = "{len} bytes")]
 pub struct ArrayString<const CAP: usize> {
     // the `len` first elements of the array are initialized
     len: LenUint,
