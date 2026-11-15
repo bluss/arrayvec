@@ -293,7 +293,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     ///
     /// Returns an error if vector is already at full capacity.
     ///
-    /// ***Panics*** `index` is out of bounds.
+    /// ***Panics*** if the `index` is out of bounds.
     ///
     /// ```
     /// use arrayvec::ArrayVec;
@@ -306,6 +306,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert_eq!(&array[..], &["y", "x"]);
     ///
     /// ```
+    #[track_caller]
     pub fn try_insert(&mut self, index: usize, element: T) -> Result<(), CapacityError<T>> {
         if index > self.len() {
             panic_oob!("try_insert", index, self.len())
@@ -369,11 +370,13 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert_eq!(array.swap_remove(1), 2);
     /// assert_eq!(&array[..], &[3]);
     /// ```
+    #[track_caller]
     pub fn swap_remove(&mut self, index: usize) -> T {
-        self.swap_pop(index)
-            .unwrap_or_else(|| {
-                panic_oob!("swap_remove", index, self.len())
-            })
+        let len = self.len();
+        match self.swap_pop(index) {
+            Some(element) => element,
+            None => panic_oob!("swap_remove", index, len),
+        }
     }
 
     /// Remove the element at `index` and swap the last element into its place.
@@ -417,11 +420,13 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert_eq!(removed_elt, 1);
     /// assert_eq!(&array[..], &[2, 3]);
     /// ```
+    #[track_caller]
     pub fn remove(&mut self, index: usize) -> T {
-        self.pop_at(index)
-            .unwrap_or_else(|| {
-                panic_oob!("remove", index, self.len())
-            })
+        let len = self.len();
+        match self.pop_at(index) {
+            Some(element) => element,
+            None => panic_oob!("remove", index, len),
+        }
     }
 
     /// Remove the element at `index` and shift down the following elements.
