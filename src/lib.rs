@@ -14,6 +14,12 @@
 //! - `zeroize`
 //!   - Optional
 //!   - Implement `Zeroize` for ArrayVec and ArrayString
+//! 
+//! - `may_dangle`
+//!   - Optional and unstable
+//!   - Requires nightly toolchain
+//!   - Makes compiler less strict about storing references with a lifetime in ArrayVec,
+//!     see [Rustonomicon](https://doc.rust-lang.org/1.42.0/nomicon/dropck.html#an-escape-hatch).
 //!
 //! ## Rust Version
 //!
@@ -21,6 +27,7 @@
 //!
 #![doc(html_root_url="https://docs.rs/arrayvec/0.7/")]
 #![cfg_attr(not(feature="std"), no_std)]
+#![cfg_attr(feature = "may_dangle", feature(dropck_eyepatch))]
 
 #[cfg(feature="serde")]
 extern crate serde;
