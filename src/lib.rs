@@ -57,6 +57,14 @@ macro_rules! assert_capacity_limit_const {
     }
 }
 
+macro_rules! assert_length_lt_capacity_const {
+    ($len:expr, $cap:expr) => {
+        if $len > 0 {
+            let _len_check = [(); $cap /*ArrayVec/ArrayString: insufficient capacity */][$len - 1];
+        }
+    }
+}
+
 mod arrayvec_impl;
 mod arrayvec;
 mod array_string;
