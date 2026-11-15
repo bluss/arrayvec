@@ -12,7 +12,7 @@ fn try_push_c(b: &mut Bencher) {
         v.clear();
         while v.try_push('c').is_ok() {
         }
-        v.len()
+        std::hint::black_box(v)
     });
     b.bytes = v.capacity() as u64;
 }
@@ -23,7 +23,7 @@ fn try_push_alpha(b: &mut Bencher) {
         v.clear();
         while v.try_push('α').is_ok() {
         }
-        v.len()
+        std::hint::black_box(v)
     });
     b.bytes = v.capacity() as u64;
 }
@@ -39,7 +39,7 @@ fn try_push_string(b: &mut Bencher) {
                 break;
             }
         }
-        v.len()
+        std::hint::black_box(v)
     });
     b.bytes = v.capacity() as u64;
 }
@@ -51,7 +51,7 @@ fn push_c(b: &mut Bencher) {
         while !v.is_full() {
             v.push('c');
         }
-        v.len()
+        std::hint::black_box(v)
     });
     b.bytes = v.capacity() as u64;
 }
@@ -63,7 +63,7 @@ fn push_alpha(b: &mut Bencher) {
         while !v.is_full() {
             v.push('α');
         }
-        v.len()
+        std::hint::black_box(v)
     });
     b.bytes = v.capacity() as u64;
 }
@@ -80,11 +80,37 @@ fn push_string(b: &mut Bencher) {
                 break;
             }
         }
-        v.len()
+        std::hint::black_box(v)
+    });
+    b.bytes = v.capacity() as u64;
+}
+
+fn try_extend_bench(b: &mut Bencher) {
+    let mut v = ArrayString::<4096>::new();
+    b.iter(|| {
+        v.clear();
+        
+        v.try_extend(std::iter::repeat('a').take(v.capacity())).unwrap();
+        
+        std::hint::black_box(v);
+    });
+    b.bytes = v.capacity() as u64;
+}
+
+fn try_push_loop(b: &mut Bencher) {
+    let mut v = ArrayString::<4096>::new();
+    b.iter(|| {
+        v.clear();
+        
+        for c in std::iter::repeat('a').take(v.capacity()) {
+            v.try_push(c).unwrap();
+        }
+
+        std::hint::black_box(v)
     });
     b.bytes = v.capacity() as u64;
 }
 
 benchmark_group!(benches, try_push_c, try_push_alpha, try_push_string, push_c,
-                 push_alpha, push_string);
+                 push_alpha, push_string, try_extend_bench, try_push_loop);
 benchmark_main!(benches);
