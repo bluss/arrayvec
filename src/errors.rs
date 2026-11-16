@@ -32,7 +32,6 @@ impl<T> CapacityError<T> {
 const CAPERROR: &'static str = "insufficient capacity";
 
 #[cfg(feature="std")]
-/// Requires `features="std"`.
 impl<T: Any> Error for CapacityError<T> {}
 
 impl<T> fmt::Display for CapacityError<T> {
