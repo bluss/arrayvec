@@ -49,6 +49,10 @@ harness = false
 name = "clone"
 harness = false
 
+[[bench]]
+name = "sum"
+harness = false
+
 [features]
 default = ["std"]
 std = []
