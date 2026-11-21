@@ -132,6 +132,23 @@ impl<const CAP: usize> ArrayString<CAP>
         Ok(vec)
     }
 
+    /// Create a new `ArrayString` from a byte string literal, that can be null-terminated.
+    ///
+    /// **Errors** if the byte string literal is not valid UTF-8.
+    /// ```
+    /// use arrayvec::ArrayString;
+    ///
+    /// let string = ArrayString::from_c_byte_string(b"hello\0world").unwrap();
+    /// assert_eq!(&string,"hello")
+    /// ```
+    pub fn from_c_byte_string(b: &[u8; CAP]) -> Result<Self, Utf8Error> {
+        let mut result = Self::from_byte_string(b)?;
+        if let Some(i) = &result.find('\0') {
+            result.truncate(*i);
+        }
+        Ok(result)
+    }
+
     /// Create a new `ArrayString` value fully filled with ASCII NULL characters (`\0`). Useful
     /// to be used as a buffer to collect external data or as a buffer for intermediate processing.
     ///
