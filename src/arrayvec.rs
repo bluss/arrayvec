@@ -916,17 +916,29 @@ impl<Z: zeroize::Zeroize, const CAP: usize> zeroize::Zeroize for ArrayVec<Z, CAP
 /// By-value iterator for `ArrayVec`.
 pub struct IntoIter<T, const CAP: usize> {
     index: usize,
+    // Invariant: `self.index <= self.v.len()` and only `self.index..self.v.len()` are initialized.
+    // Slots `0..self.index` have been moved out, so `self.v` must not be dereferenced as a slice.
     v: ArrayVec<T, CAP>,
 }
 impl<T, const CAP: usize> IntoIter<T, CAP> {
     /// Returns the remaining items of this iterator as a slice.
     pub fn as_slice(&self) -> &[T] {
-        &self.v[self.index..]
+        let len = self.v.len() - self.index;
+        // Safety: `self.index <= self.v.len() <= CAP` keeps `add(self.index)` in bounds of
+        // `self.v.xs`; `self.index..self.v.len()` are initialized and borrowed via `&self`.
+        unsafe {
+            slice::from_raw_parts(self.v.as_ptr().add(self.index), len)
+        }
     }
 
     /// Returns the remaining items of this iterator as a mutable slice.
     pub fn as_mut_slice(&mut self) -> &mut [T] {
-        &mut self.v[self.index..]
+        let len = self.v.len() - self.index;
+        // Safety: `self.index <= self.v.len() <= CAP` keeps `add(self.index)` in bounds of
+        // `self.v.xs`; `self.index..self.v.len()` are initialized and exclusively borrowed via `&mut self`.
+        unsafe {
+            slice::from_raw_parts_mut(self.v.as_mut_ptr().add(self.index), len)
+        }
     }
 }
 
@@ -987,7 +999,7 @@ where T: Clone,
 {
     fn clone(&self) -> IntoIter<T, CAP> {
         let mut v = ArrayVec::new();
-        v.extend_from_slice(&self.v[self.index..]);
+        v.extend_from_slice(self.as_slice());
         v.into_iter()
     }
 }
@@ -998,7 +1010,7 @@ where
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_list()
-            .entries(&self.v[self.index..])
+            .entries(self.as_slice())
             .finish()
     }
 }

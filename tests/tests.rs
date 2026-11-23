@@ -118,6 +118,33 @@ fn test_iter() {
 }
 
 #[test]
+fn test_into_iter_slices() {
+    // Dropped moved-out prefix + one-past-the-end (`index == len == CAP`).
+    let mut iter = ArrayVec::from([Box::new(1), Box::new(2), Box::new(3)]).into_iter();
+    drop(iter.next().unwrap());
+    assert_eq!(iter.as_slice(), &[Box::new(2), Box::new(3)]);
+    *iter.as_mut_slice()[0] = 20;
+    assert_eq!(iter.clone().as_slice(), &[Box::new(20), Box::new(3)]);
+    assert_eq!(format!("{:?}", iter), "[20, 3]");
+    drop(iter.next().unwrap());
+    drop(iter.next().unwrap());
+    assert_eq!(iter.as_slice(), &[]);
+    assert_eq!(iter.as_mut_slice(), &[]);
+
+    // Live exclusive `&mut` in moved-out prefix must remain writable.
+    let (mut a, mut b) = (1, 2);
+    let mut iter = ArrayVec::from([&mut a, &mut b]).into_iter();
+    let first = iter.next().unwrap();
+    *first = 10;
+    assert_eq!(*iter.as_slice()[0], 2);
+    *iter.as_mut_slice()[0] = 20;
+    assert_eq!(format!("{:?}", iter), "[20]");
+    *first = 11;
+    drop(iter);
+    assert_eq!((a, b), (11, 20));
+}
+
+#[test]
 fn test_drop() {
     use std::cell::Cell;
 
