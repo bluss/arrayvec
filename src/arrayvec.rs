@@ -257,6 +257,48 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         ArrayVecImpl::clear(self)
     }
 
+    /// Resizes the `ArrayVec` in-place so that `len` is equal to `new_len`.
+    ///
+    /// If `new_len` is greater than `len`, the `ArrayVec` is extended by
+    /// the difference, with each additional slot filled with the result of
+    /// calling the closure `f`. The return values from `f` will end up in the
+    /// `ArrayVec` in the order they have been generated.
+    ///
+    /// If `new_len` is less than or equal to `len`, the `ArrayVec` is simply
+    /// truncated.
+    ///
+    /// This method uses a closure to create new values on every push. If
+    /// you'd rather [`Clone`] a given value, use [`ArrayVec::resize`]. If
+    /// you want to use the [`Default`] to generate values, you can pass
+    /// [`Default::default`] as the second argument.
+    ///
+    /// ***Panics*** if extending the vector exceeds its capacity.
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut vec: ArrayVec<_, 5> = (1..=3).collect();
+    /// vec.resize_with(5, Default::default);
+    /// assert_eq!(&vec[..], &[1, 2, 3, 0, 0]);
+    ///
+    /// let mut vec = ArrayVec::<_, 4>::new();
+    /// let mut p = 1;
+    /// vec.resize_with(4, || { p *= 2; p });
+    /// assert_eq!(&vec[..], &[2, 4, 8, 16]);
+    /// ```
+    #[track_caller]
+    pub fn resize_with<F>(&mut self, new_len: usize, f: F)
+    where
+        F: FnMut() -> T,
+    {
+        let old_len = self.len();
+
+        if new_len > old_len {
+            self.extend(iter::repeat_with(f).take(new_len - old_len));
+        } else if old_len > new_len {
+            self.truncate(new_len);
+        }
+    }
 
     /// Get pointer to where element at `index` would be
     unsafe fn get_unchecked_ptr(&mut self, index: usize) -> *mut T {
@@ -804,6 +846,52 @@ impl<T, const CAP: usize> From<[T; CAP]> for ArrayVec<T, CAP> {
     }
 }
 
+impl<T, const CAP: usize> ArrayVec<T, CAP>
+where
+    T: Clone,
+{
+    /// Resizes the `ArrayVec` in-place so that `len` is equal to `new_len`.
+    ///
+    /// If `new_len` is greater than `len`, the `ArrayVec` is extended by the
+    /// difference, with each additional slot filled with `value`. If `new_len`
+    /// is less than or equal to `len`, the `ArrayVec` is simply truncated.
+    ///
+    /// This method requires T to implement Clone, in order to be able to clone the
+    /// passed value. If you need more flexibility (or want to rely on Default instead
+    /// of Clone), use Vec::resize_with. If you only need to resize to a smaller size,
+    /// use Vec::truncate.
+    ///
+    /// This method uses a closure to create new values on every push. If
+    /// you'd rather [`Clone`] a given value, use [`ArrayVec::resize`]. If
+    /// you want to use the [`Default`] to generate values, you can pass
+    /// [`Default::default`] as the second argument.
+    ///
+    /// ***Panics*** if extending the vector exceeds its capacity.
+    ///
+    ///
+    /// ```
+    /// use arrayvec::ArrayVec;
+    ///
+    /// let mut vec: ArrayVec<_, 3> = ArrayVec::new();
+    /// vec.push('a');
+    /// vec.resize(3, 'b');
+    /// assert_eq!(&vec[..], &['a', 'b', 'b']);
+    ///
+    /// let mut vec = ArrayVec::from(['a', 'b', 'c', 'd']);
+    /// vec.resize(2, 'X');
+    /// assert_eq!(&vec[..], &['a', 'b']);
+    /// ```
+    #[track_caller]
+    pub fn resize(&mut self, new_len: usize, value: T) {
+        let old_len = self.len();
+
+        if new_len > old_len {
+            self.extend(iter::repeat(value).take(new_len - old_len));
+        } else if old_len > new_len {
+            self.truncate(new_len);
+        }
+    }
+}
 
 /// Try to create an `ArrayVec` from a slice. This will return an error if the slice was too big to
 /// fit.

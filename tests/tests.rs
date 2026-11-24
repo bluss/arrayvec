@@ -279,8 +279,40 @@ fn test_drop_panics() {
         // Check that all the tail elements drop, even if the first drop panics.
         assert_eq!(flag.get(), tail_len as i32);
     }
+}
 
+#[test]
+fn test_resize() {
+    let mut v: ArrayVec<i32, 8> = ArrayVec::new();
+    v.push(1);
+    v.resize(5, 0);
+    assert_eq!(&v[..], &[1, 0, 0, 0, 0]);
 
+    v.resize(2, -1);
+    assert_eq!(&v[..], &[1, 0]);
+}
+
+#[test]
+fn test_resize_with() {
+    let mut v: ArrayVec<i32, 8> = (1..=3).collect();
+    v.resize_with(5, Default::default);
+    assert_eq!(&v[..], &[1, 2, 3, 0, 0]);
+
+    let mut v: ArrayVec<i32, 8> = ArrayVec::new();
+    let mut p = 1;
+    v.resize_with(4, || {
+        p *= 2;
+        p
+    });
+    assert_eq!(&v[..], &[2, 4, 8, 16]);
+}
+
+#[should_panic]
+#[test]
+fn test_resize_capacity_panic() {
+    let mut v: ArrayVec<i32, 2> = ArrayVec::new();
+    v.push(1);
+    v.resize(3, 0);
 }
 
 #[test]
