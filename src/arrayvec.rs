@@ -923,7 +923,7 @@ pub struct IntoIter<T, const CAP: usize> {
 impl<T, const CAP: usize> IntoIter<T, CAP> {
     /// Returns the remaining items of this iterator as a slice.
     pub fn as_slice(&self) -> &[T] {
-        let len = self.v.len() - self.index;
+        let len = self.len();
         // Safety: `self.index <= self.v.len() <= CAP` keeps `add(self.index)` in bounds of
         // `self.v.xs`; `self.index..self.v.len()` are initialized and borrowed via `&self`.
         unsafe {
@@ -933,7 +933,7 @@ impl<T, const CAP: usize> IntoIter<T, CAP> {
 
     /// Returns the remaining items of this iterator as a mutable slice.
     pub fn as_mut_slice(&mut self) -> &mut [T] {
-        let len = self.v.len() - self.index;
+        let len = self.len();
         // Safety: `self.index <= self.v.len() <= CAP` keeps `add(self.index)` in bounds of
         // `self.v.xs`; `self.index..self.v.len()` are initialized and exclusively borrowed via `&mut self`.
         unsafe {
@@ -946,7 +946,7 @@ impl<T, const CAP: usize> Iterator for IntoIter<T, CAP> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.index == self.v.len() {
+        if self.len() == 0 {
             None
         } else {
             unsafe {
@@ -958,14 +958,14 @@ impl<T, const CAP: usize> Iterator for IntoIter<T, CAP> {
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let len = self.v.len() - self.index;
+        let len = self.len();
         (len, Some(len))
     }
 }
 
 impl<T, const CAP: usize> DoubleEndedIterator for IntoIter<T, CAP> {
     fn next_back(&mut self) -> Option<Self::Item> {
-        if self.index == self.v.len() {
+        if self.len() == 0 {
             None
         } else {
             unsafe {
@@ -977,7 +977,11 @@ impl<T, const CAP: usize> DoubleEndedIterator for IntoIter<T, CAP> {
     }
 }
 
-impl<T, const CAP: usize> ExactSizeIterator for IntoIter<T, CAP> { }
+impl<T, const CAP: usize> ExactSizeIterator for IntoIter<T, CAP> {
+    fn len(&self) -> usize {
+        self.v.len() - self.index
+    }
+}
 
 impl<T, const CAP: usize> Drop for IntoIter<T, CAP> {
     fn drop(&mut self) {
