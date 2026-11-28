@@ -707,8 +707,8 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     pub unsafe fn into_inner_unchecked(self) -> [T; CAP] {
         debug_assert_eq!(self.len(), self.capacity());
         let self_ = ManuallyDrop::new(self);
-        let array = ptr::read(self_.as_ptr() as *const [T; CAP]);
-        array
+        
+        ptr::read(self_.as_ptr() as *const [T; CAP])
     }
 
     /// Returns the ArrayVec, replacing the original with a new empty ArrayVec.
@@ -721,7 +721,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     /// assert!(v.is_empty());
     /// ```
     pub fn take(&mut self) -> Self  {
-        mem::replace(self, Self::new())
+        std::mem::take(self)
     }
 
     /// Return a slice containing all elements of the vector.
@@ -1143,7 +1143,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
         let ptr = self.as_mut_ptr();
 
         // WritebackGuard updates self.len on drop (both success and panic).
-        let mut guard = WritebackGuard { target: &mut self.len, len: len };
+        let mut guard = WritebackGuard { target: &mut self.len, len };
 
         // Take elements from the input iterator and write them into
         // the arrayvec, as long as there is capacity left.

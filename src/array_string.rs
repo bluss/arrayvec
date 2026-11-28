@@ -311,10 +311,7 @@ impl<const CAP: usize> ArrayString<CAP>
     /// assert_eq!(s.pop(), None);
     /// ```
     pub fn pop(&mut self) -> Option<char> {
-        let ch = match self.chars().rev().next() {
-            Some(ch) => ch,
-            None => return None,
-        };
+        let ch = self.chars().next_back()?;
         let new_len = self.len() - ch.len_utf8();
         unsafe {
             self.set_len(new_len);
@@ -686,7 +683,7 @@ impl<'a, const CAP: usize> TryFrom<fmt::Arguments<'a>> for ArrayString<CAP>
     fn try_from(f: fmt::Arguments<'a>) -> Result<Self, Self::Error> {
         use fmt::Write;
         let mut v = Self::new();
-        v.write_fmt(f).map_err(|e| CapacityError::new(e))?;
+        v.write_fmt(f).map_err(CapacityError::new)?;
         Ok(v)
     }
 }

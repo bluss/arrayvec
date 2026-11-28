@@ -14,7 +14,7 @@ impl<T> CapacityError<T> {
     /// Create a new `CapacityError` from `element`.
     pub const fn new(element: T) -> CapacityError<T> {
         CapacityError {
-            element: element,
+            element,
         }
     }
 
@@ -29,7 +29,7 @@ impl<T> CapacityError<T> {
     }
 }
 
-const CAPERROR: &'static str = "insufficient capacity";
+const CAPERROR: &str = "insufficient capacity";
 
 #[cfg(feature="std")]
 /// Requires `features="std"`.
