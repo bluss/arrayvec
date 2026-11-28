@@ -52,6 +52,7 @@ harness = false
 [features]
 default = ["std"]
 std = []
+may_dangle = []
 
 [profile.bench]
 debug = true
