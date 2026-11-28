@@ -1134,6 +1134,7 @@ impl<T, const CAP: usize> ArrayVec<T, CAP> {
     ///
     /// If CHECK is false, the iterator must yield at most `CAP - len()` elements.
     #[track_caller]
+    #[allow(clippy::explicit_counter_loop)]
     unsafe fn extend_from_iter<I, const CHECK: bool>(&mut self, iter: I)
         where I: Iterator<Item = T>
     {
