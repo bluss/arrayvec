@@ -1,6 +1,26 @@
 Recent Changes (arrayvec)
 =========================
 
+## 0.7.9
+
+- Fix UB in `IntoIter` slice, `Clone`, and `Debug` methods by
+  [@Snehal-Reddy](https://github.com/Snehal-Reddy)
+  [#332](https://github.com/bluss/arrayvec/pull/332)
+- Fix stacked borrows violation in `retain` panic path by
+  [@niklasf](https://github.com/niklasf)
+  [#326](https://github.com/bluss/arrayvec/pull/326)
+- Avoid `.clear()` in `ArrayVec` `Drop` if `T` doesn't need to drop by
+  [@barakugav](https://github.com/barakugav)
+  [#330](https://github.com/bluss/arrayvec/pull/330)
+- Optimize `ArrayVec::clone()` to behave like `Copy` when `T: Copy` by
+  [@barakugav](https://github.com/barakugav)
+  [#315](https://github.com/bluss/arrayvec/pull/315)
+- Simplify the code in optimized `extend` by
+  [@bluss](https://github.com/bluss)
+  [#316](https://github.com/bluss/arrayvec/pull/316)
+- Update README by [@atouchet](https://github.com/atouchet)
+  [#313](https://github.com/bluss/arrayvec/pull/313)
+
 ## 0.7.8
 
 - Fix tests on 32-bit architectures by skipping them by [@decathorpe](https://github.com/decathorpe) [#312](https://github.com/bluss/arrayvec/pull/312).
