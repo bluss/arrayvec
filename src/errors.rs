@@ -43,7 +43,7 @@ impl<T> fmt::Display for CapacityError<T> {
 
 impl<T> fmt::Debug for CapacityError<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}: {}", "CapacityError", CAPERROR)
+        write!(f, "{}: {}", stringify!(CapacityError), CAPERROR)
     }
 }
 

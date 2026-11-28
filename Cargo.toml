@@ -64,3 +64,6 @@ features = ["borsh", "serde", "zeroize"]
 [package.metadata.release]
 no-dev-version = true
 tag-name = "{{version}}"
+
+[lints.clippy]
+while_let_on_iterator = "allow"
